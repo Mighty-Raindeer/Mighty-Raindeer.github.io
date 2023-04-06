@@ -84,6 +84,7 @@
     width: 2rem;
     min-width: 2rem;
     margin: 0 1.5rem;
+    transition: var(--transistion-speed-long);
   }
   
   .fa-primary {
@@ -94,6 +95,10 @@
     color: #1055d3;
   }
   
+.fa-group{
+  color: #467fe9;
+}
+
   .fa-primary,
   .fa-secondary {
     transition: var(--transition-speed);
@@ -127,7 +132,8 @@
   }
   
   .navbar:hover .logo svg {
-    transform: rotate(-180deg);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
   }
   
   /* Small screens */
