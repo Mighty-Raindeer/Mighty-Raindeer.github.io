@@ -221,3 +221,11 @@ main {
 .solar #solarIcon {
   display: block;
 }
+
+.tools {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 0.5rem;
+  background-color: #000000;
+}
