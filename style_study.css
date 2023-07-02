@@ -1,0 +1,21 @@
+h1 {
+    color: #efefef;
+    font-size: 2em;
+    text-align: center;
+}
+
+h3 {
+    color: lightcyan;
+    font-size: 1em;
+    text-align: center;
+}
+
+p1 {
+    color: lightgrey;
+    font-size: 1em;
+    text-align: center;
+}
+
+body {
+    background-color: #333;
+}

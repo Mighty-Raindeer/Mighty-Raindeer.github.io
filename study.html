@@ -1,27 +1,99 @@
 <study>
-<h1>ABR Study Guide</h1>
-  
-<p>
-    Here I want to provide study information for the ABR part 1,2,and 3 exams. Links will work fine. I would like to use this as an updated study guide to jpnyleon (sp?)
-</p>
+ <!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+.collapsible {
+  background-color: #777;
+  color: white;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
 
-<p>
-    <a href="https://aapm.onlinelibrary.wiley.com/doi/epdf/10.1118/1.598691">
-        TG-51 - Reference Dosimetry
-    </a>
-</p>
+.active, .collapsible:hover {
+  background-color: #555;
+}
 
-<p>
-    <a href="https://international.anl.gov/training/materials/AX/Publications/RPT_142.pdf">
-        TG-142 - QA for Medical Accelerators
-    </a>
-</p>
+.collapsible:after {
+  content: '\002B';
+  color: white;
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
 
-<p>
-    <a href="https://aapm.onlinelibrary.wiley.com/doi/pdf/10.1118/1.3438081">
-        TG-101 SBRT
-    </a>
-</p>
+.active:after {
+  content: "\2212";
+}
+
+.content {
+  padding: 0 18px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  background-color: #f1f1f1;
+}
+</style>
+</head>
+<body>
+
+<h2>Med Phys Study Prep</h2>
+
+<p>Each section is broken up into major topics that is then organized by subtopic. I will be continueally adding to the space and updating is as PDFs change. </p>
+<button class="collapsible">Instruments and Devices</button>
+<div class="content">
+  <p>test</p>
+</div>
+
+<button class="collapsible">Machines and Sources</button>
+<div class="content">
+  <p>test</p>
+</div>
+<button class="collapsible">QA and Measurement</button>
+<div class="content">
+  <p>test</p>
+</div>
+<button class="collapsible">Planning and Treatment</button>
+<div class="content">
+  <p>test</p>
+</div>
+<button class="collapsible">Imaging and Diagnostics</button>
+<div class="content">
+  <p>test</p>
+</div>
+<button class="collapsible">Radiation Saftey</button>
+<div class="content">
+  <p>test</p>
+</div>
+<button class="collapsible">Code and Scipting</button>
+<div class="content">
+  <p>test</p>
+</div>
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.maxHeight){
+      content.style.maxHeight = null;
+    } else {
+      content.style.maxHeight = content.scrollHeight + "px";
+    } 
+  });
+}
+</script>
+
+</body>
+</html>
 
 
 </study>
