@@ -1,8 +1,8 @@
-<study>
- <!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Collapsible Sections</title>
 <style>
 .collapsible {
   background-color: #777;
@@ -44,18 +44,13 @@
 <body>
 
 <h2>Med Phys Study Prep</h2>
-
-<p>Each section is broken up into major topics that is then organized by subtopic. I will be continueally adding to the space and updating is as PDFs change. </p>
-<button class="collapsible">Instruments and Devices</button>
-<div class="content">
-  <p>test</p>
-</div>
+<p>Each section is broken up into major topics that are then organized by subtopic. I will be continually adding to the space and updating it as PDFs change.</p>
 
 <button class="collapsible">Machines and Sources</button>
 <div class="content">
   <p>test</p>
 </div>
-<button class="collapsible">QA and Measurement</button>
+<button type="button" class="collapsible">QA and Measurement</button>
 <div class="content">
   <p>test</p>
 </div>
@@ -75,25 +70,27 @@
 <div class="content">
   <p>test</p>
 </div>
-<script>
-var coll = document.getElementsByClassName("collapsible");
-var i;
 
-for (i = 0; i < coll.length; i++) {
-  coll[i].addEventListener("click", function() {
-    this.classList.toggle("active");
-    var content = this.nextElementSibling;
-    if (content.style.maxHeight){
-      content.style.maxHeight = null;
-    } else {
-      content.style.maxHeight = content.scrollHeight + "px";
-    } 
-  });
-}
+<!-- Other Sections... -->
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+  var coll = document.getElementsByClassName("collapsible");
+  var i;
+  for (let i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      let content = this.nextElementSibling;
+      if (content.style.maxHeight) {
+        content.style.maxHeight = null;
+      } else {
+        content.style.maxHeight = content.scrollHeight + "px";
+      }
+    });
+  }
+});
 </script>
 
 </body>
 </html>
 
-
-</study>

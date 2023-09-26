@@ -1,36 +1,7 @@
-<script>
-function loadContent(page) {
-  var xhr = new XMLHttpRequest();
-
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      document.getElementById('contentContainer').innerHTML = xhr.responseText;
-
-      // Add class to main container based on HTML content
-      var mainContainer = document.getElementById('contentContainer');
-      if (page === 'home.html') {
-        mainContainer.className = 'main-style-1';
-      } else if (page === 'codes.html' || page === 'tools.html' || page === 'projects.html') {
-        mainContainer.className = 'main-style-2';
-      } else if (page === 'study.html') {
-        mainContainer.className = 'main-style-3';
-      }
-    } else {
-      document.getElementById('contentContainer').innerHTML = '<p>Error loading content.</p>';
-    }
-  };
-  xhr.onerror = function() {
-    document.getElementById('contentContainer').innerHTML = '<p>Error loading content.</p>';
-  };
-
-  xhr.open('GET', page, true);
-  xhr.send();
-}
-
-  loadContent('home.html');
-  </script>
+<html lang="en" >
   
-
+<title> Main Theme</title>
+<meta charset="UTF-8">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script defer src="theme.js"></script>
@@ -40,6 +11,38 @@ function loadContent(page) {
       href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&display=swap"
       rel="stylesheet"
     />
+
+    <script>
+      function loadContent(page) {
+        var xhr = new XMLHttpRequest();
+      
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            document.getElementById('contentContainer').innerHTML = xhr.responseText;
+      
+            // Add class to main container based on HTML content
+            var mainContainer = document.getElementById('contentContainer');
+            if (page === 'home.html') {
+              mainContainer.className = 'main-style-1';
+            } else if (page === 'codes.html' || page === 'tools.html' || page === 'projects.html') {
+              mainContainer.className = 'main-style-2';
+            } else if (page === 'study.html') {
+              mainContainer.className = 'main-style-3';
+            }
+          } else {
+            document.getElementById('contentContainer').innerHTML = '<p>Error loading content.</p>';
+          }
+        };
+        xhr.onerror = function() {
+          document.getElementById('contentContainer').innerHTML = '<p>Error loading content.</p>';
+        };
+      
+        xhr.open('GET', page, true);
+        xhr.send();
+      }
+      
+        loadContent('home.html');
+        </script>
   </head>
   
   <body>
@@ -306,3 +309,4 @@ function loadContent(page) {
 
     </main>
   </body>
+  </html>

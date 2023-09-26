@@ -38,7 +38,7 @@ main {
   position: fixed;
   background-color: var(--bg-primary);
   transition: width 600ms ease;
-  overflow: scroll;
+  overflow: auto;
 }
 
 .navbar-nav {
@@ -131,9 +131,10 @@ main {
 }
 
 .navbar:hover .logo svg {
-  -webkit-transform: scaleX(-1);
-  transform: scaleX(-1);
+  -webkit-transform: scaleX(-1); /* For Safari */
+  transform: scaleX(-1); /* Standard Syntax */
 }
+
 
 /* Small screens */
 @media only screen and (max-width: 600px) {
