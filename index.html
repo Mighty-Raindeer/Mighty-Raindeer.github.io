@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script defer src="theme.js"></script>
+    <script defer src="scripts/theme.js"></script>
 
-    <link rel="stylesheet" href="style_navbar.css" />
+    <link rel="stylesheet" href="styles/style_navbar.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -24,11 +24,11 @@
       
             // Add class to main container based on HTML content
             var mainContainer = document.getElementById('contentContainer');
-            if (page === 'cv.html') {
+            if (page === 'pages/cv.html') {
               mainContainer.className = 'main-style-1';
-            } else if (page === 'codes.html' || page === 'tools.html' || page === 'home.html') {
+            } else if (page === 'pages/codes.html' || page === 'pages/tools.html' || page === 'pages/home.html') {
               mainContainer.className = 'main-style-2';
-            } else if (page === 'study.html') {
+            } else if (page === 'pages/study.html') {
               mainContainer.className = 'main-style-3';
             }
           } else {
@@ -43,7 +43,7 @@
         xhr.send();
       }
       
-        loadContent('CV.html');
+        loadContent('pages/CV.html');
         </script>
   </head>
   
@@ -51,7 +51,7 @@
     <nav class="navbar">
       <ul class="navbar-nav">
         <li class="logo">
-          <a href="#" class="nav-link" onclick="loadContent('cv.html')">
+          <a href="#" class="nav-link" onclick="loadContent('pages/cv.html')">
             <span class="link-text logo-text">Mighty-Raindeer</span>
             <svg
               aria-hidden="true"
@@ -109,7 +109,7 @@
         </li>
   
         <li class="nav-item">
-          <a href="#" class="nav-link" onclick="loadContent('study.html')">
+          <a href="#" class="nav-link" onclick="loadContent('pages/study.html')">
             <svg
               aria-hidden="true"
               focusable="false"
@@ -138,7 +138,7 @@
         </li>
   
         <li class="nav-item">
-          <a href="#" class="nav-link" onclick="loadContent('codes.html')">
+          <a href="#" class="nav-link" onclick="loadContent('pages/codes.html')">
             <svg
               aria-hidden="true"
               focusable="false"
@@ -167,7 +167,7 @@
         </li>
   
         <li class="nav-item">
-          <a href="#" class="nav-link" onclick="loadContent('home.html')">
+          <a href="#" class="nav-link" onclick="loadContent('pages/home.html')">
             <svg
               aria-hidden="true"
               focusable="false"
@@ -196,7 +196,7 @@
         </li>
   
         <li class="nav-item">
-          <a href="#" class="nav-link" onclick="loadContent('tools.html')">
+          <a href="#" class="nav-link" onclick="loadContent('pages/tools.html')">
             <svg
               aria-hidden="true"
               focusable="false"
