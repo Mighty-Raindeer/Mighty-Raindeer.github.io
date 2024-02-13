@@ -12,22 +12,22 @@
 
 }
 
-body {
+.navbarbody {
   color: rgb(190, 203, 231);
   background-color: rgb(28, 41, 53);
   margin: 0;
   padding: 0;
 }
 
-body::-webkit-scrollbar {
+.navbarbody::-webkit-scrollbar {
   width: 0.25rem;
 }
 
-body::-webkit-scrollbar-track {
+.navbarbody::-webkit-scrollbar-track {
   background: #1e1e24;
 }
 
-body::-webkit-scrollbar-thumb {
+.navbarbody::-webkit-scrollbar-thumb {
   background: #6649b8;
 }
 
@@ -41,6 +41,7 @@ main {
   background-color: var(--bg-primary);
   transition: width 600ms ease;
   overflow: auto;
+  z-index: 1000;
 }
 
 .navbar-nav {
