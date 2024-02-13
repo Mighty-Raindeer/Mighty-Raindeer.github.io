@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Collapsible Sections</title>
+<style>
+.collapsible {
+  background-color: #777;
+  color: white;
+  cursor: pointer;
+  padding: 18px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+}
+
+.active, .collapsible:hover {
+  background-color: #555;
+}
+
+.collapsible:after {
+  content: '\002B';
+  color: white;
+  font-weight: bold;
+  float: right;
+  margin-left: 5px;
+}
+
+.active:after {
+  content: "\2212";
+}
+
+.content {
+  padding: 0 18px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  background-color: #f1f1f1;
+}
+</style>
+</head>
+<body>
+
+<h2>Med Phys Study Prep</h2>
+<p>Each section is broken up into major topics that are then organized by subtopic. I will be continually adding to the space and updating it as PDFs change.</p>
+
+<button class="collapsible">Machines and Sources</button>
+<div class="content">
+  <p>live update</p>
+</div>
+<button type="button" class="collapsible">QA and Measurement</button>
+<div class="content">
+  <p>test</p>
+</div>
+<button class="collapsible">Planning and Treatment</button>
+<div class="content">
+  <p>test</p>
+</div>
+<button class="collapsible">Imaging and Diagnostics</button>
+<div class="content">
+  <p>test</p>
+</div>
+<button class="collapsible">Radiation Saftey</button>
+<div class="content">
+  <p>test</p>
+</div>
+<button class="collapsible">Code and Scipting</button>
+<div class="content">
+  <p>test</p>
+</div>
+
+<!-- Other Sections... -->
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+  var coll = document.getElementsByClassName("collapsible");
+  var i;
+  for (let i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      let content = this.nextElementSibling;
+      if (content.style.maxHeight) {
+        content.style.maxHeight = null;
+      } else {
+        content.style.maxHeight = content.scrollHeight + "px";
+      }
+    });
+  }
+});
+</script>
+
+</body>
+</html>
+

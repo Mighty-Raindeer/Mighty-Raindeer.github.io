@@ -9,7 +9,7 @@
   --transition-speed-short: 400ms;
   --transistion-speed-long: 800ms;
   text-align: center;
-  
+
 }
 
 body {
@@ -133,8 +133,10 @@ main {
 }
 
 .navbar:hover .logo svg {
-  -webkit-transform: scaleX(-1); /* For Safari */
-  transform: scaleX(-1); /* Standard Syntax */
+  -webkit-transform: scaleX(-1);
+  /* For Safari */
+  transform: scaleX(-1);
+  /* Standard Syntax */
 }
 
 
@@ -245,16 +247,22 @@ ul.no-bullets-small {
   padding: 0;
   font-size: smaller;
 }
+
 p {
   margin-left: auto;
   margin-right: auto;
-  width: 50ch; /* change to your preferences */
-  }
-  
-li{
+  width: 50ch;
+  /* change to your preferences */
+}
+
+li {
   margin-left: auto;
   margin-right: auto;
-    width: 60ch;
-    margin-top: 10px;
-    margin-top: 10px;
-    }
+  width: 60ch;
+  margin-top: 10px;
+  margin-top: 10px;
+}
+
+.fill-red {
+  fill: red;
+}
