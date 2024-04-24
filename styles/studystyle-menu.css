@@ -3,7 +3,7 @@
   --card-color: rgb(23, 23, 23);
 }
 
-body {
+.study-menu {
   align-items: center;
   background-color: var(--bg-color);
   display: flex;
