@@ -13,40 +13,49 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
       rel="stylesheet" />
 
-    <script>
-function loadContent(page) {
-  var xhr = new XMLHttpRequest();
-
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      document.getElementById('contentContainer').innerHTML = xhr.responseText;
-
-      // Add class to main container based on HTML content
-      var mainContainer = document.getElementById('contentContainer');
-      if (page === 'pages/CV.html') {
-        mainContainer.className = 'main-style-1';
-      } else if (page === 'pages/codes.html' || page === 'pages/tools.html' || page === 'pages/home.html') {
-        mainContainer.className = 'main-style-2';
-      } else if (page === 'pages/study.html') {
-        mainContainer.className = 'main-style-3';
-      }
-    } else {
-      document.getElementById('contentContainer').innerHTML = '<p>Error loading content. Status: ' + xhr.status + '</p>';
-    }
-  };
-
-  xhr.onerror = function(e) {
-    console.error('XHR error occurred:', e); // Log the error to console for debugging
-    document.getElementById('contentContainer').innerHTML = '<p>Error loading content. Please check the console for more details.</p>';
-  };
-
-  xhr.open('GET', page, true);
-  xhr.send();
-}
-      
-        loadContent('pages/CV.html');
+      <script>
+        function loadContent(page) {
+          var xhr = new XMLHttpRequest();
+        
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              const contentContainer = document.getElementById('contentContainer');
+              contentContainer.innerHTML = xhr.responseText;
+        
+              // Update class based on loaded page
+              if (page === 'pages/CV.html') {
+                contentContainer.className = 'main-style-1';
+              } else if (page === 'pages/codes.html' || page === 'pages/tools.html' || page === 'pages/home.html') {
+                contentContainer.className = 'main-style-2';
+              } else if (page === 'pages/study.html') {
+                contentContainer.className = 'main-style-3';
+              }
+        
+              // Call a function to initialize or bind events to the newly loaded content
+              initializeNewContent();
+            } else {
+              contentContainer.innerHTML = '<p>Error loading content. Status: ' + xhr.status + '</p>';
+            }
+          };
+        
+          xhr.onerror = function() {
+            console.error('XHR error occurred:', xhr); // Log the error to console for debugging
+            document.getElementById('contentContainer').innerHTML = '<p>Error loading content. Please check the console for more details.</p>';
+          };
+        
+          xhr.open('GET', page, true);
+          xhr.send();
+        }
+        
+        function initializeNewContent() {
+          // Initialize or bind any JavaScript behavior needed on new content
+          // For example, binding click events, initializing sliders, etc.
+          console.log('New content initialized.');
+        }
         </script>
-  </head>
+        
+
+</head>
 
   <body class="navbarbody">
     <nav class="navbar">
