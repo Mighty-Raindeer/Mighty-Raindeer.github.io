@@ -1,128 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Cards</title>
+<style>
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
 
-  <link rel="stylesheet" href="../styles/studystyle-menu.css" />
-  <script defer src="../scripts/studymenu.js"></script>
+    .card {
+      width: 300px; /* Adjust based on preference */
+      margin: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .card-content {
+      padding: 10px;
+    }
+
+    .card-expanded-content {
+      display: none; /* Hide detailed content initially */
+      padding: 10px;
+      border-top: 1px solid #ccc;
+    }
+
+    .expand-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      float: right;
+    }
+</style>
 </head>
-<body class="study-menu">
-
-<div id="cards">
+<body>
+<div id="cards" class="cards">
+  <!-- Example for one card, repeat for others -->
   <div class="card">
+    <button class="expand-btn">+</button>
     <div class="card-content">
       <div class="card-image">
-        <i class="fa-duotone fa-apartment"></i>
-      </div>
-      <div class="card-info-wrapper">
-        <div class="card-info">
-          <i class="fa-duotone fa-apartment"></i>
-          <div class="card-info-title">
-            <h3>Linacs</h3>
-            <h4>From RF waveguides the jaw apperature</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-content">
-      <div class="card-image">
-        <i class="fa-duotone fa-unicorn"></i>
-      </div>
-      <div class="card-info-wrapper">
-        <div class="card-info">
-          <i class="fa-duotone fa-unicorn"></i>
-          <div class="card-info-title">
-            <h3>Radioactive sources and material</h3>
-            <h4>LDR, HDR, infusion, imaging</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-content">
-      <div class="card-image">
-        <?xml version="1.0"
-        ?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-        <svg width="100px" height="100px" viewBox="0 0 24 24"
-          data-name="025_SCIENCE" id="_025_SCIENCE"
-          xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:#333;}</style></defs><path
-            class="cls-1"
-            d="M12,13a1,1,0,0,1-1-1,1,1,0,0,1,.08-.38,1,1,0,0,1,.21-.33l.15-.12.18-.09L11.8,11a1,1,0,0,1,.91.27,1.15,1.15,0,0,1,.21.33A1,1,0,0,1,13,12a1,1,0,0,1-1,1Z" /><path
-            class="cls-1"
-            d="M12,13a1,1,0,0,1-1-1,1,1,0,0,1,.08-.38,1,1,0,0,1,.21-.33l.15-.12.18-.09L11.8,11a1,1,0,0,1,.91.27,1.15,1.15,0,0,1,.21.33A1,1,0,0,1,13,12a1,1,0,0,1-1,1Z" /><path
-            class="cls-1"
-            d="M12,13a1,1,0,0,1-1-1,1,1,0,0,1,.08-.38,1,1,0,0,1,.21-.33l.15-.12.18-.09L11.8,11a1,1,0,0,1,.91.27,1.15,1.15,0,0,1,.21.33A1,1,0,0,1,13,12a1,1,0,0,1-1,1Z" /><path
-            class="cls-1"
-            d="M7.5,20.79a1,1,0,0,1-.5-.14A10,10,0,0,1,2,12a1,1,0,0,1,1-1h9a1,1,0,0,1,.87.5,1,1,0,0,1,0,1l-4.5,7.79a1,1,0,0,1-.61.46A.75.75,0,0,1,7.5,20.79ZM4.06,13a8.06,8.06,0,0,0,3.11,5.37L10.27,13Z" /><path
-            class="cls-1"
-            d="M16.5,20.79a.75.75,0,0,1-.26,0,1,1,0,0,1-.61-.46l-4.5-7.79a1,1,0,1,1,1.74-1l4,6.87A8.06,8.06,0,0,0,19.94,13H17.09a1,1,0,0,1,0-2H21a1,1,0,0,1,1,1,10,10,0,0,1-5,8.65A1,1,0,0,1,16.5,20.79Z" /><path
-            class="cls-1"
-            d="M12,13a1,1,0,0,1-.87-.5L6.64,4.71A1,1,0,0,1,7,3.35a10.08,10.08,0,0,1,10,0,1,1,0,0,1,.36,1.36L12.87,12.5A1,1,0,0,1,12,13ZM8.9,4.63,12,10l3.1-5.37A8,8,0,0,0,8.9,4.63Z" /><path
-            class="cls-1" d="M12,9a3,3,0,1,0,3,3A3,3,0,0,0,12,9Z" /></svg>
+        <!-- Your image or icon -->
       </div>
       <div class="card-info-wrapper">
         <div class="card-info">
           <div class="card-info-title">
             <h3>Radiation Saftey</h3>
-            <h4>Time, Distance, Shielding</h4>
+            <h4>Time, Distance, Sheilding, ALARA</h4>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-content">
-      <div class="card-image">
-        <i class="fa-duotone fa-person-to-portal"></i>
-      </div>
-      <div class="card-info-wrapper">
-        <div class="card-info">
-          <i class="fa-duotone fa-person-to-portal"></i>
-          <div class="card-info-title">
-            <h3>Measurment and QA</h3>
-            <h4>What devices and why</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-content">
-      <div class="card-image">
-        <i class="fa-duotone fa-person-from-portal"></i>
-      </div>
-      <div class="card-info-wrapper">
-        <div class="card-info">
-          <div class="card-info-title">
-            <h3>Imaging</h3>
-            <h4>CT, MR, PET</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-content">
-      <div class="card-image">
-        <?xml version="1.0" encoding="utf-8"?>
-        <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-        <svg width="100px" height="100px" viewBox="0 0 1024 1024" class="icon"
-          version="1.1" xmlns="http://www.w3.org/2000/svg"><path
-            d="M528 872c1.6-16 16-28.8 32-28.8 14.4 0 27.2 9.6 30.4 24l56-3.2c4.8 0 8 3.2 8 8s-3.2 8-8 8l-57.6 3.2c-3.2 14.4-16 24-30.4 24-12.8 0-25.6-8-30.4-20.8l-144 9.6c-4.8 0-8-3.2-8-8s3.2-8 8-8l144-8z m-94.4-320c3.2-14.4 16-24 30.4-24s27.2 9.6 30.4 24H640c4.8 0 8 3.2 8 8s-3.2 8-8 8h-145.6c-3.2 14.4-16 24-30.4 24s-27.2-9.6-30.4-24h-41.6c-4.8 0-8-3.2-8-8s3.2-8 8-8h41.6z m112-56c3.2-14.4 16-24 30.4-24 12.8 0 24 8 28.8 19.2l33.6-3.2c4.8 0 8 3.2 8 8s-3.2 8-8 8l-30.4 3.2c-1.6 16-14.4 28.8-32 28.8-14.4 0-27.2-9.6-30.4-24l-168 16c-4.8 0-8-3.2-8-8s3.2-8 8-8l168-16z m-96-361.6c3.2-12.8 16-22.4 30.4-22.4 16 0 30.4 12.8 32 28.8l128 11.2c4.8 0 8 4.8 8 8s-4.8 8-8 8l-129.6-11.2c-4.8 11.2-16 19.2-30.4 19.2-16 0-28.8-11.2-32-25.6L376 144c-4.8 0-8-4.8-8-8 0-4.8 4.8-8 8-8l73.6 6.4z m-14.4 305.6c-4.8 1.6-8 0-9.6-4.8-1.6-4.8 0-8 4.8-9.6l160-56c4.8-1.6 8 0 9.6 4.8 1.6 4.8 0 8-4.8 9.6l-160 56z m1.6-216c-4.8-1.6-6.4-6.4-4.8-11.2 1.6-4.8 6.4-6.4 11.2-4.8l152 64c4.8 1.6 6.4 6.4 4.8 11.2-1.6 4.8-6.4 6.4-11.2 4.8l-152-64z m-38.4-40c-4.8-1.6-6.4-4.8-6.4-9.6 1.6-4.8 4.8-6.4 9.6-6.4l224 48c4.8 1.6 6.4 4.8 6.4 9.6-1.6 4.8-4.8 6.4-9.6 6.4l-224-48z m-30.4-80c-4.8 0-8-3.2-8-8s3.2-8 8-8h288c4.8 0 8 3.2 8 8s-3.2 8-8 8H368z m235.2 656l-152 64c-4.8 1.6-8 0-11.2-4.8-1.6-4.8 0-8 4.8-11.2l152-64c4.8-1.6 8 0 11.2 4.8 1.6 4.8-1.6 9.6-4.8 11.2zM406.4 848l216-48c4.8-1.6 8 1.6 9.6 6.4 1.6 4.8-1.6 8-6.4 9.6l-216 48c-4.8 1.6-8-1.6-9.6-6.4 0-4.8 1.6-8 6.4-9.6zM368 936c-4.8 0-8-3.2-8-8s3.2-8 8-8h288c4.8 0 8 3.2 8 8s-3.2 8-8 8H368z m25.6-448c-4.8 1.6-8-1.6-9.6-6.4-1.6-4.8 1.6-8 6.4-9.6l232-48c4.8-1.6 8 1.6 9.6 6.4 1.6 4.8-1.6 8-6.4 9.6l-232 48z m20.8 120c-4.8 0-8-4.8-6.4-9.6s4.8-8 9.6-6.4l208 24c4.8 0 8 4.8 6.4 9.6 0 4.8-4.8 8-9.6 6.4l-208-24z m62.4 40c-4.8-1.6-6.4-6.4-4.8-9.6s6.4-6.4 9.6-4.8l112 40c4.8 1.6 6.4 6.4 4.8 9.6s-6.4 6.4-9.6 4.8l-112-40z"
-            fill="#2F4BFF" /><path
-            d="M553.6 305.6C611.2 240 640 171.2 640 80c0-9.6 6.4-16 16-16s16 6.4 16 16c0 100.8-33.6 177.6-97.6 249.6 62.4 70.4 89.6 126.4 89.6 198.4 0 68.8-25.6 123.2-80 185.6C641.6 776 672 848 672 944c0 9.6-6.4 16-16 16s-16-6.4-16-16c0-86.4-25.6-150.4-78.4-208-12.8 12.8-27.2 27.2-43.2 41.6-4.8 4.8-51.2 46.4-64 57.6-22.4 20.8-36.8 36.8-48 52.8-16 20.8-22.4 38.4-22.4 56 0 9.6-6.4 16-16 16s-16-6.4-16-16c0-25.6 9.6-49.6 28.8-75.2 12.8-17.6 28.8-35.2 52.8-56 12.8-11.2 59.2-54.4 64-57.6 16-14.4 28.8-27.2 41.6-40-11.2-11.2-24-20.8-36.8-32-12.8-9.6-89.6-64-107.2-80-28.8-24-43.2-48-43.2-75.2 0-19.2 8-38.4 22.4-56 12.8-16 28.8-32 56-54.4 6.4-6.4 32-25.6 35.2-28.8 14.4-11.2 25.6-20.8 36.8-30.4 11.2-9.6 20.8-19.2 30.4-28.8l-35.2-35.2c-1.6-1.6-33.6-33.6-43.2-41.6-16-16-28.8-28.8-40-41.6-41.6-48-62.4-88-62.4-131.2 0-9.6 6.4-16 16-16s16 6.4 16 16c0 33.6 17.6 67.2 54.4 108.8 11.2 12.8 22.4 24 38.4 40 9.6 9.6 40 40 43.2 41.6 11.2 12.8 22.4 24 33.6 35.2z m6.4 385.6c48-56 72-104 72-163.2 0-60.8-24-112-78.4-174.4-9.6 9.6-19.2 19.2-30.4 28.8 11.2-9.6-105.6 88-123.2 108.8-11.2 12.8-16 25.6-16 36.8 0 16 9.6 32 32 51.2 16 14.4 91.2 67.2 105.6 78.4 14.4 11.2 27.2 20.8 38.4 33.6z"
-            fill="#050D42" /></svg>
-      </div>
-      <div class="card-info-wrapper">
-        <div class="card-info">
-
-          <div class="card-info-title">
-            <h3>Planning and RadioBiology</h3>
-            <h4>3D, IMRT, VMAT, Non-coplaner</h4>
+          <div class="card-expanded-content">
+            <!-- Detailed content to show on expand -->
+            <p>More detailed information, links, images, etc.</p>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+<div id="cards" class="cards">
+  <!-- Example for one card, repeat for others -->
+  <div class="card">
+    <button class="expand-btn">+</button>
+    <div class="card-content">
+      <div class="card-image">
+        <!-- Your image or icon -->
+      </div>
+      <div class="card-info-wrapper">
+        <div class="card-info">
+          <div class="card-info-title">
+            <h3>Card Title</h3>
+            <h4>Subtitle or brief info</h4>
+          </div>
+          <div class="card-expanded-content">
+            <!-- Detailed content to show on expand -->
+            <p>More detailed information, links, images, etc.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="cards" class="cards">
+  <!-- Example for one card, repeat for others -->
+  <div class="card">
+    <button class="expand-btn">+</button>
+    <div class="card-content">
+      <div class="card-image">
+        <!-- Your image or icon -->
+      </div>
+      <div class="card-info-wrapper">
+        <div class="card-info">
+          <div class="card-info-title">
+            <h3>Card Title</h3>
+            <h4>Subtitle or brief info</h4>
+          </div>
+          <div class="card-expanded-content">
+            <!-- Detailed content to show on expand -->
+            <p>More detailed information, links, images, etc.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="cards" class="cards">
+  <!-- Example for one card, repeat for others -->
+  <div class="card">
+    <button class="expand-btn">+</button>
+    <div class="card-content">
+      <div class="card-image">
+        <!-- Your image or icon -->
+      </div>
+      <div class="card-info-wrapper">
+        <div class="card-info">
+          <div class="card-info-title">
+            <h3>Card Title</h3>
+            <h4>Subtitle or brief info</h4>
+          </div>
+          <div class="card-expanded-content">
+            <!-- Detailed content to show on expand -->
+            <p>More detailed information, links, images, etc.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="cards" class="cards">
+  <!-- Example for one card, repeat for others -->
+  <div class="card">
+    <button class="expand-btn">+</button>
+    <div class="card-content">
+      <div class="card-image">
+        <!-- Your image or icon -->
+      </div>
+      <div class="card-info-wrapper">
+        <div class="card-info">
+          <div class="card-info-title">
+            <h3>Card Title</h3>
+            <h4>Subtitle or brief info</h4>
+          </div>
+          <div class="card-expanded-content">
+            <!-- Detailed content to show on expand -->
+            <p>More detailed information, links, images, etc.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.expand-btn').forEach(button => {
+  button.addEventListener('click', function() {
+    let expandedContent = this.nextElementSibling.querySelector('.card-expanded-content');
+    if (expandedContent.style.display === 'block') {
+      expandedContent.style.display = 'none';
+      this.textContent = '+';
+    } else {
+      expandedContent.style.display = 'block';
+      this.textContent = '-';
+    }
+  });
+});
+</script>
 </body>
+</html>

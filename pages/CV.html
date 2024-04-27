@@ -79,6 +79,25 @@
     transition: all 0.3s ease-in-out; /* Smooth transition for the hover effect */
 }
 
+.summary {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    margin: auto;
+    max-width: 600px;
+
+
+}
+.summary h2, .summary p {
+    width: 100%;             /* Ensures these elements take up full width of the container */
+    word-wrap: break-word;   /* Allows long words to break and wrap onto the next line */
+}
+.text-center {
+    text-align: center; /* This should already be part of your CSS, ensuring h2 is centered */
+}
 
     
     svg {
@@ -86,9 +105,10 @@
       height: var(--svg-size);
       color: var(--primary-color);
     }
-    @media (max-width: 768px) {
+    @media (max-width: 600px) {
       .summary, .work-experience, .additional-experience {
         padding: 10px;
+        max-width: 100%;
       }
       p, li {
         font-size: 0.9rem;
@@ -159,20 +179,11 @@
       <!-- summary section -->
       <div class="summary">
         <h2 class="text-center">Summary</h2>
-        <p>A passionate clinical physics problem solver with extensive
-          operations, clinical and research experience. A dynamic communicator
-          with team building experience in clinical and business environments.
-          An experienced team leader who has a track record of success.</p>
-
-        <p>Providing patients with quality radiation therapy care is my passion,
-          using my practical experience and skillset I can help improve any
-          clinic. My communication, initiative, and team oriented approach makes
-          me a great member to any team.</p>
-
-        <p>Always open to chat about clinical improvements, software
-          implementation, future technology development, or the weather.</p>
-
-      </div>
+        <p>A passionate clinical physics problem solver with extensive operations, clinical and research experience. A dynamic communicator with team building experience in clinical and business environments. An experienced team leader who has a track record of success.</p>
+        <p>Providing patients with quality radiation therapy care is my passion, using my practical experience and skillset I can help improve any clinic. My communication, initiative, and team oriented approach makes me a great member to any team.</p>
+        <p>Always open to chat about clinical improvements, software implementation, future technology development, or the weather.</p>
+    </div>
+    
 
       <hr>
       <!-- work experience section -->
