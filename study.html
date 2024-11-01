@@ -133,28 +133,49 @@
             margin-bottom: 1rem;
         }
 
-        .tools-section {
-            border-top: 1px solid var(--border-color);
-            padding-top: 1rem;
-            margin-top: 1rem;
-        }
+
 
         .tool-link {
-            display: block;
-            color: var(--link-color);
-            text-decoration: none;
-            padding: 0.5rem 0;
-            transition: color 0.2s;
-        }
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        background: var(--bg-card);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
 
-        .tool-link:hover {
-            color: var(--accent-primary);
-        }
+    .tool-link:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent-primary);
+        background: var(--bg-secondary);
+    }
 
-        .tool-link i {
-            margin-right: 0.5rem;
-        }
+    .tool-icon {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+    }
 
+    .tool-description {
+        margin-left: auto;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+
+    .tools-section {
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .tools-section h3 {
+        color: var(--accent-primary);
+        margin-bottom: 0.5rem;
+    }
         @media (max-width: 768px) {
             #menuBtn {
                 display: block;
@@ -189,6 +210,59 @@
     </nav>
 
     <main class="main-content">
+
+        <div class="section" id="tools">
+            <h1 class="section-title">Clinical Tools</h1>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Radiation Safety Tools</h2>
+                    <span class="toggle">+</span>
+                </div>
+                <div class="card-content">
+                    <ul class="content-list">
+                        <li>Shielding Calculations</li>
+                        <li>Radiation Survey Planning</li>
+                        <li>Dose Monitoring</li>
+                    </ul>
+                    <div class="tools-section">
+                        <h3>Available Tools</h3>
+                        <a href="modules/tools/shield-calc.html" class="tool-link">
+                            <i class="tool-icon">🛡️</i>
+                            Shielding Calculator
+                            <span class="tool-description">Calculate radiation barrier requirements for different source types</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header">
+                    <h2>Beam Data Analysis</h2>
+                    <span class="toggle">+</span>
+                </div>
+                <div class="card-content">
+                    <ul class="content-list">
+                        <li>Depth Dose Analysis</li>
+                        <li>Profile Analysis</li>
+                        <li>Output Factor Analysis</li>
+                    </ul>
+                    <div class="tools-section">
+                        <h3>Available Tools</h3>
+                        <a href="modules/tools/pdd-vis.html" class="tool-link">
+                            <i class="tool-icon">📊</i>
+                            PDD Visualization
+                            <span class="tool-description">Interactive visualization of percent depth dose curves</span>
+                        </a>
+                        <a href="modules/tools/profile-vis.html" class="tool-link">
+                            <i class="tool-icon">📈</i>
+                            Profile Analysis
+                            <span class="tool-description">Beam profile comparison and analysis tool</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="section" id="radiation-safety">
             <h1 class="section-title">Radiation Safety</h1>
             

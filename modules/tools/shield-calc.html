@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiation Shielding Calculator</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --highlight-color: rgba(255, 87, 34, 0.2);
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .calculator-section, .diagram-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            color: var(--accent-primary);
+            margin-top: 0;
+        }
+
+        .diagram-container {
+            width: 100%;
+            aspect-ratio: 1;
+            position: relative;
+            background: var(--bg-card);
+            border-radius: 4px;
+        }
+
+        .measurement-point {
+            cursor: pointer;
+            fill: var(--accent-primary);
+            stroke: white;
+            stroke-width: 1;
+            transition: fill 0.2s ease;
+        }
+
+        .measurement-point:hover {
+            fill: var(--accent-hover);
+        }
+
+        .measurement-point.active {
+            fill: var(--accent-hover);
+            stroke-width: 2;
+            filter: drop-shadow(0 0 4px var(--accent-primary));
+        }
+
+        .control-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-card);
+            border-radius: 8px;
+        }
+
+        .equation-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            font-family: 'Times New Roman', serif;
+        }
+
+        .equation-display ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .equation-display li {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator-section">
+            <h2>Shielding Calculator</h2>
+            
+            <div class="control-panel">
+                <div class="form-group">
+                    <label for="source-type">Radiation Source:</label>
+                    <select id="source-type">
+                        <option value="cobalt">Cobalt-60</option>
+                        <option value="linac">C-arm LINAC</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="wall-material">Barrier Material:</label>
+                    <select id="wall-material">
+                        <option value="concrete">Concrete</option>
+                        <option value="lead">Lead</option>
+                        <option value="steel">Steel</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="wall-thickness">Barrier Thickness (cm):</label>
+                    <input type="number" id="wall-thickness" min="0" step="0.1" value="20">
+                </div>
+
+                <div class="form-group">
+                    <label for="distance">Distance to Source (m):</label>
+                    <input type="number" id="distance" min="0" step="0.1" value="3">
+                </div>
+            </div>
+
+            <div class="equation-display">
+                <h3>Shielding Equation:</h3>
+                <p>D = D₀ × (1/r²) × e^(-μx)</p>
+                <p>Where:</p>
+                <ul>
+                    <li>D = Dose rate at point of calculation</li>
+                    <li>D₀ = Initial dose rate at 1m</li>
+                    <li>r = Distance from source (m)</li>
+                    <li>μ = Linear attenuation coefficient</li>
+                    <li>x = Shield thickness (cm)</li>
+                </ul>
+            </div>
+
+            <div class="results">
+                <h3>Calculation Results:</h3>
+                <p id="calculation-results">Select a measurement point to calculate shielding requirements.</p>
+            </div>
+        </div>
+
+        <div class="diagram-section">
+            <h2>Interactive Room Diagram</h2>
+            <div class="diagram-container">
+                <svg width="100%" height="100%" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
+                    <!-- Room outline -->
+                    <rect x="50" y="50" width="300" height="300" 
+                          fill="none" stroke="white" stroke-width="2"/>
+                    
+                    <!-- Measurement points -->
+                    <g id="measurement-points">
+                        <circle class="measurement-point" cx="200" cy="35" r="8" 
+                                data-location="Entry Door" data-distance="3"/>
+                        <circle class="measurement-point" cx="365" cy="200" r="8"
+                                data-location="Hallway" data-distance="5"/>
+                        <circle class="measurement-point" cx="35" cy="200" r="8"
+                                data-location="Adjacent Room" data-distance="4"/>
+                        <circle class="measurement-point" cx="200" cy="365" r="8"
+                                data-location="Console Area" data-distance="6"/>
+                    </g>
+                    
+                    <!-- Source point -->
+                    <circle cx="200" cy="200" r="12" fill="yellow" stroke="orange" stroke-width="2"/>
+                    
+                    <!-- Labels -->
+                    <text x="200" y="25" text-anchor="middle" fill="white" font-size="14">Entry Door</text>
+                    <text x="375" y="200" text-anchor="start" fill="white" font-size="14">Hallway</text>
+                    <text x="25" y="200" text-anchor="end" fill="white" font-size="14">Adjacent Room</text>
+                    <text x="200" y="385" text-anchor="middle" fill="white" font-size="14">Console Area</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getAttenuationCoefficient(material, sourceType) {
+            // Realistic attenuation coefficients (cm⁻¹)
+            const coefficients = {
+                concrete: {
+                    cobalt: 0.063,
+                    linac: 0.058
+                },
+                lead: {
+                    cobalt: 0.601,
+                    linac: 0.552
+                },
+                steel: {
+                    cobalt: 0.270,
+                    linac: 0.248
+                }
+            };
+            return coefficients[material][sourceType];
+        }
+
+        function calculateDoseRate(sourceType, distance, thickness, material) {
+            // Initial dose rates at 1m (mSv/hr)
+            const D0 = {
+                cobalt: 1000,
+                linac: 2000
+            };
+
+            const μ = getAttenuationCoefficient(material, sourceType);
+            const transmissionFactor = Math.exp(-μ * thickness);
+            const distanceFactor = 1 / (distance * distance);
+            
+            return D0[sourceType] * distanceFactor * transmissionFactor;
+        }
+
+        function updateCalculation(location, defaultDistance) {
+            const sourceType = document.getElementById('source-type').value;
+            const material = document.getElementById('wall-material').value;
+            const thickness = parseFloat(document.getElementById('wall-thickness').value);
+            const distance = parseFloat(document.getElementById('distance').value) || defaultDistance;
+
+            const doseRate = calculateDoseRate(sourceType, distance, thickness, material);
+            const μ = getAttenuationCoefficient(material, sourceType);
+            const transmissionFactor = Math.exp(-μ * thickness);
+
+            document.getElementById('calculation-results').innerHTML = `
+                <strong>Location:</strong> ${location}<br>
+                <strong>Distance:</strong> ${distance.toFixed(1)} m<br>
+                <strong>Material:</strong> ${material}<br>
+                <strong>Thickness:</strong> ${thickness.toFixed(1)} cm<br>
+                <strong>Transmission Factor:</strong> ${transmissionFactor.toExponential(3)}<br>
+                <strong>Dose Rate:</strong> ${doseRate.toExponential(3)} mSv/hr
+            `;
+        }
+
+        // Add event listeners
+        document.querySelectorAll('.measurement-point').forEach(point => {
+            point.addEventListener('click', (e) => {
+                // Remove active class from all points
+                document.querySelectorAll('.measurement-point').forEach(p => {
+                    p.classList.remove('active');
+                });
+                
+                // Add active class to clicked point
+                e.target.classList.add('active');
+                
+                // Update distance input with point's default distance
+                const defaultDistance = parseFloat(e.target.dataset.distance);
+                document.getElementById('distance').value = defaultDistance;
+                
+                // Calculate for this point
+                updateCalculation(e.target.dataset.location, defaultDistance);
+            });
+        });
+
+        // Add event listeners for input changes
+        ['source-type', 'wall-material', 'wall-thickness', 'distance'].forEach(id => {
+            document.getElementById(id).addEventListener('change', () => {
+                const activePoint = document.querySelector('.measurement-point.active');
+                if (activePoint) {
+                    updateCalculation(activePoint.dataset.location, parseFloat(activePoint.dataset.distance));
+                }
+            });
+        });
+    </script>
+</body>
+</html>
