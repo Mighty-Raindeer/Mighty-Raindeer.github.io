@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/styles.css">
+    <title>Beam Profile Comparison Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 {
+            color: var(--text-primary);
+            margin-top: 0;
+        }
+
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .control-group h3 {
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .toggle-button {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+        }
+
+        .toggle-button:hover {
+            background: var(--bg-secondary);
+            transform: translateY(-1px);
+        }
+
+        .toggle-button.active {
+            background: var(--accent-primary);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        #add-profile {
+            background: var(--accent-primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #add-profile:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        #clear-all {
+            background: #d32f2f;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #clear-all:hover {
+            background: #b71c1c;
+            transform: translateY(-1px);
+        }
+
+        .active-profiles {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .active-profiles h3 {
+            margin-bottom: 1rem;
+        }
+
+        .profile-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .profile-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .profile-item button {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+        }
+
+        .profile-item button:hover {
+            color: var(--accent-hover);
+            transform: scale(1.1);
+        }
+
+        .error-message {
+            background: rgba(255, 87, 34, 0.1);
+            border-left: 4px solid var(--accent-primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            display: none;
+            border-radius: 0 4px 4px 0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .control-group {
+                min-width: 100%;
+            }
+
+            .chart-container {
+                padding: 1rem;
+            }
+
+            .button-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Beam Profile Comparison</h1>
+
+        <div class="error-message" id="error-message"></div>
+        
+        <div class="controls-container">
+            <div class="control-group">
+                <h3>Field Type</h3>
+                <div class="button-grid" id="field-type-toggles">
+                    <button class="toggle-button" data-type="ff">Flattened</button>
+                    <button class="toggle-button" data-type="fff">FFF</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Field Size</h3>
+                <div class="button-grid" id="field-size-toggles">
+                    <button class="toggle-button" data-size="2x2">2×2 cm</button>
+                    <button class="toggle-button" data-size="5x5">5×5 cm</button>
+                    <button class="toggle-button" data-size="10x10">10×10 cm</button>
+                    <button class="toggle-button" data-size="20x20">20×20 cm</button>
+                    <button class="toggle-button" data-size="40x40">40×40 cm</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Depth</h3>
+                <div class="button-grid" id="depth-toggles">
+                    <button class="toggle-button" data-depth="dmax">dmax</button>
+                    <button class="toggle-button" data-depth="5cm">5 cm</button>
+                    <button class="toggle-button" data-depth="10cm">10 cm</button>
+                    <button class="toggle-button" data-depth="20cm">20 cm</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button id="add-profile">Add Selected Profile</button>
+            <button id="clear-all">Clear All Profiles</button>
+        </div>
+
+        <div class="active-profiles">
+            <h3>Active Profiles</h3>
+            <ul class="profile-list" id="active-profiles"></ul>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="profileChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+      const activeProfiles = new Map(); // Store active profile configurations
+      let colorIndex = 0;
+      const colors = [
+          '#ff5722', '#2196f3', '#4caf50', '#9c27b0', 
+          '#ff9800', '#00bcd4', '#f44336', '#3f51b5'
+      ];
+
+      // Get next color from the palette
+      function getNextColor() {
+          const color = colors[colorIndex];
+          colorIndex = (colorIndex + 1) % colors.length;
+          return color;
+      }
+
+      // Initialize chart
+      const ctx = document.getElementById('profileChart').getContext('2d');
+      const chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+              datasets: []
+          },
+          options: {
+              responsive: true,
+              scales: {
+                  x: {
+                      type: 'linear',
+                      title: {
+                          display: true,
+                          text: 'Off-Axis Distance (cm)',
+                          color: 'white'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      },
+                      ticks: {
+                          color: 'white'
+                      }
+                  },
+                  y: {
+                      title: {
+                          display: true,
+                          text: 'Relative Dose (%)',
+                          color: 'white'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      },
+                      ticks: {
+                          color: 'white'
+                      }
+                  }
+              },
+              plugins: {
+                  legend: {
+                      labels: {
+                          color: 'white'
+                      }
+                  }
+              }
+          }
+      });
+
+      async function loadProfileData(filename) {
+          try {
+              const response = await fetch(filename);
+              if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              const text = await response.text();
+              const rows = text.trim().split('\n');
+              const data = rows.slice(1)
+                  .filter(row => row.trim())
+                  .map(row => {
+                      const [x, y] = row.split(',').map(parseFloat);
+                      return { x, y };
+                  });
+              return data;
+          } catch (error) {
+              throw error;
+          }
+      }
+
+      // Update the chart with all active profiles
+      async function updateChart() {
+          try {
+              chart.data.datasets = [];
+              let xMin = Infinity, xMax = -Infinity;
+              let yMin = Infinity, yMax = -Infinity;
+
+              for (const [id, profile] of activeProfiles) {
+                  const data = await loadProfileData(profile.filename);
+                  
+                  // Update axis ranges
+                  data.forEach(point => {
+                      xMin = Math.min(xMin, point.x);
+                      xMax = Math.max(xMax, point.x);
+                      yMin = Math.min(yMin, point.y);
+                      yMax = Math.max(yMax, point.y);
+                  });
+
+                  chart.data.datasets.push({
+                      label: profile.label,
+                      data: data,
+                      borderColor: profile.color,
+                      tension: 0.4,
+                      borderWidth: 2,
+                      pointRadius: 0
+                  });
+              }
+
+              // Set axis ranges with padding
+              if (activeProfiles.size > 0) {
+                  const xPadding = (xMax - xMin) * 0.05;
+                  const yPadding = (yMax - yMin) * 0.05;
+                  chart.options.scales.x.min = xMin - xPadding;
+                  chart.options.scales.x.max = xMax + xPadding;
+                  chart.options.scales.y.min = Math.max(0, yMin - yPadding);
+                  chart.options.scales.y.max = yMax + yPadding;
+              }
+
+              chart.update();
+              document.getElementById('error-message').style.display = 'none';
+          } catch (error) {
+              console.error('Failed to update chart:', error);
+              document.getElementById('error-message').textContent = 'Failed to load profile data';
+              document.getElementById('error-message').style.display = 'block';
+          }
+      }
+
+      // Add a new profile to the chart
+      async function addProfile() {
+          const type = document.querySelector('#field-type-toggles .active')?.dataset.type;
+          const size = document.querySelector('#field-size-toggles .active')?.dataset.size;
+          const depth = document.querySelector('#depth-toggles .active')?.dataset.depth;
+
+          if (!type || !size || !depth) {
+              alert('Please select all profile parameters');
+              return;
+          }
+
+          const filename = `data/profiles/${type}_${size}_${depth}.csv`;
+          const label = `${type.toUpperCase()} ${size} at ${depth}`;
+          const id = `${type}_${size}_${depth}`;
+
+          if (activeProfiles.has(id)) {
+              alert('This profile is already displayed');
+              return;
+          }
+
+          const profile = {
+              filename,
+              label,
+              color: getNextColor()
+          };
+
+          activeProfiles.set(id, profile);
+          updateChart();
+          updateActiveProfilesList();
+      }
+
+      // Remove a profile from the chart
+      function removeProfile(id) {
+          activeProfiles.delete(id);
+          updateChart();
+          updateActiveProfilesList();
+      }
+
+      // Update the list of active profiles
+      function updateActiveProfilesList() {
+          const list = document.getElementById('active-profiles');
+          list.innerHTML = '';
+          activeProfiles.forEach((profile, id) => {
+              const li = document.createElement('li');
+              li.innerHTML = `
+                  <span style="color: ${profile.color}">${profile.label}</span>
+                  <button onclick="removeProfile('${id}')">×</button>
+              `;
+              list.appendChild(li);
+          });
+      }
+
+      // Set up button click handlers
+      document.querySelectorAll('.button-grid .toggle-button').forEach(button => {
+          button.addEventListener('click', (event) => {
+              const group = event.target.closest('.button-grid');
+              group.querySelectorAll('.toggle-button').forEach(btn => {
+                  btn.classList.remove('active');
+              });
+              event.target.classList.add('active');
+          });
+      });
+
+      // Add profile button handler
+      document.getElementById('add-profile').addEventListener('click', addProfile);
+
+      // Clear all button handler
+      document.getElementById('clear-all').addEventListener('click', () => {
+          activeProfiles.clear();
+          updateChart();
+          updateActiveProfilesList();
+          colorIndex = 0;
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+`photon_6mv.csv`:
+```csv
+depth,dose,ssd,field_size
+0,0,100,10
+0.1,15,100,10
+0.2,35,100,10
+0.5,72,100,10
+1.0,98,100,10
+1.5,100,100,10
+2.0,99.5,100,10
+...
+```
+
+Key features of the CSV format:
+1. `depth`: Depth in cm
+2. `dose`: Relative dose as a percentage
+3. `ssd`: Source-to-surface distance (optional)
+4. `field_size`: Field size in cm (optional)
+
+You can add more parameters as needed, like:
+- Temperature
+- Pressure
+- Machine type
+- Measurement date
+- etc.
+
+File naming convention:
+- `[particle_type]_[energy][unit].csv`
+- Example: `photon_6mv.csv`, `electron_12mev.csv`

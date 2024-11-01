@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/styles.css">
+    <title>PDD Visualization Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .toggle-button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            color: white;
+        }
+
+        .toggle-button.active {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-button:not(.active) {
+            opacity: 0.6;
+        }
+
+        .info-panel {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+
+        .info-panel h2 {
+            color: var(--accent-primary);
+            margin-top: 0;
+        }
+
+        .info-panel ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-panel li {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .info-panel li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--accent-primary);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .chart-container {
+                padding: 1rem;
+            }
+
+            .toggle-button {
+                padding: 0.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Depth Dose Curves Comparison</h1>
+        
+        <div class="controls" id="curve-toggles">
+            <!-- Buttons will be added here by JavaScript -->
+        </div>
+
+        <div class="chart-container">
+            <canvas id="pddChart"></canvas>
+        </div>
+
+        <div class="info-panel">
+            <h2>Key Features</h2>
+            <ul>
+                <li>Photon beams show initial build-up followed by exponential decay</li>
+                <li>Electron beams have a relatively flat plateau followed by sharp fall-off</li>
+                <li>Proton beams exhibit the characteristic Bragg peak</li>
+                <li>Higher energies generally have greater penetration depth</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+
+        function parseFloat2(value) {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+}
+// Add this utility function to find appropriate axis limits
+function updateChartAxes() {
+    if (chart.data.datasets.length > 0) {
+        let xMin = Infinity;
+        let xMax = -Infinity;
+        let yMin = Infinity;
+        let yMax = -Infinity;
+
+        chart.data.datasets.forEach(dataset => {
+            dataset.data.forEach(point => {
+                xMin = Math.min(xMin, point.x);
+                xMax = Math.max(xMax, point.x);
+                yMin = Math.min(yMin, point.y);
+                yMax = Math.max(yMax, point.y);
+            });
+        });
+
+        // Add some padding to the limits
+        const xPadding = (xMax - xMin) * 0.05;
+        const yPadding = (yMax - yMin) * 0.05;
+
+        chart.options.scales.x.min = Math.max(0, xMin - xPadding);
+        chart.options.scales.x.max = xMax + xPadding;
+        chart.options.scales.y.min = Math.max(0, yMin - yPadding);
+        chart.options.scales.y.max = yMax + yPadding;
+    }
+}
+
+
+
+      // Chart configuration
+const curveTypes = {
+    photon6MV: {
+        label: '6 MV Photons',
+        color: '#ff5722',
+        filename: 'data/curves/photon_6mv.csv'
+    },
+    photon15MV: {
+        label: '15 MV Photons',
+        color: '#f4511e',
+        filename: 'data/curves/photon_15mv.csv'
+    },
+    electron6MeV: {
+        label: '6 MeV Electrons',
+        color: '#2196f3',
+        filename: 'data/curves/electron_6mev.csv'
+    },
+    electron12MeV: {
+        label: '12 MeV Electrons',
+        color: '#1976d2',
+        filename: 'data/curves/electron_12mev.csv'
+    },
+    proton150MeV: {
+        label: '150 MeV Protons',
+        color: '#4caf50',
+        filename: 'data/curves/proton_150mev.csv'
+    }
+};
+
+// Add this function to load CSV data
+async function loadCurveData(filename) {
+    try {
+        const response = await fetch(filename);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const text = await response.text();
+        const rows = text.trim().split('\n');
+        const headers = rows[0].split(',');
+        const data = rows.slice(1)
+            .filter(row => row.trim()) // Skip empty rows
+            .map(row => {
+                const values = row.split(',');
+                return {
+                    x: parseFloat2(values[0]),  // depth
+                    y: parseFloat2(values[1])   // dose
+                };
+            });
+        return data;
+    } catch (error) {
+        console.error(`Error loading ${filename}:`, error);
+        throw error;
+    }
+}
+
+
+
+        // Create toggle buttons
+        const toggleContainer = document.getElementById('curve-toggles');
+        Object.entries(curveTypes).forEach(([key, curve]) => {
+            const button = document.createElement('button');
+            button.className = 'toggle-button';
+            button.style.backgroundColor = curve.color;
+            button.textContent = curve.label;
+            button.dataset.curveType = key;
+            button.addEventListener('click', toggleCurve);
+            toggleContainer.appendChild(button);
+        });
+
+        // Initialize chart
+        const ctx = document.getElementById('pddChart').getContext('2d');
+        const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        datasets: []
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: {
+                type: 'linear', // Make sure this is set to linear
+                title: {
+                    display: true,
+                    text: 'Depth (cm)',
+                    color: 'white'
+                },
+                min: 0,        // Set minimum value
+                max: 50,       // Set maximum value
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)'
+                },
+                ticks: {
+                    color: 'white',
+                    stepSize: 5 // Optional: set step size between ticks
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Relative Dose (%)',
+                    color: 'white'
+                },
+                min: 0,
+                max: 120,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)'
+                },
+                ticks: {
+                    color: 'white'
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: 'white'
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return `Depth: ${context.parsed.x.toFixed(1)} cm, Dose: ${context.parsed.y.toFixed(1)}%`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+ // Modify the toggleCurve function to update axes
+async function toggleCurve(event) {
+    const button = event.target;
+    const curveType = button.dataset.curveType;
+    button.classList.toggle('active');
+
+    if (button.classList.contains('active')) {
+        try {
+            const data = await loadCurveData(curveTypes[curveType].filename);
+            
+            chart.data.datasets.push({
+                label: curveTypes[curveType].label,
+                data: data,
+                borderColor: curveTypes[curveType].color,
+                tension: 0.4,
+                borderWidth: 2,
+                pointRadius: 0
+            });
+        } catch (error) {
+            console.error('Failed to load curve:', error);
+            button.classList.remove('active');
+            alert('Failed to load curve data');
+            return;
+        }
+    } else {
+        const index = chart.data.datasets.findIndex(
+            dataset => dataset.label === curveTypes[curveType].label
+        );
+        if (index > -1) {
+            chart.data.datasets.splice(index, 1);
+        }
+    }
+    
+    updateChartAxes(); // Update axis limits
+    chart.update();
+}
+        // Show photon6MV by default
+        document.querySelector('[data-curve-type="photon6MV"]').click();
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+/* css/styles.css */
+:root {
+  --bg-primary: #1a1a1a;    
+  --bg-secondary: #242424;   
+  --bg-card: #2d2d2d;       
+  --text-primary: #e0e0e0;   
+  --text-secondary: #b0b0b0; 
+  --accent-primary: #ff5722;  
+  --accent-hover: #f4511e;   
+  --border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Common styles shared between pages */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Montserrat', sans-serif;
+  min-height: 100vh;
+}
+
+/* ... other shared styles ... */
