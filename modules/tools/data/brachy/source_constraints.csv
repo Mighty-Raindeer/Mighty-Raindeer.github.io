@@ -1,0 +1,6 @@
+source_type,dose_rate_constant,active_length,reference_air_kerma_rate,half_life_days,encapsulation_material,wall_thickness_mm,radioactive_material
+AgX100,1.012,0.45,1.0,250.4,titanium,0.05,Ag-110
+IR192HDR,1.109,0.35,1.0,73.83,stainless_steel,0.1,Ir-192
+Cs131,1.046,0.3,1.0,9.7,titanium,0.05,Cs-131
+I125_6711,0.965,0.3,1.0,59.4,titanium,0.05,I-125
+Pd103_2335,0.686,0.425,1.0,17.0,titanium,0.05,Pd-103
