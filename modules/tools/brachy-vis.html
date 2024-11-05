@@ -16,6 +16,7 @@
             --accent-primary: #ff5722;
             --accent-hover: #f4511e;
             --border-color: rgba(255, 255, 255, 0.1);
+            --grid-color: rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -54,7 +55,7 @@
             touch-action: none;
         }
 
-        .control-panel {
+        .control-panel, .results {
             margin-top: 20px;
             padding: 15px;
             background: var(--bg-card);
@@ -68,7 +69,6 @@
         label {
             display: block;
             margin-bottom: 5px;
-            color: var(--text-primary);
         }
 
         select, input {
@@ -78,13 +78,6 @@
             border: 1px solid var(--border-color);
             color: var(--text-primary);
             border-radius: 4px;
-        }
-
-        .results {
-            margin-top: 20px;
-            padding: 15px;
-            background: var(--bg-card);
-            border-radius: 8px;
         }
 
         .toggle-button {
@@ -141,364 +134,344 @@
     </div>
 
     <script>
- class TG43Calculator {
-            constructor(canvas) {
-                this.canvas = canvas;
-                this.setupCanvas();
-                this.bindEvents();
-                this.calcPoint = { x: 200, y: 200 };
-                this.isDragging = false;
-                this.showIsodose = false;
-                this.sourceType = 'AgX100';
-                this.sourceData = null;
-                
-                // Debug log
-                console.log('Calculator initialized');
-            }
+        class TG43Calculator {
+          constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.calcPoint = { x: 200, y: 200 };
+        this.isDragging = false;
+        this.showIsodose = false;
+        this.sourceType = 'AgX100';
+        this.scale = 1;
+        this.sourceData = {};
+        
+        this.setupCanvas();
+        this.bindEvents();
+        this.loadSourceData().then(() => {
+            this.draw();
+        });
+    }
 
-            async initialize() {
-                try {
-                    const constantsText = await window.fs.readFile('data/source_constants.csv', { encoding: 'utf8' });
-                    const constants = await this.parseCSV(constantsText);
-                    this.sourceData = {};
 
-                    // Load initial source data
-                    const initialSource = constants[0];
-                    this.sourceData[initialSource.source_type] = {
-                        doseRateConstant: parseFloat(initialSource.dose_rate_constant),
-                        activeLength: parseFloat(initialSource.active_length)
-                    };
+    async loadSourceData() {
+        try {
+            // Load source constraints
+            const sourceResponse = await fetch('data/brachy/source_constraints.csv');
+            const sourceText = await sourceResponse.text();
+            const sourceConstraints = await this.parseCSV(sourceText);
+            
+            // Initialize sourceData with constraints
+            sourceConstraints.forEach(source => {
+                this.sourceData[source.source_type] = {
+                    doseRateConstant: source.dose_rate_constant,
+                    activeLength: source.active_length,
+                    halfLifeDays: source.half_life_days,
+                    encapsulation: source.encapsulation_material,
+                    wallThickness: source.wall_thickness_mm,
+                    radioactiveMaterial: source.radioactive_material
+                };
+            });
 
-                    console.log('Initial data loaded:', this.sourceData);
-                    this.draw(); // Initial draw after data is loaded
-                } catch (error) {
-                    console.error('Error loading source data:', error);
-                    // Still do initial draw even if data loading fails
-                    this.draw();
-                }
-            }
+            // Load radial dose data for current source
+            await this.loadRadialDoseData(this.sourceType);
+            
+            // Load anisotropy data for current source
+            await this.loadAnisotropyData(this.sourceType);
 
-            async parseCSV(csvText) {
-                return new Promise((resolve) => {
-                    Papa.parse(csvText, {
-                        header: true,
-                        dynamicTyping: true,
-                        skipEmptyLines: true,
-                        complete: (results) => resolve(results.data)
-                    });
-                });
-            }
-
-            setupCanvas() {
-                const container = this.canvas.parentElement;
-                this.canvas.width = container.clientWidth;
-                this.canvas.height = container.clientWidth; // Square aspect ratio
-                this.ctx = this.canvas.getContext('2d');
-                this.scale = this.canvas.width / 400;
-                
-                console.log('Canvas setup:', {
-                    width: this.canvas.width,
-                    height: this.canvas.height,
-                    scale: this.scale
-                });
-            }
+        } catch (error) {
+            console.error('Error loading source data:', error);
+        }
+    }
 
     async loadRadialDoseData(sourceType) {
         try {
-            const response = await window.fs.readFile(`data/brachy/${sourceType}_radial_dose.csv`, { encoding: 'utf8' });
-            return await this.parseCSV(response);
+            const response = await fetch(`data/brachy/${sourceType}_radial_dose.csv`);
+            const text = await response.text();
+            const data = await this.parseCSV(text);
+            this.sourceData[sourceType].radialDoseData = data;
         } catch (error) {
             console.error(`Error loading radial dose data for ${sourceType}:`, error);
-            return [];
         }
     }
 
     async loadAnisotropyData(sourceType) {
         try {
-            const response = await window.fs.readFile(`data/brachy/${sourceType}_anisotropy.csv`, { encoding: 'utf8' });
-            return await this.parseCSV(response);
+            const response = await fetch(`data/brachy/${sourceType}_anisotropy.csv`);
+            const text = await response.text();
+            const data = await this.parseCSV(text);
+            this.sourceData[sourceType].anisotropyData = data;
         } catch (error) {
             console.error(`Error loading anisotropy data for ${sourceType}:`, error);
-            return [];
         }
+    }
+
+    parseCSV(csvText) {
+        return new Promise((resolve) => {
+            Papa.parse(csvText, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: (results) => resolve(results.data)
+            });
+        });
+    }
+
+    async updateSourceType(newType) {
+        this.sourceType = newType;
+        await this.loadRadialDoseData(newType);
+        await this.loadAnisotropyData(newType);
+        this.calculateDose();
+        this.draw();
     }
 
     interpolateRadialDose(r) {
-        const sourceData = this.sourceData[this.sourceType];
-        const data = sourceData.radialDoseData;
-        
+        const data = this.sourceData[this.sourceType].radialDoseData;
+        if (!data) return 1.0; // Default if data not loaded
+
         // Sort by radius
         const sortedData = [...data].sort((a, b) => a.radius_cm - b.radius_cm);
         
-        // Find bracketing points
-        let lower = sortedData[0];
-        let upper = sortedData[sortedData.length - 1];
+        // Handle out of bounds
+        if (r <= sortedData[0].radius_cm) return sortedData[0].g_r;
+        if (r >= sortedData[sortedData.length - 1].radius_cm) return sortedData[sortedData.length - 1].g_r;
         
+        // Find bracketing points
         for (let i = 0; i < sortedData.length - 1; i++) {
             if (sortedData[i].radius_cm <= r && sortedData[i + 1].radius_cm >= r) {
-                lower = sortedData[i];
-                upper = sortedData[i + 1];
-                break;
+                const lower = sortedData[i];
+                const upper = sortedData[i + 1];
+                // Linear interpolation
+                const ratio = (r - lower.radius_cm) / (upper.radius_cm - lower.radius_cm);
+                return lower.g_r + (upper.g_r - lower.g_r) * ratio;
             }
         }
-
-        // Linear interpolation
-        const ratio = (r - lower.radius_cm) / (upper.radius_cm - lower.radius_cm);
-        return lower.g_r + (upper.g_r - lower.g_r) * ratio;
+        return 1.0; // Fallback
     }
 
     interpolateAnisotropy(r, theta) {
-        const sourceData = this.sourceData[this.sourceType];
-        const data = sourceData.anisotropyData;
-        
+        const data = this.sourceData[this.sourceType].anisotropyData;
+        if (!data) return 1.0; // Default if data not loaded
+
         // Find closest radius data points
         const uniqueRadii = [...new Set(data.map(d => d.radius_cm))].sort((a, b) => a - b);
-        let rLower = uniqueRadii[0];
-        let rUpper = uniqueRadii[uniqueRadii.length - 1];
         
+        // Handle out of bounds
+        if (r <= uniqueRadii[0]) return this.interpolateAngle(data.filter(d => d.radius_cm === uniqueRadii[0]), theta);
+        if (r >= uniqueRadii[uniqueRadii.length - 1]) {
+            return this.interpolateAngle(data.filter(d => d.radius_cm === uniqueRadii[uniqueRadii.length - 1]), theta);
+        }
+        
+        // Find bracketing radii
         for (let i = 0; i < uniqueRadii.length - 1; i++) {
             if (uniqueRadii[i] <= r && uniqueRadii[i + 1] >= r) {
-                rLower = uniqueRadii[i];
-                rUpper = uniqueRadii[i + 1];
-                break;
+                const lowerRadiusData = data.filter(d => d.radius_cm === uniqueRadii[i]);
+                const upperRadiusData = data.filter(d => d.radius_cm === uniqueRadii[i + 1]);
+                
+                // Interpolate for each radius
+                const lowerValue = this.interpolateAngle(lowerRadiusData, theta);
+                const upperValue = this.interpolateAngle(upperRadiusData, theta);
+                
+                // Interpolate between radii
+                const ratio = (r - uniqueRadii[i]) / (uniqueRadii[i + 1] - uniqueRadii[i]);
+                return lowerValue + (upperValue - lowerValue) * ratio;
             }
         }
-
-        // Get data for both radii
-        const lowerRadiusData = data.filter(d => d.radius_cm === rLower);
-        const upperRadiusData = data.filter(d => d.radius_cm === rUpper);
-
-        // Interpolate for each radius
-        const lowerValue = this.interpolateAngle(lowerRadiusData, theta);
-        const upperValue = this.interpolateAngle(upperRadiusData, theta);
-
-        // Interpolate between radii
-        const rRatio = (r - rLower) / (rUpper - rLower);
-        return lowerValue + (upperValue - lowerValue) * rRatio;
+        return 1.0; // Fallback
     }
 
     interpolateAngle(radiusData, theta) {
+        // Normalize theta to 0-360
+        theta = (theta + 360) % 360;
+        
         // Sort by angle
         const sortedData = [...radiusData].sort((a, b) => a.angle_deg - b.angle_deg);
         
-        // Find bracketing angles
-        let lower = sortedData[0];
-        let upper = sortedData[sortedData.length - 1];
+        // Handle out of bounds
+        if (theta <= sortedData[0].angle_deg) return sortedData[0].F_r_theta;
+        if (theta >= sortedData[sortedData.length - 1].angle_deg) return sortedData[sortedData.length - 1].F_r_theta;
         
+        // Find bracketing angles
         for (let i = 0; i < sortedData.length - 1; i++) {
             if (sortedData[i].angle_deg <= theta && sortedData[i + 1].angle_deg >= theta) {
-                lower = sortedData[i];
-                upper = sortedData[i + 1];
-                break;
+                const lower = sortedData[i];
+                const upper = sortedData[i + 1];
+                // Linear interpolation
+                const ratio = (theta - lower.angle_deg) / (upper.angle_deg - lower.angle_deg);
+                return lower.F_r_theta + (upper.F_r_theta - lower.F_r_theta) * ratio;
             }
         }
-
-        // Linear interpolation
-        const ratio = (theta - lower.angle_deg) / (upper.angle_deg - lower.angle_deg);
-        return lower.F_r_theta + (upper.F_r_theta - lower.F_r_theta) * ratio;
+        return 1.0; // Fallback
     }
 
-    calculateDose() {
-                const sourceCenter = { 
-                    x: this.canvas.width / 2, 
-                    y: this.canvas.height / 2 
-                };
+            setupCanvas() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientWidth;
+                this.scale = this.canvas.width / 400;
+            }
+
+            bindEvents() {
+                // Mouse events
+                this.canvas.addEventListener('mousedown', this.handlePointerDown.bind(this));
+                this.canvas.addEventListener('mousemove', this.handlePointerMove.bind(this));
+                this.canvas.addEventListener('mouseup', () => this.isDragging = false);
                 
-                const r = Math.sqrt(
-                    Math.pow(this.calcPoint.x - sourceCenter.x, 2) +
-                    Math.pow(this.calcPoint.y - sourceCenter.y, 2)
-                ) * 0.1; // Convert pixels to cm
+                // Touch events
+                this.canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.handlePointerDown(e.touches[0]);
+                });
+                
+                this.canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    this.handlePointerMove(e.touches[0]);
+                });
+                
+                this.canvas.addEventListener('touchend', () => this.isDragging = false);
 
-                const theta = Math.atan2(
-                    this.calcPoint.y - sourceCenter.y,
-                    this.calcPoint.x - sourceCenter.x
-                ) * (180 / Math.PI);
-
-                const activity = parseFloat(document.getElementById('activity').value);
-                let dose = activity * (1 / (r * r)); // Simple inverse square for now
-
-                // If we have source data, use it
-                if (this.sourceData && this.sourceData[this.sourceType]) {
-                    dose *= this.sourceData[this.sourceType].doseRateConstant;
-                }
-
-                document.getElementById('calculation-results').innerHTML = `
-                    <strong>Distance (r):</strong> ${r.toFixed(2)} cm<br>
-                    <strong>Angle (θ):</strong> ${theta.toFixed(1)}°<br>
-                    <strong>Dose Rate:</strong> ${dose.toFixed(3)} cGy/h
-                `;
+                // Window resize
+                window.addEventListener('resize', () => {
+                    this.setupCanvas();
+                    this.draw();
+                });
             }
-            // Add these methods to your TG43Calculator class
 
-bindEvents() {
-    // Mouse events
-    this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
-    this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
-    this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
-    window.addEventListener('resize', this.handleResize.bind(this));
-    
-    // Touch events for mobile
-    this.canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        this.handleMouseDown({
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-    });
-    
-    this.canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        this.handleMouseMove({
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-    });
-    
-    this.canvas.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        this.handleMouseUp();
-    });
-
-    console.log('Events bound successfully');
-}
-
-handleMouseDown(e) {
-    const rect = this.canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-    const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
-    this.isDragging = true;
-    this.calcPoint = { x, y };
-    this.calculateDose();
-    this.draw();
-    
-    console.log('Mouse down:', { x, y });
-}
-
-handleMouseMove(e) {
-    if (!this.isDragging) return;
-    const rect = this.canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-    const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
-    this.calcPoint = { x, y };
-    this.calculateDose();
-    this.draw();
-}
-
-handleMouseUp() {
-    this.isDragging = false;
-}
-
-handleResize() {
-    this.setupCanvas();
-    this.draw();
-}
-
-drawSource() {
-    const centerX = this.canvas.width / 2;
-    const centerY = this.canvas.height / 2;
-    
-    this.ctx.save();
-    this.ctx.translate(centerX, centerY);
-    
-    // Draw source capsule
-    this.ctx.fillStyle = '#ffff00';
-    this.ctx.strokeStyle = '#ff8800';
-    this.ctx.lineWidth = 2;
-    
-    // Scale the source size based on canvas
-    const scaleRatio = this.canvas.width / 400;
-    const capsuleWidth = 20 * scaleRatio;
-    const capsuleHeight = 10 * scaleRatio;
-    
-    this.ctx.beginPath();
-    this.ctx.ellipse(0, 0, capsuleWidth, capsuleHeight, 0, 0, Math.PI * 2);
-    this.ctx.fill();
-    this.ctx.stroke();
-    
-    this.ctx.restore();
-}
-
-drawCalcPoint() {
-    this.ctx.beginPath();
-    this.ctx.arc(this.calcPoint.x, this.calcPoint.y, 5, 0, Math.PI * 2);
-    this.ctx.fillStyle = '#ff5722';
-    this.ctx.fill();
-    this.ctx.strokeStyle = 'white';
-    this.ctx.stroke();
-}
-
-drawIsodoseLines() {
-    if (!this.showIsodose) return;
-
-    const centerX = this.canvas.width / 2;
-    const centerY = this.canvas.height / 2;
-    const doses = [200, 150, 100, 50, 25, 10];
-    const colors = ['#ff0000', '#ff4400', '#ff8800', '#ffbb00', '#ffee00', '#ffffaa'];
-
-    doses.forEach((dose, i) => {
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = colors[i];
-        this.ctx.lineWidth = 1;
-
-        for (let angle = 0; angle < 360; angle += 5) {
-            const r = Math.sqrt(100 / dose) * 50 * this.scale;
-            const x = centerX + r * Math.cos(angle * Math.PI / 180);
-            const y = centerY + r * Math.sin(angle * Math.PI / 180);
-
-            if (angle === 0) {
-                this.ctx.moveTo(x, y);
-            } else {
-                this.ctx.lineTo(x, y);
+            handlePointerDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+                const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+                this.isDragging = true;
+                this.calcPoint = { x, y };
+                this.calculateDose();
+                this.draw();
             }
-        }
 
-        this.ctx.closePath();
-        this.ctx.stroke();
-    });
-}
+            handlePointerMove(e) {
+                if (!this.isDragging) return;
+                const rect = this.canvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
+                const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
+                this.calcPoint = { x, y };
+                this.calculateDose();
+                this.draw();
+            }
+            calculateDose() {
+        const sourceCenter = { 
+            x: this.canvas.width / 2, 
+            y: this.canvas.height / 2 
+        };
+        
+        // Calculate r in cm (10 pixels = 1 cm)
+        const r = Math.sqrt(
+            Math.pow(this.calcPoint.x - sourceCenter.x, 2) +
+            Math.pow(this.calcPoint.y - sourceCenter.y, 2)
+        ) / (10 * this.scale);
 
-draw() {
-    if (!this.ctx) {
-        console.error('No context available');
-        return;
+        // Calculate theta in degrees
+        let theta = Math.atan2(
+            this.calcPoint.y - sourceCenter.y,
+            this.calcPoint.x - sourceCenter.x
+        ) * (180 / Math.PI);
+        
+        // Normalize theta to 0-360 range
+        theta = (theta + 360) % 360;
+
+        const activity = parseFloat(document.getElementById('activity').value);
+        const sourceData = this.sourceData[this.sourceType];
+        
+        if (!sourceData) return;
+
+        // TG-43 formula components
+        const Λ = sourceData.doseRateConstant;
+        const G = 1 / (r * r); // geometric factor (simplified)
+        const g = this.interpolateRadialDose(r);
+        const F = this.interpolateAnisotropy(r, theta);
+        
+        // Calculate dose rate
+        const doseRate = activity * Λ * G * g * F;
+
+        document.getElementById('calculation-results').innerHTML = `
+            <strong>Distance (r):</strong> ${r.toFixed(2)} cm<br>
+            <strong>Angle (θ):</strong> ${theta.toFixed(1)}°<br>
+            <strong>Dose Rate:</strong> ${doseRate.toFixed(3)} cGy/h<br>
+            <strong>Source:</strong> ${sourceData.radioactiveMaterial} (${sourceData.encapsulation})<br>
+            <strong>Half-life:</strong> ${sourceData.halfLifeDays.toFixed(1)} days
+        `;
     }
+            drawSource() {
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const scaleRatio = this.canvas.width / 400;
+                const capsuleWidth = 20 * scaleRatio;
+                const capsuleHeight = 10 * scaleRatio;
+                
+                this.ctx.save();
+                this.ctx.translate(centerX, centerY);
+                this.ctx.fillStyle = '#ffff00';
+                this.ctx.strokeStyle = '#ff8800';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.ellipse(0, 0, capsuleWidth, capsuleHeight, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.stroke();
+                this.ctx.restore();
+            }
 
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    if (this.showIsodose) {
-        this.drawIsodoseLines();
-    }
-    this.drawSource();
-    this.drawCalcPoint();
-    
-    console.log('Draw complete');
-}
+            drawCalcPoint() {
+                this.ctx.beginPath();
+                this.ctx.arc(this.calcPoint.x, this.calcPoint.y, 5, 0, Math.PI * 2);
+                this.ctx.fillStyle = '#ff5722';
+                this.ctx.fill();
+                this.ctx.strokeStyle = 'white';
+                this.ctx.stroke();
+            }
 
-draw() {
-                if (!this.ctx) {
-                    console.error('No context available');
-                    return;
-                }
+            drawIsodoseLines() {
+                if (!this.showIsodose) return;
 
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const doses = [200, 150, 100, 50, 25, 10];
+                const colors = ['#ff0000', '#ff4400', '#ff8800', '#ffbb00', '#ffee00', '#ffffaa'];
+
+                doses.forEach((dose, i) => {
+                    this.ctx.beginPath();
+                    this.ctx.strokeStyle = colors[i];
+                    this.ctx.lineWidth = 1;
+
+                    for (let angle = 0; angle < 360; angle += 5) {
+                        const r = Math.sqrt(100 / dose) * 50 * this.scale;
+                        const x = centerX + r * Math.cos(angle * Math.PI / 180);
+                        const y = centerY + r * Math.sin(angle * Math.PI / 180);
+
+                        if (angle === 0) {
+                            this.ctx.moveTo(x, y);
+                        } else {
+                            this.ctx.lineTo(x, y);
+                        }
+                    }
+
+                    this.ctx.closePath();
+                    this.ctx.stroke();
+                });
+            }
+
+            draw() {
+                if (!this.ctx) return;
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 if (this.showIsodose) {
                     this.drawIsodoseLines();
                 }
                 this.drawSource();
                 this.drawCalcPoint();
-                
-                console.log('Draw complete');
             }
         }
 
         // Initialize calculator when DOM is loaded
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('sourceCanvas');
             const calculator = new TG43Calculator(canvas);
-            await calculator.initialize();
-
-            // Event listeners
+            
             document.getElementById('source-type').addEventListener('change', (e) => {
                 calculator.sourceType = e.target.value;
                 calculator.calculateDose();
@@ -516,5 +489,75 @@ draw() {
             });
         });
     </script>
+    <footer class="disclaimer-footer">
+      <div class="disclaimer-content">
+          <p class="disclaimer-text">
+              <span class="disclaimer-icon">⚠️</span>
+              <strong>Educational Purpose Only:</strong> 
+              This tool is designed for educational and training purposes only. It should not be used for clinical decision-making or patient treatment planning.
+              All calculations and visualizations are approximations and should be verified using commissioned clinical systems.
+          </p>
+          <p class="disclaimer-version">
+              Last Updated: October 2024 | Version 1.0
+          </p>
+      </div>
+  </footer>
+  
+  <style>
+      .disclaimer-footer {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: var(--bg-secondary);
+          border-top: 1px solid var(--border-color);
+          padding: 10px 20px;
+          z-index: 1000;
+      }
+  
+      .disclaimer-content {
+          max-width: 1200px;
+          margin: 0 auto;
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+          text-align: center;
+      }
+  
+      .disclaimer-text {
+          margin: 5px 0;
+          line-height: 1.4;
+      }
+  
+      .disclaimer-icon {
+          font-size: 1.2em;
+          margin-right: 8px;
+          vertical-align: middle;
+      }
+  
+      .disclaimer-version {
+          font-size: 0.8rem;
+          margin-top: 5px;
+          opacity: 0.7;
+      }
+  
+      /* Adjust main content to account for footer */
+      .container {
+          margin-bottom: 100px; /* Adjust based on footer height */
+      }
+  
+      @media (max-width: 768px) {
+          .disclaimer-footer {
+              padding: 8px 12px;
+          }
+          
+          .disclaimer-content {
+              font-size: 0.8rem;
+          }
+          
+          .disclaimer-version {
+              font-size: 0.7rem;
+          }
+      }
+  </style>
 </body>
 </html>
