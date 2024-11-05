@@ -302,6 +302,28 @@
         }
         return 1.0; // Fallback
     }
+    calculateGeometryFactor(r, theta) {
+    // Convert theta to radians for calculations
+    const thetaRad = theta * Math.PI / 180;
+    
+    const activeLength = this.sourceData[this.sourceType].activeLength; // in cm
+    const L = activeLength; // for clarity in formula
+    
+    if (L <= 0.1) { // For sources shorter than 1mm, use point source approximation
+        return 1 / (r * r);
+    } else {
+        // Line source geometry factor
+        if (Math.abs(Math.sin(thetaRad)) < 0.001) { // Special case: theta ≈ 0°
+            return (1 / (L * r)) * Math.log((r - L/2 + Math.sqrt(r*r - r*L + L*L/4)) / 
+                                          (r + L/2 - Math.sqrt(r*r + r*L + L*L/4)));
+        } else {
+            // General case
+            const beta = (Math.atan2(r * Math.cos(thetaRad) - L/2, r * Math.sin(thetaRad)) -
+                        Math.atan2(r * Math.cos(thetaRad) + L/2, r * Math.sin(thetaRad)))*(-1);
+            return beta / (L * r * Math.sin(thetaRad));
+        }
+    }
+}
 
             setupCanvas() {
                 const container = this.canvas.parentElement;
@@ -356,66 +378,111 @@
                 this.draw();
             }
             calculateDose() {
-        const sourceCenter = { 
-            x: this.canvas.width / 2, 
-            y: this.canvas.height / 2 
-        };
-        
-        // Calculate r in cm (10 pixels = 1 cm)
-        const r = Math.sqrt(
-            Math.pow(this.calcPoint.x - sourceCenter.x, 2) +
-            Math.pow(this.calcPoint.y - sourceCenter.y, 2)
-        ) / (10 * this.scale);
+    const sourceCenter = { 
+        x: this.canvas.width / 2, 
+        y: this.canvas.height / 2 
+    };
+    
+    // Calculate r in cm (10 pixels = 1 cm)
+    const r = Math.sqrt(
+        Math.pow(this.calcPoint.x - sourceCenter.x, 2) +
+        Math.pow(this.calcPoint.y - sourceCenter.y, 2)
+    ) / (10 * this.scale);
 
-        // Calculate theta in degrees
-        let theta = Math.atan2(
-            this.calcPoint.y - sourceCenter.y,
-            this.calcPoint.x - sourceCenter.x
-        ) * (180 / Math.PI);
-        
-        // Normalize theta to 0-360 range
-        theta = (theta + 360) % 360;
+    // Calculate theta in degrees
+    let theta = Math.atan2(
+        this.calcPoint.y - sourceCenter.y,
+        this.calcPoint.x - sourceCenter.x
+    ) * (180 / Math.PI);
+    
+    // Normalize theta to 0-360 range
+    theta = (theta + 360) % 360;
 
-        const activity = parseFloat(document.getElementById('activity').value);
-        const sourceData = this.sourceData[this.sourceType];
-        
-        if (!sourceData) return;
+    const activity = parseFloat(document.getElementById('activity').value);
+    const sourceData = this.sourceData[this.sourceType];
+    
+    if (!sourceData) return;
 
-        // TG-43 formula components
-        const Λ = sourceData.doseRateConstant;
-        const G = 1 / (r * r); // geometric factor (simplified)
-        const g = this.interpolateRadialDose(r);
-        const F = this.interpolateAnisotropy(r, theta);
-        
-        // Calculate dose rate
-        const doseRate = activity * Λ * G * g * F;
+    // TG-43 formula components
+    const Λ = sourceData.doseRateConstant;
+    const G = this.calculateGeometryFactor(r, theta);
+    const g = this.interpolateRadialDose(r);
+    const F = this.interpolateAnisotropy(r, theta);
+    
+    // Calculate dose rate
+    const doseRate = activity * Λ * G * g * F;
 
-        document.getElementById('calculation-results').innerHTML = `
-            <strong>Distance (r):</strong> ${r.toFixed(2)} cm<br>
-            <strong>Angle (θ):</strong> ${theta.toFixed(1)}°<br>
-            <strong>Dose Rate:</strong> ${doseRate.toFixed(3)} cGy/h<br>
-            <strong>Source:</strong> ${sourceData.radioactiveMaterial} (${sourceData.encapsulation})<br>
-            <strong>Half-life:</strong> ${sourceData.halfLifeDays.toFixed(1)} days
-        `;
-    }
-            drawSource() {
-                const centerX = this.canvas.width / 2;
-                const centerY = this.canvas.height / 2;
-                const scaleRatio = this.canvas.width / 400;
-                const capsuleWidth = 20 * scaleRatio;
-                const capsuleHeight = 10 * scaleRatio;
-                
-                this.ctx.save();
-                this.ctx.translate(centerX, centerY);
-                this.ctx.fillStyle = '#ffff00';
-                this.ctx.strokeStyle = '#ff8800';
-                this.ctx.lineWidth = 2;
-                this.ctx.beginPath();
-                this.ctx.ellipse(0, 0, capsuleWidth, capsuleHeight, 0, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.stroke();
-                this.ctx.restore();
-            }
+    // Also calculate reference geometry factor for normalization
+    const G0 = this.calculateGeometryFactor(1, 90); // at reference point (r=1cm, θ=90°)
+
+    document.getElementById('calculation-results').innerHTML = `
+        <strong>Distance (r):</strong> ${r.toFixed(2)} cm<br>
+        <strong>Angle (θ):</strong> ${theta.toFixed(1)}°<br>
+        <strong>Geometry Factor (G):</strong> ${G.toFixed(4)}<br>
+        <strong>Radial Dose Function (g):</strong> ${g.toFixed(4)}<br>
+        <strong>Anisotropy Function (F):</strong> ${F.toFixed(4)}<br>
+        <strong>G(r,θ)/G(r₀,θ₀):</strong> ${(G/G0).toFixed(4)}<br>
+        <strong>Dose Rate:</strong> ${doseRate.toFixed(3)} cGy/h<br>
+        <strong>Source:</strong> ${sourceData.radioactiveMaterial} (${sourceData.encapsulation})<br>
+        <strong>Active Length:</strong> ${sourceData.activeLength.toFixed(2)} cm<br>
+        <strong>Half-life:</strong> ${sourceData.halfLifeDays.toFixed(1)} days
+    `;
+}
+    drawSource() {
+    const centerX = this.canvas.width / 2;
+    const centerY = this.canvas.height / 2;
+    const scaleRatio = this.canvas.width / 400;
+    
+    // Make it thinner and more pill-like
+    const capsuleLength = 20 * scaleRatio;  // Length of the pill
+    const capsuleWidth = 4 * scaleRatio;   // Width of the pill - much thinner now
+    const endRadius = capsuleWidth;         // Radius for rounded ends
+    
+    this.ctx.save();
+    this.ctx.translate(centerX, centerY);
+    
+    // Draw the main body
+    this.ctx.fillStyle = '#D3D3D3';  // Light gray for metallic look
+    this.ctx.strokeStyle = '#A9A9A9'; // Darker gray for edge
+    this.ctx.lineWidth = 1;
+    
+    // Draw pill shape
+    this.ctx.beginPath();
+    
+    // Draw the rounded ends and straight sides
+    this.ctx.moveTo(-capsuleLength + endRadius, -capsuleWidth);  // Start at top-left
+    this.ctx.lineTo(capsuleLength - endRadius, -capsuleWidth);   // Top line
+    this.ctx.arc(capsuleLength - endRadius, 0, capsuleWidth, -Math.PI/2, Math.PI/2);  // Right round end
+    this.ctx.lineTo(-capsuleLength + endRadius, capsuleWidth);   // Bottom line
+    this.ctx.arc(-capsuleLength + endRadius, 0, capsuleWidth, Math.PI/2, -Math.PI/2); // Left round end
+    
+    this.ctx.closePath();
+    this.ctx.fill();
+    this.ctx.stroke();
+    
+    // Add inner radioactive core visualization
+    this.ctx.fillStyle = '#FFD700';  // Gold color for active core
+    const coreLength = capsuleLength * 0.7;  // Core is 70% of capsule length
+    const coreWidth = capsuleWidth * 0.5;    // Core is 50% of capsule width
+    
+    this.ctx.beginPath();
+    this.ctx.moveTo(-coreLength + endRadius, -coreWidth);
+    this.ctx.lineTo(coreLength - endRadius, -coreWidth);
+    this.ctx.arc(coreLength - endRadius, 0, coreWidth, -Math.PI/2, Math.PI/2);
+    this.ctx.lineTo(-coreLength + endRadius, coreWidth);
+    this.ctx.arc(-coreLength + endRadius, 0, coreWidth, Math.PI/2, -Math.PI/2);
+    this.ctx.closePath();
+    this.ctx.fill();
+    
+    // Optional: Add highlight for 3D effect
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    this.ctx.beginPath();
+    this.ctx.moveTo(-capsuleLength + endRadius, -capsuleWidth * 0.6);
+    this.ctx.lineTo(capsuleLength - endRadius, -capsuleWidth * 0.6);
+    this.ctx.stroke();
+    
+    this.ctx.restore();
+}
 
             drawCalcPoint() {
                 this.ctx.beginPath();
@@ -427,34 +494,88 @@
             }
 
             drawIsodoseLines() {
-                if (!this.showIsodose) return;
+    if (!this.showIsodose) return;
 
-                const centerX = this.canvas.width / 2;
-                const centerY = this.canvas.height / 2;
-                const doses = [200, 150, 100, 50, 25, 10];
-                const colors = ['#ff0000', '#ff4400', '#ff8800', '#ffbb00', '#ffee00', '#ffffaa'];
+    const centerX = this.canvas.width / 2;
+    const centerY = this.canvas.height / 2;
+    
+    const dosePercentages = [50, 10, 1, 0.5, 0.1, 0.05, 0.025, 0.01];
+    const colors = ['#ff0000', '#ff4400', '#ff8800', '#ffbb00', '#ffee00', '#ffffaa', '#ffee00', '#ffffaa'];
 
-                doses.forEach((dose, i) => {
-                    this.ctx.beginPath();
-                    this.ctx.strokeStyle = colors[i];
-                    this.ctx.lineWidth = 1;
+    const activity = parseFloat(document.getElementById('activity').value);
+    const sourceData = this.sourceData[this.sourceType];
+    if (!sourceData) return;
 
-                    for (let angle = 0; angle < 360; angle += 5) {
-                        const r = Math.sqrt(100 / dose) * 50 * this.scale;
-                        const x = centerX + r * Math.cos(angle * Math.PI / 180);
-                        const y = centerY + r * Math.sin(angle * Math.PI / 180);
+    const L = sourceData.activeLength;
+    const Λ = sourceData.doseRateConstant;
 
-                        if (angle === 0) {
-                            this.ctx.moveTo(x, y);
-                        } else {
-                            this.ctx.lineTo(x, y);
-                        }
+    // Calculate reference dose at 1cm, θ=90°
+    const simpleG0 = 1 / (L * 1); // r = 1 at reference
+    const g0 = this.interpolateRadialDose(1);
+    const F0 = this.interpolateAnisotropy(1, 90);
+    const referenceDose = activity * Λ * simpleG0 * g0 * F0;
+
+    dosePercentages.forEach((percentage, i) => {
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = colors[i];
+        this.ctx.lineWidth = 1;
+
+        for (let angle = 0; angle <= 360; angle += 2) {
+            // Convert angle to radians
+            const angleRad = angle * Math.PI / 180;
+            
+            // Binary search for radius
+            let rMin = 0.1;  // 1mm minimum
+            let rMax = 20;   // 20cm maximum
+            let r = 0;
+            const targetDose = (percentage / 100) * referenceDose;
+
+            for (let iter = 0; iter < 10; iter++) {
+                r = (rMin + rMax) / 2;
+
+                // Simple geometry factor
+                let G;
+                if (r < L/2) {
+                    // Inside active length, use point source approximation
+                    G = 1 / (r * r);
+                } else {
+                    // Outside active length
+                    G = 1 / (L * r);
+                    if (Math.abs(Math.sin(angleRad)) > 0.001) {
+                        G = G / Math.abs(Math.sin(angleRad));
                     }
+                }
 
-                    this.ctx.closePath();
-                    this.ctx.stroke();
-                });
+                const g = this.interpolateRadialDose(r);
+                const F = this.interpolateAnisotropy(r, angle);
+                const currentDose = activity * Λ * G * g * F;
+
+                if (Math.abs(currentDose - targetDose) < 0.01) break;
+                
+                if (currentDose > targetDose) {
+                    rMin = r;
+                } else {
+                    rMax = r;
+                }
             }
+
+            // Convert cm to pixels (10 pixels = 1 cm)
+            const rPixels = r * 10 * this.scale;
+            const x = centerX + rPixels * Math.cos(angleRad);
+            const y = centerY + rPixels * Math.sin(angleRad);
+
+            if (angle === 0) {
+                this.ctx.moveTo(x, y);
+            } else {
+                this.ctx.lineTo(x, y);
+            }
+        }
+
+        this.ctx.closePath();
+        this.ctx.stroke();
+    });
+}
+
 
             draw() {
                 if (!this.ctx) return;
