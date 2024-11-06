@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CT Viewer</title>
+    <style>
+:root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #d3d3d3;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.268);
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .viewer-layout {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .viewer-canvas {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .controls {
+          margin: 0;
+            padding: 2rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .tools {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tool-button {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-button.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .slider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .disclaimer {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .dataset-selector {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .dataset-selector select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: white;
+        }
+
+        .measurement-value {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        /* Add measurement line styling */
+        .measurement-line {
+            position: absolute;
+            border-top: 2px dashed #00ff00;
+            pointer-events: none;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CT Viewer</h1>
+        
+        <div class="dataset-selector">
+          <select id="datasetSelect">
+              <option value="phantom">QA Phantom CT</option>
+              <option value="abdomen">Patient Abdomen CT</option>
+          </select>
+      </div>
+
+        <div class="viewer-layout">
+            <div class="viewer-canvas">
+                <canvas id="ctCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+              <div class="control-group">
+                  <h3>Tools</h3>
+                  <div class="tools">
+                      <button class="tool-button active" data-tool="pan">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M5 9l2 2m0 0l3-3m-3 3l-3-3m3 3l3 3"/>
+                          </svg>
+                          Pan
+                      </button>
+                      <button class="tool-button" data-tool="roi">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <circle cx="12" cy="12" r="10"/>
+                          </svg>
+                          ROI
+                      </button>
+                      <button class="tool-button" data-tool="measure">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M2 12h20M12 2v20"/>
+                          </svg>
+                          Measure
+                      </button>
+                  </div>
+              </div>
+                
+                <div class="control-group">
+                    <h3>Window/Level</h3>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Window Width</span>
+                            <span id="windowWidthValue">400</span>
+                        </div>
+                        <input type="range" min="1" max="4000" value="400" class="slider" id="windowWidth">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Window Level</span>
+                            <span id="windowLevelValue">40</span>
+                        </div>
+                        <input type="range" min="-1000" max="1000" value="40" class="slider" id="windowLevel">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Navigation</h3>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Slice</span>
+                            <span id="sliceValue">1/30</span>
+                        </div>
+                        <input type="range" min="0" max="29" value="0" class="slider" id="sliceSlider">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disclaimer">
+            <strong>⚠️ Educational Purpose Only:</strong> This tool is designed for educational and training purposes only. 
+            It should not be used for clinical decision-making or patient treatment planning. All calculations and 
+            visualizations are approximations and should be verified using commissioned clinical systems.
+        </div>
+    </div>
+
+    <script>
+        class CTViewer {
+            constructor() {
+                this.canvas = document.getElementById('ctCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.windowWidth = 400;
+                this.windowLevel = 40;
+                this.currentSlice = 0;
+                this.currentTool = 'pan';
+                this.isDrawing = false;
+                this.rois = [];
+                this.currentROI = null;
+                
+                // Simulated data
+                this.simulatedData = {
+                    numSlices: 30,
+                    sliceWidth: 512,
+                    sliceHeight: 512,
+                    getPixelValue: (x, y) => Math.sin(x/20) * Math.cos(y/20) * 1000
+                };
+
+                this.currentDataset = 'phantom';
+                this.measurements = [];
+                this.currentMeasurement = null;
+                this.pixelSpacing = { x: 0.5, y: 0.5 }; // mm per pixel, will be updated from DICOM
+
+                this.initializeCanvas();
+                this.setupEventListeners();
+                this.loadDataset();
+
+                this.initializeCanvas();
+                this.setupEventListeners();
+                this.draw();
+            }
+
+            initializeCanvas() {
+                this.canvas.width = this.simulatedData.sliceWidth;
+                this.canvas.height = this.simulatedData.sliceHeight;
+            }
+
+            setupEventListeners() {
+   // Add dataset selector listener
+   document.getElementById('datasetSelect').addEventListener('change', (e) => {
+                    this.currentDataset = e.target.value;
+                    this.rois = [];
+                    this.measurements = [];
+                    this.loadDataset();
+                });
+
+                // Window/Level controls
+                document.getElementById('windowWidth').addEventListener('input', (e) => {
+                    this.windowWidth = parseInt(e.target.value);
+                    document.getElementById('windowWidthValue').textContent = this.windowWidth;
+                    this.draw();
+                });
+
+                document.getElementById('windowLevel').addEventListener('input', (e) => {
+                    this.windowLevel = parseInt(e.target.value);
+                    document.getElementById('windowLevelValue').textContent = this.windowLevel;
+                    this.draw();
+                });
+
+                // Slice navigation
+                document.getElementById('sliceSlider').addEventListener('input', (e) => {
+                    this.currentSlice = parseInt(e.target.value);
+                    document.getElementById('sliceValue').textContent = 
+                        `${this.currentSlice + 1}/${this.simulatedData.numSlices}`;
+                    this.draw();
+                });
+
+                // Tool selection
+                document.querySelectorAll('.tool-button').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        document.querySelectorAll('.tool-button').forEach(b => b.classList.remove('active'));
+                        button.classList.add('active');
+                        this.currentTool = button.dataset.tool;
+                    });
+                });
+
+                // Canvas interactions
+                this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+                this.canvas.addEventListener('mouseleave', this.handleMouseUp.bind(this));
+            }
+            async loadDataset() {
+                try {
+                    const dataset = this.currentDataset;
+                    const path = dataset === 'phantom' ? '/phantom-ct/' : '/abdomen-ct/';
+                    
+                    // In real implementation, load DICOM files from the specified path
+                    // For now, we'll continue with simulated data but structure it like real data
+                    this.simulatedData = {
+                        numSlices: dataset === 'phantom' ? 20 : 30,
+                        sliceWidth: 512,
+                        sliceHeight: 512,
+                        pixelSpacing: dataset === 'phantom' ? { x: 0.5, y: 0.5 } : { x: 0.7, y: 0.7 },
+                        getPixelValue: (x, y) => {
+                            if (dataset === 'phantom') {
+                                // Simulate phantom with distinct density regions
+                                const region = Math.floor(x/100) + Math.floor(y/100);
+                                return [1000, -1000, 500, -500][region % 4];
+                            } else {
+                                // Simulate more organic-looking abdomen data
+                                return Math.sin(x/20) * Math.cos(y/20) * 1000;
+                            }
+                        }
+                    };
+                    
+                    this.pixelSpacing = this.simulatedData.pixelSpacing;
+                    this.draw();
+                } catch (error) {
+                    console.error('Error loading dataset:', error);
+                }
+            }
+
+            calculateROIStatistics(roi) {
+                let sum = 0;
+                let squareSum = 0;
+                let count = 0;
+                
+                for(let y = roi.y - roi.radius; y <= roi.y + roi.radius; y++) {
+                    for(let x = roi.x - roi.radius; x <= roi.x + roi.radius; x++) {
+                        if (Math.sqrt((x-roi.x)**2 + (y-roi.y)**2) <= roi.radius) {
+                            const value = this.simulatedData.getPixelValue(Math.floor(x), Math.floor(y));
+                            sum += value;
+                            squareSum += value * value;
+                            count++;
+                        }
+                    }
+                }
+                
+                const mean = sum / count;
+                const variance = (squareSum / count) - (mean * mean);
+                const stdDev = Math.sqrt(variance);
+                
+                return { mean, stdDev };
+            }
+            handleMouseDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (this.currentTool === 'roi') {
+                    this.isDrawing = true;
+                    this.currentROI = { x, y, radius: 0 };
+                } else if (this.currentTool === 'measure') {
+                    this.isDrawing = true;
+                    this.currentMeasurement = { x1: x, y1: y, x2: x, y2: y };
+                }
+            }
+
+            handleMouseMove(e) {
+                if (!this.isDrawing) return;
+                
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (this.currentTool === 'roi' && this.currentROI) {
+                    const dx = x - this.currentROI.x;
+                    const dy = y - this.currentROI.y;
+                    this.currentROI.radius = Math.sqrt(dx*dx + dy*dy);
+                    this.draw();
+                    
+                    // Draw current ROI
+                    this.drawROI(this.currentROI);
+                } else if (this.currentTool === 'measure' && this.currentMeasurement) {
+                    this.currentMeasurement.x2 = x;
+                    this.currentMeasurement.y2 = y;
+                    this.draw();
+                    
+                    // Draw current measurement
+                    this.drawMeasurement(this.currentMeasurement);
+                }
+            }
+
+            handleMouseUp() {
+                if (this.isDrawing) {
+                    if (this.currentTool === 'roi' && this.currentROI) {
+                        const stats = this.calculateROIStatistics(this.currentROI);
+                        this.rois.push({
+                            ...this.currentROI,
+                            ...stats
+                        });
+                    } else if (this.currentTool === 'measure' && this.currentMeasurement) {
+                        const dx = (this.currentMeasurement.x2 - this.currentMeasurement.x1) * this.pixelSpacing.x;
+                        const dy = (this.currentMeasurement.y2 - this.currentMeasurement.y1) * this.pixelSpacing.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        this.measurements.push({
+                            ...this.currentMeasurement,
+                            distance
+                        });
+                    }
+                }
+                
+                this.isDrawing = false;
+                this.currentROI = null;
+                this.currentMeasurement = null;
+                this.draw();
+            }
+            drawROI(roi, stats) {
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = 'red';
+                this.ctx.lineWidth = 2;
+                this.ctx.arc(roi.x, roi.y, roi.radius, 0, 2 * Math.PI);
+                this.ctx.stroke();
+                
+                if (stats) {
+                    // Draw ROI measurements
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.fillRect(roi.x + 10, roi.y - 30, 160, 40);
+                    this.ctx.fillStyle = 'black';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.fillText(`Mean: ${roi.mean.toFixed(1)} HU`, roi.x + 15, roi.y - 15);
+                    this.ctx.fillText(`StdDev: ${roi.stdDev.toFixed(1)} HU`, roi.x + 15, roi.y - 2);
+                }
+            }
+
+            drawMeasurement(measurement) {
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = '#00ff00';
+                this.ctx.lineWidth = 2;
+                this.ctx.moveTo(measurement.x1, measurement.y1);
+                this.ctx.lineTo(measurement.x2, measurement.y2);
+                this.ctx.stroke();
+                
+                if (measurement.distance !== undefined) {
+                    const midX = (measurement.x1 + measurement.x2) / 2;
+                    const midY = (measurement.y1 + measurement.y2) / 2;
+                    
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.fillRect(midX - 40, midY - 10, 80, 20);
+                    this.ctx.fillStyle = 'black';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.fillText(`${measurement.distance.toFixed(1)} mm`, midX - 35, midY + 5);
+                }
+            }
+
+            draw() {
+                const imageData = this.ctx.createImageData(
+                    this.simulatedData.sliceWidth, 
+                    this.simulatedData.sliceHeight
+                );
+                
+                // Apply window/level to pixel data
+                for(let y = 0; y < this.simulatedData.sliceHeight; y++) {
+                    for(let x = 0; x < this.simulatedData.sliceWidth; x++) {
+                        const huValue = this.simulatedData.getPixelValue(x, y);
+                        const pixelValue = Math.max(0, Math.min(255,
+                            ((huValue - (this.windowLevel - this.windowWidth/2)) / this.windowWidth) * 255));
+                        
+                        const index = (y * this.simulatedData.sliceWidth + x) * 4;
+                        imageData.data[index] = pixelValue;
+                        imageData.data[index + 1] = pixelValue;
+                        imageData.data[index + 2] = pixelValue;
+                        imageData.data[index + 3] = 255;
+                    }
+                }
+                
+                this.ctx.putImageData(imageData, 0, 0);
+                
+                // Draw ROIs
+                this.rois.forEach(roi => {
+                    this.drawROI(roi, true);
+                });
+                
+                // Draw all measurements
+                this.measurements.forEach(measurement => {
+                    this.drawMeasurement(measurement);
+                });
+            }
+        }
+
+        // Initialize the viewer when the page loads
+        window.addEventListener('load', () => {
+            const viewer = new CTViewer();
+        });
+    </script>
+</body>
+</html>

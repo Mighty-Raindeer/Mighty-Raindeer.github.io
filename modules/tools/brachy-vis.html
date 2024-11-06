@@ -113,7 +113,7 @@
 
                 <div class="form-group">
                     <label for="activity">Activity (mCi):</label>
-                    <input type="number" id="activity" min="0" step="0.1" value="1.0">
+                    <input type="number" id="activity" min="0" step="1" value="1000">
                 </div>
 
                 <button id="toggle-isodose" class="toggle-button">Toggle Isodose Lines</button>
@@ -314,13 +314,21 @@
     } else {
         // Line source geometry factor
         if (Math.abs(Math.sin(thetaRad)) < 0.001) { // Special case: theta ≈ 0°
-            return (1 / (L * r)) * Math.log((r - L/2 + Math.sqrt(r*r - r*L + L*L/4)) / 
-                                          (r + L/2 - Math.sqrt(r*r + r*L + L*L/4)));
+            return (1/(r * r - L * L / 4));
         } else {
             // General case
-            const beta = (Math.atan2(r * Math.cos(thetaRad) - L/2, r * Math.sin(thetaRad)) -
-                        Math.atan2(r * Math.cos(thetaRad) + L/2, r * Math.sin(thetaRad)))*(-1);
-            return beta / (L * r * Math.sin(thetaRad));
+            const beta = Math.asin(
+                (L * Math.sin(
+                    Math.atan(
+                        (r * Math.sin(thetaRad)/(r * Math.cos(thetaRad) - L/2)) / 
+                        (Math.sqrt(
+                            (r * Math.sin(thetaRad))**2 + 
+                            (r * Math.cos(thetaRad) + L/2)**2
+                        ))
+                    )
+                ))
+            );
+            return Math.abs(beta / (L * r * Math.sin(thetaRad)));
         }
     }
 }
@@ -499,7 +507,7 @@
     const centerX = this.canvas.width / 2;
     const centerY = this.canvas.height / 2;
     
-    const dosePercentages = [50, 10, 1, 0.5, 0.1, 0.05, 0.025, 0.01];
+    const dosePercentages = [100, 50, 10, 1, 0.5, 0.1, 0.05, 0.025, 0.01, 0.003];
     const colors = ['#ff0000', '#ff4400', '#ff8800', '#ffbb00', '#ffee00', '#ffffaa', '#ffee00', '#ffffaa'];
 
     const activity = parseFloat(document.getElementById('activity').value);
@@ -510,7 +518,7 @@
     const Λ = sourceData.doseRateConstant;
 
     // Calculate reference dose at 1cm, θ=90°
-    const simpleG0 = 1 / (L * 1); // r = 1 at reference
+    const simpleG0 =this.calculateGeometryFactor(1,90); // r = 1 at reference
     const g0 = this.interpolateRadialDose(1);
     const F0 = this.interpolateAnisotropy(1, 90);
     const referenceDose = activity * Λ * simpleG0 * g0 * F0;
