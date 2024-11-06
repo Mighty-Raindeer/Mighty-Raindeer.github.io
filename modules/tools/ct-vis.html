@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>CT Viewer</title>
+    <script src="../../node_modules/dicom-parser/dist/dicomParser.min.js"></script>
     <style>
 :root {
             --bg-primary: #1a1a1a;
@@ -139,7 +141,116 @@
             border-top: 2px dashed #00ff00;
             pointer-events: none;
         }
+ /* Educational section styles */
+ .edu-section {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
+        .edu-section h2 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .edu-subsection {
+            margin-bottom: 2rem;
+        }
+
+        .edu-subsection h3 {
+            color: #34495e;
+            font-size: 1.4rem;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .edu-content {
+            color: #444;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .edu-note {
+            background: #f8f9fa;
+            border-left: 4px solid #4a90e2;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .edu-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .edu-tip {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .edu-image {
+            max-width: 100%;
+            height: auto;
+            margin: 1rem 0;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+
+        .edu-list {
+            margin: 1rem 0;
+            padding-left: 1.2rem;
+        }
+
+        .edu-list li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .edu-reference {
+            font-size: 0.9rem;
+            color: #666;
+            padding-left: 1rem;
+            border-left: 2px solid #dee2e6;
+            margin: 1rem 0;
+        }
+
+        .edu-equation {
+            background: #f8f9fa;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            text-align: center;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .edu-section {
+                padding: 1rem;
+            }
+
+            .edu-section h2 {
+                font-size: 1.5rem;
+            }
+
+            .edu-subsection h3 {
+                font-size: 1.2rem;
+            }
+
+            .edu-content {
+                font-size: 1rem;
+            }
+        }
         canvas {
             width: 100%;
             height: 100%;
@@ -218,6 +329,30 @@
                 </div>
             </div>
         </div>
+        <div class="edu-section">
+          <h2>Understanding CT Image Analysis</h2>
+      
+          <div class="edu-subsection">
+              <h3>Window/Level in CT</h3>
+              <div class="edu-content">
+                  <p>Window/level adjustments...</p>
+                  
+                  <div class="edu-note">
+                      Common window/level presets:
+                      Bone: W:2000, L:400
+                      Lung: W:1500, L:-600
+                      Soft tissue: W:400, L:40
+                  </div>
+              </div>
+          </div>
+      
+          <div class="edu-subsection">
+              <h3>Hounsfield Units</h3>
+              <div class="edu-content">
+                  <p>Hounsfield Units (HU) explanation...</p>
+              </div>
+          </div>
+      </div>
         
         <div class="disclaimer">
             <strong>⚠️ Educational Purpose Only:</strong> This tool is designed for educational and training purposes only. 
@@ -226,207 +361,342 @@
         </div>
     </div>
 
-    <script>
-        class CTViewer {
-            constructor() {
-                this.canvas = document.getElementById('ctCanvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.windowWidth = 400;
-                this.windowLevel = 40;
-                this.currentSlice = 0;
-                this.currentTool = 'pan';
-                this.isDrawing = false;
+    <script type="module">
+
+import dicomParser from 'https://cdn.jsdelivr.net/npm/dicom-parser@1.8.5/+esm';
+class CTViewer {
+    constructor() {
+        // Basic setup
+        this.canvas = document.getElementById('ctCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.windowWidth = 400;
+        this.windowLevel = 40;
+        this.currentSlice = 0;
+        this.currentTool = 'pan';
+        this.isDrawing = false;
+        this.rois = [];
+        this.currentROI = null;
+        
+        // Dataset configuration
+        this.currentDataset = 'phantom';
+        this.measurements = [];
+        this.currentMeasurement = null;
+        this.pixelSpacing = { x: 0.5, y: 0.5 };
+        
+        // DICOM-specific properties
+        this.dicomData = null;
+        this.currentSliceData = null;
+        this.sliceFiles = [];
+        this.loadingPromise = null;
+        
+        // IMPORTANT: Update these paths to match your folder structure
+        this.datasetPaths = {
+        phantom: "./data/phantom",  // relative to ct-vis.html
+        abdomen: "./data/abdomen"
+    };
+
+        // Debug log to check paths
+        console.log('Dataset paths:', this.datasetPaths);
+        
+        // Initialize once
+        this.initializeCanvas();
+        this.setupEventListeners();
+        this.loadDataset();
+    }
+
+    initializeCanvas() {
+        // Initialize with default size, will be updated when DICOM loads
+        this.canvas.width = 512;  // default width
+        this.canvas.height = 512; // default height
+    }
+
+    setupEventListeners() {
+        // Dataset selector
+        const datasetSelect = document.getElementById('datasetSelect');
+        if (datasetSelect) {
+            datasetSelect.addEventListener('change', (e) => {
+                console.log('Changing dataset to:', e.target.value);
+                this.currentDataset = e.target.value;
                 this.rois = [];
-                this.currentROI = null;
-                
-                // Simulated data
-                this.simulatedData = {
-                    numSlices: 30,
-                    sliceWidth: 512,
-                    sliceHeight: 512,
-                    getPixelValue: (x, y) => Math.sin(x/20) * Math.cos(y/20) * 1000
-                };
-
-                this.currentDataset = 'phantom';
                 this.measurements = [];
-                this.currentMeasurement = null;
-                this.pixelSpacing = { x: 0.5, y: 0.5 }; // mm per pixel, will be updated from DICOM
-
-                this.initializeCanvas();
-                this.setupEventListeners();
                 this.loadDataset();
+            });
+        } else {
+            console.error('Dataset select element not found');
+        }
 
-                this.initializeCanvas();
-                this.setupEventListeners();
+        // Window/Level controls
+        const windowWidthInput = document.getElementById('windowWidth');
+        const windowLevelInput = document.getElementById('windowLevel');
+        
+        if (windowWidthInput) {
+            windowWidthInput.addEventListener('input', (e) => {
+                this.windowWidth = parseInt(e.target.value);
+                document.getElementById('windowWidthValue').textContent = this.windowWidth;
                 this.draw();
-            }
+            });
+        }
+        
+        if (windowLevelInput) {
+            windowLevelInput.addEventListener('input', (e) => {
+                this.windowLevel = parseInt(e.target.value);
+                document.getElementById('windowLevelValue').textContent = this.windowLevel;
+                this.draw();
+            });
+        }
 
-            initializeCanvas() {
-                this.canvas.width = this.simulatedData.sliceWidth;
-                this.canvas.height = this.simulatedData.sliceHeight;
-            }
-
-            setupEventListeners() {
-   // Add dataset selector listener
-   document.getElementById('datasetSelect').addEventListener('change', (e) => {
-                    this.currentDataset = e.target.value;
-                    this.rois = [];
-                    this.measurements = [];
-                    this.loadDataset();
-                });
-
-                // Window/Level controls
-                document.getElementById('windowWidth').addEventListener('input', (e) => {
-                    this.windowWidth = parseInt(e.target.value);
-                    document.getElementById('windowWidthValue').textContent = this.windowWidth;
-                    this.draw();
-                });
-
-                document.getElementById('windowLevel').addEventListener('input', (e) => {
-                    this.windowLevel = parseInt(e.target.value);
-                    document.getElementById('windowLevelValue').textContent = this.windowLevel;
-                    this.draw();
-                });
-
-                // Slice navigation
-                document.getElementById('sliceSlider').addEventListener('input', (e) => {
-                    this.currentSlice = parseInt(e.target.value);
-                    document.getElementById('sliceValue').textContent = 
-                        `${this.currentSlice + 1}/${this.simulatedData.numSlices}`;
-                    this.draw();
-                });
-
-                // Tool selection
-                document.querySelectorAll('.tool-button').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        document.querySelectorAll('.tool-button').forEach(b => b.classList.remove('active'));
-                        button.classList.add('active');
-                        this.currentTool = button.dataset.tool;
-                    });
-                });
-
-                // Canvas interactions
-                this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
-                this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
-                this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
-                this.canvas.addEventListener('mouseleave', this.handleMouseUp.bind(this));
-            }
-            async loadDataset() {
-                try {
-                    const dataset = this.currentDataset;
-                    const path = dataset === 'phantom' ? '/phantom-ct/' : '/abdomen-ct/';
-                    
-                    // In real implementation, load DICOM files from the specified path
-                    // For now, we'll continue with simulated data but structure it like real data
-                    this.simulatedData = {
-                        numSlices: dataset === 'phantom' ? 20 : 30,
-                        sliceWidth: 512,
-                        sliceHeight: 512,
-                        pixelSpacing: dataset === 'phantom' ? { x: 0.5, y: 0.5 } : { x: 0.7, y: 0.7 },
-                        getPixelValue: (x, y) => {
-                            if (dataset === 'phantom') {
-                                // Simulate phantom with distinct density regions
-                                const region = Math.floor(x/100) + Math.floor(y/100);
-                                return [1000, -1000, 500, -500][region % 4];
-                            } else {
-                                // Simulate more organic-looking abdomen data
-                                return Math.sin(x/20) * Math.cos(y/20) * 1000;
-                            }
-                        }
-                    };
-                    
-                    this.pixelSpacing = this.simulatedData.pixelSpacing;
-                    this.draw();
-                } catch (error) {
-                    console.error('Error loading dataset:', error);
+        // Slice navigation
+        const sliceSlider = document.getElementById('sliceSlider');
+        if (sliceSlider) {
+            sliceSlider.addEventListener('input', async (e) => {
+                this.currentSlice = parseInt(e.target.value);
+                const sliceValue = document.getElementById('sliceValue');
+                if (sliceValue) {
+                    sliceValue.textContent = `${this.currentSlice + 1}/${this.sliceFiles.length}`;
                 }
+                await this.handleSliceChange(this.currentSlice);
+            });
+        }
+
+        // Tool selection
+        document.querySelectorAll('.tool-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                document.querySelectorAll('.tool-button').forEach(b => 
+                    b.classList.remove('active'));
+                button.classList.add('active');
+                this.currentTool = button.dataset.tool;
+            });
+        });
+
+        // Canvas interactions
+        this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
+        this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
+        this.canvas.addEventListener('mouseleave', this.handleMouseUp.bind(this));
+    }
+
+    async loadDataset() {
+      try {
+        const basePath = this.datasetPaths[this.currentDataset];
+        if (!basePath) {
+            throw new Error(`Invalid dataset: ${this.currentDataset}`);
+        }
+        
+        const jsonPath = `${basePath}/files.json`;
+        console.log('Attempting to load JSON from:', window.location.origin + jsonPath);
+        
+        const response = await fetch(jsonPath);
+        if (!response.ok) {
+            throw new Error(`Failed to load dataset index: ${response.statusText}`);
+        }
+        
+        this.sliceFiles = await response.json();
+        console.log('Successfully loaded file list:', this.sliceFiles);
+            // Load first slice
+            const success = await this.loadSlice(0);
+            if (!success) {
+                throw new Error('Failed to load initial slice');
             }
+            
+            // Update UI
+            const sliceSlider = document.getElementById('sliceSlider');
+            const sliceValue = document.getElementById('sliceValue');
+            
+            if (sliceSlider) {
+                sliceSlider.max = this.sliceFiles.length - 1;
+            }
+            if (sliceValue) {
+                sliceValue.textContent = `1/${this.sliceFiles.length}`;
+            }
+            
+            this.draw();
+          } catch (error) {
+        console.error('Error loading dataset:', error);
+        console.log('Full requested path:', window.location.origin + this.datasetPaths[this.currentDataset] + '/files.json');
+        alert(`Failed to load dataset. 
+            Attempted path: ${this.datasetPaths[this.currentDataset]}/files.json
+            Please verify this path exists and is accessible.`);
+    }
+    }
+
+// Make sure this loadSlice method is defined in your class
+async loadSlice(index) {
+    try {
+        const basePath = this.datasetPaths[this.currentDataset];
+        const fileName = this.sliceFiles[index];
+        const filePath = `${basePath}/${fileName}`;
+        
+        console.log('Attempting to load DICOM from:', filePath);
+        
+        const dicomResponse = await fetch(filePath, {
+            headers: {
+                'Accept': 'application/octet-stream'
+            }
+        });
+        
+        if (!dicomResponse.ok) {
+            throw new Error(`Failed to load slice: ${dicomResponse.statusText}`);
+        }
+        
+        // Get the binary data as ArrayBuffer
+        const dicomBuffer = await dicomResponse.arrayBuffer();
+        console.log('Received buffer size:', dicomBuffer.byteLength);
+        
+        try {
+            // Parse DICOM data with error handling
+            const byteArray = new Uint8Array(dicomBuffer);
+            const dicomData = dicomParser.parseDicom(byteArray);
+            
+            // Get pixel data
+            const pixelDataElement = dicomData.elements.x7fe00010;
+            if (!pixelDataElement) {
+                throw new Error('No pixel data found in DICOM file');
+            }
+            
+            const pixels = new Int16Array(dicomData.byteArray.buffer, 
+                                       pixelDataElement.dataOffset, 
+                                       pixelDataElement.length/2);
+            
+            // Get image properties
+            const rows = dicomData.uint16('x00280010');
+            const columns = dicomData.uint16('x00280011');
+            const pixelSpacing = dicomData.string('x00280030')?.split('\\').map(Number) || [1, 1];
+            
+            this.dicomData = {
+                rows,
+                columns,
+                pixelData: pixels,
+                pixelSpacing: {
+                    x: pixelSpacing[1],
+                    y: pixelSpacing[0]
+                },
+                windowCenter: dicomData.floatString('x00281050') || this.windowLevel,
+                windowWidth: dicomData.floatString('x00281051') || this.windowWidth,
+                rescaleIntercept: dicomData.floatString('x00281052') || 0,
+                rescaleSlope: dicomData.floatString('x00281053') || 1
+            };
+            
+            this.currentSliceData = pixels;
+            this.pixelSpacing = this.dicomData.pixelSpacing;
+            
+            console.log('Successfully loaded DICOM slice:', {
+                rows,
+                columns,
+                pixelSpacing: this.pixelSpacing
+            });
+            
+            return true;
+        } catch (parseError) {
+            console.error('Error parsing DICOM data:', parseError);
+            throw parseError;
+        }
+    } catch (error) {
+        console.error('Error in loadSlice:', error);
+        return false;
+    }
+}
+
+getPixelValue(x, y) {
+        if (!this.currentSliceData || !this.dicomData) return 0;
+        
+        // Ensure coordinates are within bounds
+        x = Math.floor(Math.max(0, Math.min(x, this.dicomData.columns - 1)));
+        y = Math.floor(Math.max(0, Math.min(y, this.dicomData.rows - 1)));
+        
+        // Get raw pixel value
+        const index = y * this.dicomData.columns + x;
+        const rawValue = this.currentSliceData[index];
+        
+        // Apply rescale slope and intercept to get HU
+        return rawValue * this.dicomData.rescaleSlope + this.dicomData.rescaleIntercept;
+    }
 
             calculateROIStatistics(roi) {
-                let sum = 0;
-                let squareSum = 0;
-                let count = 0;
+        if (!this.currentSliceData || !this.dicomData) return null;
+        
+        let sum = 0;
+        let squareSum = 0;
+        let count = 0;
+        
+        for (let y = Math.max(0, Math.floor(roi.y - roi.radius)); 
+             y <= Math.min(this.dicomData.rows - 1, Math.ceil(roi.y + roi.radius)); y++) {
+            for (let x = Math.max(0, Math.floor(roi.x - roi.radius)); 
+                 x <= Math.min(this.dicomData.columns - 1, Math.ceil(roi.x + roi.radius)); x++) {
                 
-                for(let y = roi.y - roi.radius; y <= roi.y + roi.radius; y++) {
-                    for(let x = roi.x - roi.radius; x <= roi.x + roi.radius; x++) {
-                        if (Math.sqrt((x-roi.x)**2 + (y-roi.y)**2) <= roi.radius) {
-                            const value = this.simulatedData.getPixelValue(Math.floor(x), Math.floor(y));
-                            sum += value;
-                            squareSum += value * value;
-                            count++;
-                        }
-                    }
+                const dx = x - roi.x;
+                const dy = y - roi.y;
+                if (dx*dx + dy*dy <= roi.radius*roi.radius) {
+                    const index = y * this.dicomData.columns + x;
+                    const value = this.getPixelValue(x, y);
+                    sum += value;
+                    squareSum += value * value;
+                    count++;
                 }
-                
-                const mean = sum / count;
-                const variance = (squareSum / count) - (mean * mean);
-                const stdDev = Math.sqrt(variance);
-                
-                return { mean, stdDev };
             }
+        }
+        
+        if (count === 0) return null;
+        
+        const mean = sum / count;
+        const variance = (squareSum / count) - (mean * mean);
+        const stdDev = Math.sqrt(variance);
+        
+        return { mean, stdDev };
+    }
+            
             handleMouseDown(e) {
-                const rect = this.canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                if (this.currentTool === 'roi') {
-                    this.isDrawing = true;
-                    this.currentROI = { x, y, radius: 0 };
-                } else if (this.currentTool === 'measure') {
-                    this.isDrawing = true;
-                    this.currentMeasurement = { x1: x, y1: y, x2: x, y2: y };
-                }
-            }
+    const rect = this.canvas.getBoundingClientRect();
+    // Convert screen coordinates to canvas coordinates
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    
+    if (this.currentTool === 'roi') {
+        this.isDrawing = true;
+        this.currentROI = { x, y, radius: 0 };
+    } else if (this.currentTool === 'measure') {
+        this.isDrawing = true;
+        this.currentMeasurement = { x1: x, y1: y, x2: x, y2: y };
+    }
+}
 
-            handleMouseMove(e) {
-                if (!this.isDrawing) return;
-                
-                const rect = this.canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                if (this.currentTool === 'roi' && this.currentROI) {
-                    const dx = x - this.currentROI.x;
-                    const dy = y - this.currentROI.y;
-                    this.currentROI.radius = Math.sqrt(dx*dx + dy*dy);
-                    this.draw();
-                    
-                    // Draw current ROI
-                    this.drawROI(this.currentROI);
-                } else if (this.currentTool === 'measure' && this.currentMeasurement) {
-                    this.currentMeasurement.x2 = x;
-                    this.currentMeasurement.y2 = y;
-                    this.draw();
-                    
-                    // Draw current measurement
-                    this.drawMeasurement(this.currentMeasurement);
-                }
-            }
+handleMouseMove(e) {
+    if (!this.isDrawing || !this.canvas) return;
+    
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    
+    if (this.currentTool === 'roi' && this.currentROI) {
+        const dx = x - this.currentROI.x;
+        const dy = y - this.currentROI.y;
+        this.currentROI.radius = Math.sqrt(dx*dx + dy*dy);
+        this.draw(); // Redraw everything in one go
+    }
+}
 
-            handleMouseUp() {
-                if (this.isDrawing) {
-                    if (this.currentTool === 'roi' && this.currentROI) {
-                        const stats = this.calculateROIStatistics(this.currentROI);
-                        this.rois.push({
-                            ...this.currentROI,
-                            ...stats
-                        });
-                    } else if (this.currentTool === 'measure' && this.currentMeasurement) {
-                        const dx = (this.currentMeasurement.x2 - this.currentMeasurement.x1) * this.pixelSpacing.x;
-                        const dy = (this.currentMeasurement.y2 - this.currentMeasurement.y1) * this.pixelSpacing.y;
-                        const distance = Math.sqrt(dx*dx + dy*dy);
-                        this.measurements.push({
-                            ...this.currentMeasurement,
-                            distance
-                        });
-                    }
-                }
-                
-                this.isDrawing = false;
-                this.currentROI = null;
-                this.currentMeasurement = null;
-                this.draw();
+handleMouseUp(e) {
+    if (this.isDrawing && this.currentROI && this.currentTool === 'roi') {
+        // Only add ROI if it has a meaningful radius
+        if (this.currentROI.radius > 2) { // Minimum size threshold
+            const stats = this.calculateROIStatistics(this.currentROI);
+            if (stats) {
+                this.rois.push({
+                    ...this.currentROI,
+                    ...stats
+                });
             }
+        }
+    }
+    
+    this.isDrawing = false;
+    this.currentROI = null;
+    this.draw(); // Final redraw
+}
+           
             drawROI(roi, stats) {
                 this.ctx.beginPath();
                 this.ctx.strokeStyle = 'red';
@@ -464,44 +734,76 @@
                     this.ctx.fillText(`${measurement.distance.toFixed(1)} mm`, midX - 35, midY + 5);
                 }
             }
-
+            
             draw() {
-                const imageData = this.ctx.createImageData(
-                    this.simulatedData.sliceWidth, 
-                    this.simulatedData.sliceHeight
-                );
-                
-                // Apply window/level to pixel data
-                for(let y = 0; y < this.simulatedData.sliceHeight; y++) {
-                    for(let x = 0; x < this.simulatedData.sliceWidth; x++) {
-                        const huValue = this.simulatedData.getPixelValue(x, y);
-                        const pixelValue = Math.max(0, Math.min(255,
-                            ((huValue - (this.windowLevel - this.windowWidth/2)) / this.windowWidth) * 255));
-                        
-                        const index = (y * this.simulatedData.sliceWidth + x) * 4;
-                        imageData.data[index] = pixelValue;
-                        imageData.data[index + 1] = pixelValue;
-                        imageData.data[index + 2] = pixelValue;
-                        imageData.data[index + 3] = 255;
-                    }
-                }
-                
-                this.ctx.putImageData(imageData, 0, 0);
-                
-                // Draw ROIs
-                this.rois.forEach(roi => {
-                    this.drawROI(roi, true);
-                });
-                
-                // Draw all measurements
-                this.measurements.forEach(measurement => {
-                    this.drawMeasurement(measurement);
-                });
-            }
+    if (!this.dicomData || !this.currentSliceData) return;
+    
+    // Draw the image
+    const imageData = this.ctx.createImageData(
+        this.dicomData.columns,
+        this.dicomData.rows
+    );
+    
+    // Apply window/level to pixel data
+    for(let y = 0; y < this.dicomData.rows; y++) {
+        for(let x = 0; x < this.dicomData.columns; x++) {
+            const huValue = this.getPixelValue(x, y);
+            const pixelValue = Math.max(0, Math.min(255,
+                ((huValue - (this.windowLevel - this.windowWidth/2)) / this.windowWidth) * 255));
+            
+            const index = (y * this.dicomData.columns + x) * 4;
+            imageData.data[index] = pixelValue;
+            imageData.data[index + 1] = pixelValue;
+            imageData.data[index + 2] = pixelValue;
+            imageData.data[index + 3] = 255;
         }
+    }
+    
+    this.ctx.putImageData(imageData, 0, 0);
+    
+    // Clear any previous ROIs to prevent artifacts
+    this.ctx.globalCompositeOperation = 'source-over';
+    
+    // Draw all completed ROIs
+    this.rois.forEach(roi => {
+        // Draw ROI circle
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = 'red';
+        this.ctx.lineWidth = 2;
+        this.ctx.arc(roi.x, roi.y, roi.radius, 0, 2 * Math.PI);
+        this.ctx.stroke();
+        
+        // Create background for text
+        const textX = roi.x + 10;
+        const textY = roi.y - 30;
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        this.ctx.fillRect(textX, textY, 160, 40);
+        
+        // Draw measurements text
+        this.ctx.fillStyle = 'black';
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText(`Mean: ${roi.mean.toFixed(1)} HU`, textX + 5, textY + 15);
+        this.ctx.fillText(`StdDev: ${roi.stdDev.toFixed(1)} HU`, textX + 5, textY + 30);
+    });
+    
+    // Draw current ROI if one is being created
+    if (this.isDrawing && this.currentROI && this.currentTool === 'roi') {
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+        this.ctx.lineWidth = 2;
+        this.ctx.arc(this.currentROI.x, this.currentROI.y, this.currentROI.radius, 0, 2 * Math.PI);
+        this.ctx.stroke();
+    }
+}
 
-        // Initialize the viewer when the page loads
-        window.addEventListener('load', () => {
+            async handleSliceChange(newSlice) {
+    const success = await this.loadSlice(newSlice);
+    if (success) {
+        this.draw();
+    }
+}}
+       // Initialize the viewer when the page loads
+       window.addEventListener('load', () => {
             const viewer = new CTViewer();
         });
     </script>
