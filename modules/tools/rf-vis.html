@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF Generation Methods - Custom Images</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --text-color: #1f2937;
+            --bg-color: #f8fafc;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .visualization-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .device-container {
+            flex: 1;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .device-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .animation-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* Enhanced electron styles */
+        .electron {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #3b82f6;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 4px #60a5fa,
+                0 0 8px rgba(59, 130, 246, 0.5);
+            z-index: 2;
+        }
+
+        .rf-wave {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                rgba(239, 68, 68, 0) 0%, 
+                rgba(239, 68, 68, 1) 50%, 
+                rgba(239, 68, 68, 0) 100%);
+            transform-origin: left center;
+            z-index: 1;
+        }
+
+        /* Animation Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .control-button {
+            padding: 0.5rem 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .control-button:hover {
+            background: var(--secondary-color);
+        }
+
+        /* Define customizable animation paths */
+        @keyframes klystronElectron {
+            0% {
+                transform: translate(var(--start-x, 0), var(--start-y, 0));
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--end-x, 100%), var(--end-y, 0));
+                opacity: 0;
+            }
+        }
+
+        @keyframes magnetronElectron {
+            0% {
+                transform: rotate(0deg) translateX(var(--orbit-radius, 100px));
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: rotate(360deg) translateX(var(--orbit-radius, 100px));
+                opacity: 0;
+            }
+        }
+
+        @keyframes rfWave {
+            0% {
+                transform: scaleX(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scaleX(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scaleX(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="visualization-container">
+            <div class="device-container">
+                <h2 class="device-title">Klystron</h2>
+                <div class="animation-container" id="klystron"></div>
+                <div class="controls">
+                    <button class="control-button" onclick="klystronController.toggle()">
+                        Play/Pause
+                    </button>
+                    <button class="control-button" onclick="klystronController.reset()">
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <div class="device-container">
+                <h2 class="device-title">Magnetron</h2>
+                <div class="animation-container" id="magnetron"></div>
+                <div class="controls">
+                    <button class="control-button" onclick="magnetronController.toggle()">
+                        Play/Pause
+                    </button>
+                    <button class="control-button" onclick="magnetronController.reset()">
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class RFAnimationController {
+            constructor(containerId, type, config) {
+                this.container = document.getElementById(containerId);
+                this.type = type;
+                this.config = {
+                    // Default configuration
+                    electronPath: {
+                        startX: 50,
+                        startY: 200,
+                        endX: 350,
+                        endY: 200
+                    },
+                    magnetronCenter: {
+                        x: 200,
+                        y: 200
+                    },
+                    orbitRadius: 100,
+                    ...config
+                };
+                this.isRunning = false;
+                this.elements = [];
+                this.setupContainer();
+            }
+
+            setupContainer() {
+                // Set background image based on type
+                const imagePath = this.type === 'klystron' 
+                    ? '../../assets/images/klystron.png'  // Replace with your image path
+                    : '../../assets/images/magnetron.png'; // Replace with your image path
+                
+                this.container.style.backgroundImage = `url(${imagePath})`;
+            }
+
+            toggle() {
+                if (this.isRunning) {
+                    this.stop();
+                } else {
+                    this.start();
+                }
+            }
+
+            start() {
+                if (this.isRunning) return;
+                this.isRunning = true;
+                
+                if (this.type === 'klystron') {
+                    this.animateKlystron();
+                } else {
+                    this.animateMagnetron();
+                }
+            }
+
+            stop() {
+                this.isRunning = false;
+                this.elements.forEach(el => el.remove());
+                this.elements = [];
+            }
+
+            reset() {
+                this.stop();
+                this.start();
+            }
+
+            createElectron(className = 'electron') {
+                const electron = document.createElement('div');
+                electron.className = className;
+                return electron;
+            }
+
+            createRFWave(x, y, angle = 0) {
+                const wave = document.createElement('div');
+                wave.className = 'rf-wave';
+                wave.style.left = `${x}px`;
+                wave.style.top = `${y}px`;
+                wave.style.width = '40px';
+                if (angle) {
+                    wave.style.transform = `rotate(${angle}deg)`;
+                }
+                wave.style.animation = 'rfWave 1s ease-in-out';
+                return wave;
+            }
+
+            animateKlystron() {
+                if (!this.isRunning) return;
+
+                const { startX, startY, endX, endY } = this.config.electronPath;
+                const electron = this.createElectron();
+                
+                // Set custom animation path
+                electron.style.setProperty('--start-x', `${startX}px`);
+                electron.style.setProperty('--start-y', `${startY}px`);
+                electron.style.setProperty('--end-x', `${endX}px`);
+                electron.style.setProperty('--end-y', `${endY}px`);
+                
+                electron.style.animation = 'klystronElectron 3s linear';
+                this.container.appendChild(electron);
+                this.elements.push(electron);
+
+                // RF wave generation
+                setTimeout(() => {
+                    if (!this.isRunning) return;
+                    const wave = this.createRFWave(endX, endY);
+                    this.container.appendChild(wave);
+                    this.elements.push(wave);
+                    setTimeout(() => wave.remove(), 1000);
+                }, 2000);
+
+                // Cleanup
+                setTimeout(() => {
+                    electron.remove();
+                    const index = this.elements.indexOf(electron);
+                    if (index > -1) this.elements.splice(index, 1);
+                }, 3000);
+
+                // Continue animation
+                setTimeout(() => {
+                    if (this.isRunning) this.animateKlystron();
+                }, 1000);
+            }
+
+            animateMagnetron() {
+                const { x, y } = this.config.magnetronCenter;
+                const radius = this.config.orbitRadius;
+                const numElectrons = 8;
+
+                // Create rotating electrons
+                for (let i = 0; i < numElectrons; i++) {
+                    const electron = this.createElectron();
+                    electron.style.setProperty('--orbit-radius', `${radius}px`);
+                    electron.style.left = `${x}px`;
+                    electron.style.top = `${y}px`;
+                    electron.style.transformOrigin = '8 0';
+                    electron.style.animation = 'magnetronElectron 2s linear infinite';
+                    this.container.appendChild(electron);
+                    this.elements.push(electron);
+                }
+
+                // RF wave generation function
+                const generateWaves = () => {
+                    if (!this.isRunning) return;
+
+                    for (let i = 0; i < numElectrons; i++) {
+                        const angle = (i / numElectrons) * 360;
+                        const waveX = x + (radius + 20) * Math.cos(angle * Math.PI / 180);
+                        const waveY = y + (radius + 20) * Math.sin(angle * Math.PI / 180);
+                        
+                        const wave = this.createRFWave(waveX, waveY, angle);
+                        this.container.appendChild(wave);
+                        this.elements.push(wave);
+                        
+                        setTimeout(() => {
+                            wave.remove();
+                            const index = this.elements.indexOf(wave);
+                            if (index > -1) this.elements.splice(index, 1);
+                        }, 1000);
+                    }
+
+                    if (this.isRunning) {
+                        setTimeout(generateWaves, 1000);
+                    }
+                };
+
+                generateWaves();
+            }
+        }
+
+        // Initialize controllers with custom configurations
+        let klystronController, magnetronController;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Klystron configuration
+            const klystronConfig = {
+                electronPath: {
+                    startX: 50,   // Adjust based on your image
+                    startY: 180,  // Adjust based on your image
+                    endX: 320,    // Adjust based on your image
+                    endY: 180     // Adjust based on your image
+                }
+            };
+
+            // Magnetron configuration
+            const magnetronConfig = {
+                magnetronCenter: {
+                    x: 155,       // Adjust based on your image
+                    y: 192        // Adjust based on your image
+                },
+                orbitRadius: 100  // Adjust based on your image
+            };
+
+            klystronController = new RFAnimationController('klystron', 'klystron', klystronConfig);
+            magnetronController = new RFAnimationController('magnetron', 'magnetron', magnetronConfig);
+
+            // Start animations
+            klystronController.start();
+            magnetronController.start();
+        });
+    </script>
+</body>
+</html>

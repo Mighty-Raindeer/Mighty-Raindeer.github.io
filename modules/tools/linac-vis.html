@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --light-gray: #f8fafc;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #fff;
+            color: #1a365d;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1a365d;
+        }
+
+        .controls {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .diagram-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .info-panel {
+            background: var(--light-gray);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .info-panel h2 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: #1a365d;
+        }
+
+        .component-info {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .component-info.active {
+            display: block;
+        }
+
+        .component-title {
+            color: var(--primary-blue);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .hover-area {
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .hover-area:hover {
+            opacity: 0.7;
+        }
+
+        .component-label {
+            font-size: 12px;
+            font-family: system-ui, -apple-system, sans-serif;
+            pointer-events: none;
+        }
+
+        .disclaimer-content {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #9a3412;
+        }
+
+        .disclaimer-icon {
+            margin-right: 0.5rem;
+        }
+
+        /* Key Features section styling */
+        .key-features {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .key-features h2 {
+            font-size: 1.25rem;
+            margin-top: 0;
+            color: #1a365d;
+        }
+
+        .key-features ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .key-features li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Medical Linear Accelerator Components</h1>
+        
+        <div class="controls">
+            <strong>Interactive Guide:</strong> Hover over any component to see detailed information
+        </div>
+
+        <div class="diagram-container">
+            <div class="chart-container">
+                <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Floor line -->
+                    <line x1="50" y1="500" x2="750" y2="500" stroke="#1a365d" stroke-width="2"/>
+                    
+                    <!-- Stand/Support structure -->
+                    <g class="hover-area" id="stand">
+                        <rect x="150" y="200" width="100" height="300" fill="#e2e8f0" stroke="#1a365d"/>
+                        <text x="200" y="520" text-anchor="middle" class="component-label">Stand</text>
+                    </g>
+
+                    <!-- RF Generator -->
+                    <g class="hover-area" id="rf-generator">
+                        <rect x="100" y="400" width="80" height="80" fill="#f8fafc" stroke="#1a365d"/>
+                        <text x="140" y="440" text-anchor="middle" class="component-label">RF Power</text>
+                        <text x="140" y="460" text-anchor="middle" class="component-label">Generator</text>
+                    </g>
+
+                    <!-- Electron Gun -->
+                    <g class="hover-area" id="electron-gun">
+                        <rect x="170" y="200" width="60" height="40" fill="#f8fafc" stroke="#1a365d"/>
+                        <text x="200" y="190" text-anchor="middle" class="component-label">Electron</text>
+                        <text x="200" y="205" text-anchor="middle" class="component-label">Gun</text>
+                    </g>
+
+                    <!-- Accelerator -->
+                    <g class="hover-area" id="waveguide">
+                        <rect x="230" y="210" width="200" height="20" fill="#f8fafc" stroke="#1a365d"/>
+                        <text x="330" y="200" text-anchor="middle" class="component-label">Accelerator</text>
+                    </g>
+
+                    <!-- Electron Beam Transport -->
+                    <g class="hover-area" id="bending-magnet">
+                        <path d="M430 220 Q480 220 480 270" fill="none" stroke="#1a365d" stroke-width="2"/>
+                        <text x="500" y="230" text-anchor="middle" class="component-label">Electron Beam</text>
+                        <text x="500" y="245" text-anchor="middle" class="component-label">Transport</text>
+                    </g>
+
+                    <!-- Gantry -->
+                    <g class="hover-area" id="gantry">
+                        <rect x="400" y="250" width="160" height="160" fill="#f8fafc" stroke="#1a365d"/>
+                        <text x="480" y="330" text-anchor="middle" class="component-label">Gantry</text>
+                    </g>
+
+                    <!-- Target and Beam Shaping -->
+                    <g class="hover-area" id="target">
+                        <circle cx="480" cy="270" r="10" fill="#f8fafc" stroke="#1a365d"/>
+                        <text x="520" y="270" text-anchor="middle" class="component-label">X-ray Target</text>
+                    </g>
+
+                    <!-- Isocenter indicator -->
+                    <g class="hover-area" id="isocenter">
+                        <circle cx="480" cy="350" r="5" fill="#1a365d"/>
+                        <text x="530" y="350" text-anchor="middle" class="component-label">Isocenter</text>
+                    </g>
+
+                    <!-- Treatment Couch -->
+                    <g class="hover-area" id="couch">
+                        <rect x="400" y="380" width="200" height="20" fill="#f8fafc" stroke="#1a365d"/>
+                        <text x="500" y="420" text-anchor="middle" class="component-label">Treatment Couch</text>
+                    </g>
+
+                    <!-- Beam path indicator -->
+                    <path d="M480 280 L480 420" stroke="#1a365d" stroke-width="1" stroke-dasharray="5,5"/>
+                    
+                    <!-- Gantry axis -->
+                    <g>
+                        <text x="420" y="350" text-anchor="end" class="component-label">Gantry Axis</text>
+                        <line x1="430" y1="350" x2="470" y2="350" stroke="#1a365d" stroke-width="1"/>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="info-panel">
+                <h2>Component Information</h2>
+                <div id="electron-gun-info" class="component-info">
+                    <h3 class="component-title">Electron Gun</h3>
+                    <p>Generates the initial electron beam through thermionic emission. Electrons are accelerated by an electric field to form the initial beam.</p>
+                </div>
+                <div id="rf-generator-info" class="component-info">
+                    <h3 class="component-title">RF Power Generator</h3>
+                    <p>Produces high-power microwave radiation (typically using a magnetron or klystron) that accelerates the electrons through the waveguide.</p>
+                </div>
+                <div id="waveguide-info" class="component-info">
+                    <h3 class="component-title">Accelerator</h3>
+                    <p>Accelerating waveguide structure where electrons gain energy from the RF waves through a series of carefully designed cavities.</p>
+                </div>
+                <div id="bending-magnet-info" class="component-info">
+                    <h3 class="component-title">Electron Beam Transport</h3>
+                    <p>System of bending magnets that steer the electron beam through approximately 270° to direct it toward the target. Also helps with energy selection.</p>
+                </div>
+                <div id="target-info" class="component-info">
+                    <h3 class="component-title">X-ray Target</h3>
+                    <p>High-Z material (typically tungsten) where electrons strike to produce bremsstrahlung X-rays for photon therapy. Includes beam shaping components like flattening filters.</p>
+                </div>
+                <div id="gantry-info" class="component-info">
+                    <h3 class="component-title">Gantry</h3>
+                    <p>Rotatable housing containing the beam transport system and treatment head. Allows beam delivery from any angle around the patient.</p>
+                </div>
+                <div id="isocenter-info" class="component-info">
+                    <h3 class="component-title">Isocenter</h3>
+                    <p>The point in space around which the gantry rotates. Treatment is typically planned with the target at isocenter.</p>
+                </div>
+                <div id="couch-info" class="component-info">
+                    <h3 class="component-title">Treatment Couch</h3>
+                    <p>Precision-engineered patient support system with multiple degrees of freedom for accurate patient positioning.</p>
+                </div>
+                <div id="stand-info" class="component-info">
+                    <h3 class="component-title">Stand</h3>
+                    <p>Main support structure that houses the RF generator and provides stability for the gantry system.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="key-features">
+            <h2>Key Features</h2>
+            <ul>
+                <li>Electron acceleration occurs in waveguide structure</li>
+                <li>270° bending system transports beam to target</li>
+                <li>Isocentric rotation allows treatment from any angle</li>
+                <li>Precision beam shaping systems for accurate delivery</li>
+            </ul>
+        </div>
+
+        <div class="disclaimer-content">
+            <span class="disclaimer-icon">⚠️</span><strong>Educational Purpose Only:</strong> This diagram is designed for educational and training purposes only. It is a simplified representation and should not be used for clinical decision-making or maintenance procedures.
+            <br><br>
+            Last Updated: November 2024 | Version 1.0
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.hover-area').forEach(area => {
+            area.addEventListener('mouseenter', () => {
+                document.querySelectorAll('.component-info').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+                document.getElementById(area.id + '-info').classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
