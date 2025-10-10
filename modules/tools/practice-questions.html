@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Questions - Medical Physics</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success-color: #4caf50;
+            --error-color: #f44336;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .score-display {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+        }
+
+        .quiz-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .category-tag {
+            display: inline-block;
+            background: var(--accent-primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .question-number {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answer-option {
+            background: var(--bg-card);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .answer-option:hover {
+            border-color: var(--accent-primary);
+            transform: translateX(5px);
+        }
+
+        .answer-option.selected {
+            border-color: var(--accent-primary);
+            background: rgba(255, 87, 34, 0.1);
+        }
+
+        .answer-option.correct {
+            border-color: var(--success-color);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .answer-option.incorrect {
+            border-color: var(--error-color);
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .answer-option.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .answer-label {
+            font-weight: bold;
+            margin-right: 1rem;
+            min-width: 30px;
+        }
+
+        .explanation {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            border-left: 4px solid var(--accent-primary);
+            display: none;
+        }
+
+        .explanation.show {
+            display: block;
+        }
+
+        .explanation h4 {
+            margin-top: 0;
+            color: var(--accent-primary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .results-screen.show {
+            display: block;
+        }
+
+        .final-score {
+            font-size: 3rem;
+            color: var(--accent-primary);
+            margin: 2rem 0;
+        }
+
+        .performance-message {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-link {
+            color: var(--accent-primary);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-hover);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .quiz-card {
+                padding: 1.5rem;
+            }
+
+            .question-text {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Medical Physics Practice Questions</h1>
+            <p>Test your knowledge with 15 questions covering key topics</p>
+            <a href="../../study.html" class="nav-link">← Back to Study Guide</a>
+        </div>
+
+        <div class="score-display">
+            <span id="score-text">Question <span id="current-q">1</span> of 15 | Score: <span id="score">0</span>/15</span>
+        </div>
+
+        <div id="quiz-container"></div>
+
+        <div class="results-screen" id="results">
+            <h2>Quiz Complete!</h2>
+            <div class="final-score" id="final-score"></div>
+            <div class="performance-message" id="performance-msg"></div>
+            <div class="controls">
+                <button class="btn btn-primary" onclick="restartQuiz()">Retake Quiz</button>
+                <a href="study.html" class="btn btn-secondary">Back to Study Guide</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            // Radiation Safety Questions (5)
+            {
+                category: "Radiation Safety",
+                question: "Which of the following is NOT one of the three primary principles of radiation protection?",
+                answers: [
+                    "Time",
+                    "Distance",
+                    "Filtration",
+                    "Shielding"
+                ],
+                correct: 2,
+                explanation: "The three primary principles of radiation protection are Time, Distance, and Shielding. Filtration is a technique used in imaging to reduce patient dose but is not one of the fundamental protection principles."
+            },
+            {
+                category: "Radiation Safety",
+                question: "If you double your distance from a point radiation source, the exposure rate will:",
+                answers: [
+                    "Decrease by half",
+                    "Decrease to one-quarter",
+                    "Remain the same",
+                    "Decrease to one-eighth"
+                ],
+                correct: 1,
+                explanation: "This follows the inverse square law: intensity is inversely proportional to the square of the distance. Doubling the distance (2x) results in the intensity decreasing to 1/(2²) = 1/4 of the original value."
+            },
+            {
+                category: "Radiation Safety",
+                question: "What is the typical annual occupational dose limit for radiation workers in the United States?",
+                answers: [
+                    "10 mSv (1 rem)",
+                    "50 mSv (5 rem)",
+                    "100 mSv (10 rem)",
+                    "500 mSv (50 rem)"
+                ],
+                correct: 1,
+                explanation: "The NRC and other regulatory bodies set the annual occupational dose limit at 50 mSv (5 rem) for adults. However, the ALARA principle encourages keeping doses as low as reasonably achievable, well below this limit."
+            },
+            {
+                category: "Radiation Safety",
+                question: "Which material would provide the MOST effective shielding for high-energy photons per unit thickness?",
+                answers: [
+                    "Water",
+                    "Concrete",
+                    "Steel",
+                    "Lead"
+                ],
+                correct: 3,
+                explanation: "Lead has the highest density and atomic number among these materials, making it the most effective shield per unit thickness. Its high density and electron density result in greater photon attenuation through photoelectric effect and Compton scattering."
+            },
+            {
+                category: "Radiation Safety",
+                question: "In radiation protection, the ALARA principle stands for:",
+                answers: [
+                    "As Low As Relatively Achievable",
+                    "As Low As Reasonably Achievable",
+                    "As Limited As Radiation Allows",
+                    "As Low As Regulatory Agencies"
+                ],
+                correct: 1,
+                explanation: "ALARA stands for As Low As Reasonably Achievable. This principle requires that radiation exposures be kept as low as reasonably achievable, taking into account economic and social factors, even if they are below regulatory limits."
+            },
+
+            // Treatment Planning Questions (5)
+            {
+                category: "Treatment Planning",
+                question: "What does the term 'isocenter' refer to in radiation therapy?",
+                answers: [
+                    "The point where all beams intersect",
+                    "The geometric center of the treatment room",
+                    "The center of the tumor volume",
+                    "The point of maximum dose"
+                ],
+                correct: 0,
+                explanation: "The isocenter is the point in space where the central axes of all treatment beams intersect, regardless of gantry angle. It is the mechanical center of rotation of the gantry and typically where the target is positioned."
+            },
+            {
+                category: "Treatment Planning",
+                question: "In CT simulation, Hounsfield Units (HU) measure:",
+                answers: [
+                    "Radiation dose",
+                    "Tissue density relative to water",
+                    "Distance from isocenter",
+                    "Beam energy"
+                ],
+                correct: 1,
+                explanation: "Hounsfield Units measure the radiodensity of tissues relative to water. Water is defined as 0 HU, air as -1000 HU, and dense bone as approximately +1000 HU or higher. This scale is used in treatment planning for dose calculation."
+            },
+            {
+                category: "Treatment Planning",
+                question: "What is the primary advantage of IMRT (Intensity Modulated Radiation Therapy) over 3D conformal radiation therapy?",
+                answers: [
+                    "Faster treatment delivery",
+                    "Lower equipment cost",
+                    "Better conformity to complex target shapes",
+                    "Eliminates need for imaging"
+                ],
+                correct: 2,
+                explanation: "IMRT allows for intensity modulation across each beam, creating non-uniform fluence patterns. This enables better dose conformity to complex target shapes while sparing adjacent normal tissues more effectively than 3D conformal therapy."
+            },
+            {
+                category: "Treatment Planning",
+                question: "The percentage depth dose (PDD) at a given depth typically INCREASES with:",
+                answers: [
+                    "Decreasing field size",
+                    "Decreasing beam energy",
+                    "Increasing source-to-surface distance",
+                    "Increasing off-axis distance"
+                ],
+                correct: 2,
+                explanation: "Increasing the source-to-surface distance (SSD) increases the PDD at depth due to improved phantom scatter conditions and reduced beam divergence. This is the basis for the inverse square law correction in dose calculations."
+            },
+            {
+                category: "Treatment Planning",
+                question: "What is the typical prescription point for a radiation therapy treatment?",
+                answers: [
+                    "Surface of the patient",
+                    "Point of maximum dose",
+                    "Isocenter or representative point in target",
+                    "Exit point of the beam"
+                ],
+                correct: 2,
+                explanation: "The prescription point is typically at the isocenter or a representative point within the target volume that receives a clinically relevant dose. This is often normalized to 100% and should be clearly specified in the treatment plan."
+            },
+
+            // Radiation Sources (Linac Components) Questions (5)
+            {
+                category: "Radiation Sources",
+                question: "In a medical linear accelerator, what is the primary function of the bending magnet?",
+                answers: [
+                    "Generate the electron beam",
+                    "Produce X-rays",
+                    "Direct electrons toward the target",
+                    "Shape the radiation field"
+                ],
+                correct: 2,
+                explanation: "The bending magnet (typically 270°) steers the accelerated electron beam from the horizontal waveguide to the vertical treatment head. It also provides energy selection by directing only electrons of the desired energy to the target."
+            },
+            {
+                category: "Radiation Sources",
+                question: "What is the purpose of the flattening filter in a photon beam linear accelerator?",
+                answers: [
+                    "Remove low-energy photons",
+                    "Create a uniform dose profile across the field",
+                    "Focus the electron beam",
+                    "Increase beam energy"
+                ],
+                correct: 1,
+                explanation: "The flattening filter is a cone-shaped attenuator that makes the photon beam intensity more uniform across the treatment field. The unflattened beam has a forward-peaked distribution that the filter attenuates differentially to create flatness."
+            },
+            {
+                category: "Radiation Sources",
+                question: "Which component produces X-rays in a medical linear accelerator?",
+                answers: [
+                    "Magnetron",
+                    "Waveguide",
+                    "Target",
+                    "Electron gun"
+                ],
+                correct: 2,
+                explanation: "The target (typically made of tungsten) produces X-rays when struck by high-energy electrons. The electrons undergo rapid deceleration in the target material, producing bremsstrahlung radiation (X-rays) that form the treatment beam."
+            },
+            {
+                category: "Radiation Sources",
+                question: "What is the typical electron energy range in modern medical linear accelerators used for photon therapy?",
+                answers: [
+                    "1-5 MeV",
+                    "4-25 MeV",
+                    "50-100 MeV",
+                    "100-250 MeV"
+                ],
+                correct: 1,
+                explanation: "Medical linacs typically accelerate electrons to energies between 4-25 MeV for photon therapy. Common clinical photon energies are 6 MV, 10 MV, and 15 MV, though some machines offer higher energies up to 18-25 MV."
+            },
+            {
+                category: "Radiation Sources",
+                question: "In a linear accelerator, RF (radiofrequency) power is typically generated by:",
+                answers: [
+                    "A transformer",
+                    "A magnetron or klystron",
+                    "The bending magnet",
+                    "The electron gun"
+                ],
+                correct: 1,
+                explanation: "The magnetron (in older or lower-energy machines) or klystron (in modern machines) generates the high-power radiofrequency waves that accelerate electrons through the waveguide. These devices convert DC power to high-frequency RF power at several thousand megahertz."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let answered = false;
+
+        function renderQuestion() {
+            const container = document.getElementById('quiz-container');
+            const q = questions[currentQuestion];
+            
+            container.innerHTML = `
+                <div class="quiz-card">
+                    <div class="category-tag">${q.category}</div>
+                    <div class="question-number">Question ${currentQuestion + 1} of ${questions.length}</div>
+                    <div class="question-text">${q.question}</div>
+                    <div class="answers">
+                        ${q.answers.map((answer, index) => `
+                            <div class="answer-option" data-index="${index}" onclick="selectAnswer(${index})">
+                                <span class="answer-label">${String.fromCharCode(65 + index)}.</span>
+                                <span>${answer}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="explanation">
+                        <h4>Explanation:</h4>
+                        <p>${q.explanation}</p>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="btn btn-primary" id="submit-btn" onclick="submitAnswer()" disabled>
+                        Submit Answer
+                    </button>
+                    <button class="btn btn-secondary" id="next-btn" onclick="nextQuestion()" style="display: none;">
+                        ${currentQuestion < questions.length - 1 ? 'Next Question' : 'View Results'} →
+                    </button>
+                </div>
+            `;
+            
+            answered = false;
+            selectedAnswer = null;
+        }
+
+        function selectAnswer(index) {
+            if (answered) return;
+            
+            selectedAnswer = index;
+            
+            // Remove selected class from all options
+            document.querySelectorAll('.answer-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            document.querySelectorAll('.answer-option')[index].classList.add('selected');
+            
+            // Enable submit button
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        function submitAnswer() {
+            if (selectedAnswer === null || answered) return;
+            
+            answered = true;
+            const q = questions[currentQuestion];
+            const options = document.querySelectorAll('.answer-option');
+            
+            // Disable all options
+            options.forEach(opt => opt.classList.add('disabled'));
+            
+            // Show correct/incorrect
+            if (selectedAnswer === q.correct) {
+                options[selectedAnswer].classList.add('correct');
+                score++;
+                document.getElementById('score').textContent = score;
+            } else {
+                options[selectedAnswer].classList.add('incorrect');
+                options[q.correct].classList.add('correct');
+            }
+            
+            // Show explanation
+            document.getElementById('explanation').classList.add('show');
+            
+            // Hide submit, show next
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                document.getElementById('current-q').textContent = currentQuestion + 1;
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-container').style.display = 'none';
+            document.querySelector('.score-display').style.display = 'none';
+            
+            const results = document.getElementById('results');
+            const percentage = Math.round((score / questions.length) * 100);
+            
+            document.getElementById('final-score').textContent = `${score}/${questions.length} (${percentage}%)`;
+            
+            let message = '';
+            if (percentage >= 90) {
+                message = '🌟 Excellent work! You have a strong understanding of these concepts.';
+            } else if (percentage >= 70) {
+                message = '👍 Good job! You understand most of the key concepts.';
+            } else if (percentage >= 50) {
+                message = '📚 Not bad, but there\'s room for improvement. Review the material and try again.';
+            } else {
+                message = '💪 Keep studying! Review the study materials and practice more.';
+            }
+            
+            document.getElementById('performance-msg').textContent = message;
+            results.classList.add('show');
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedAnswer = null;
+            answered = false;
+            
+            document.getElementById('quiz-container').style.display = 'block';
+            document.querySelector('.score-display').style.display = 'block';
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('score').textContent = '0';
+            document.getElementById('current-q').textContent = '1';
+            
+            renderQuestion();
+        }
+
+        // Initialize quiz
+        renderQuestion();
+    </script>
+</body>
+</html>

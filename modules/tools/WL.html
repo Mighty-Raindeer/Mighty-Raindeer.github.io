@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winston-Lutz Analysis Calculator | Radiation Isocenter Verification</title>
+    <meta name="description" content="Interactive Winston-Lutz test calculator for radiation isocenter verification. Calculate MLC, gantry, collimator, and couch deviations.">
+    
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --error-color: #f44336;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            color: var(--accent-primary);
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        input[type="number"] {
+            padding: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        button {
+            padding: 10px 20px;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 15px;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+        }
+
+        .visualization-canvas {
+            width: 100%;
+            height: 400px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .results-container {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: var(--bg-card);
+            border-radius: 4px;
+            border-left: 3px solid var(--border-color);
+        }
+
+        .result-item.pass {
+            border-left-color: var(--success-color);
+        }
+
+        .result-item.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .result-item.fail {
+            border-left-color: var(--error-color);
+        }
+
+        .result-label {
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .info-box {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .info-box h3 {
+            margin-top: 0;
+            color: var(--accent-primary);
+        }
+
+        .info-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+            color: var(--text-secondary);
+        }
+
+        .tolerance-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+
+        .tolerance-table th,
+        .tolerance-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tolerance-table th {
+            background: var(--bg-card);
+            color: var(--accent-primary);
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .disclaimer-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 20px;
+            z-index: 1000;
+        }
+
+        .disclaimer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Winston-Lutz Analysis Calculator</h1>
+        <p class="description">
+            The Winston-Lutz test is the gold standard for verifying radiation isocenter accuracy. 
+            This test involves imaging a small radio-opaque sphere at multiple gantry, collimator, 
+            and couch angles to determine the mechanical and radiation isocenter coincidence.
+        </p>
+
+        <div class="main-grid">
+            <div class="section">
+                <h2>Input Measurements</h2>
+                <form id="wl-form">
+                    <div class="input-grid">
+                        <div class="input-group">
+                            <label for="g0">Gantry 0° Offset (mm):</label>
+                            <input type="number" id="g0" step="0.01" value="0.3" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="g90">Gantry 90° Offset (mm):</label>
+                            <input type="number" id="g90" step="0.01" value="0.2" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="g180">Gantry 180° Offset (mm):</label>
+                            <input type="number" id="g180" step="0.01" value="0.4" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="g270">Gantry 270° Offset (mm):</label>
+                            <input type="number" id="g270" step="0.01" value="0.3" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="c90">Collimator 90° Offset (mm):</label>
+                            <input type="number" id="c90" step="0.01" value="0.2" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="c270">Collimator 270° Offset (mm):</label>
+                            <input type="number" id="c270" step="0.01" value="0.3" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="t90">Table 90° Offset (mm):</label>
+                            <input type="number" id="t90" step="0.01" value="0.1" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="t270">Table 270° Offset (mm):</label>
+                            <input type="number" id="t270" step="0.01" value="0.2" required>
+                        </div>
+                    </div>
+                    <button type="submit">Calculate Isocenter</button>
+                </form>
+            </div>
+
+            <div class="section">
+                <h2>Isocenter Visualization</h2>
+                <div class="visualization-canvas">
+                    <canvas id="wl-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-container">
+            <h2>Analysis Results</h2>
+            <div id="results">
+                <div class="result-item">
+                    <span class="result-label">Maximum 2D Deviation:</span>
+                    <span class="result-value" id="max-2d">-- mm</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Mean Radial Error:</span>
+                    <span class="result-value" id="mean-error">-- mm</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Gantry Isocenter Size:</span>
+                    <span class="result-value" id="gantry-size">-- mm</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Collimator Isocenter Size:</span>
+                    <span class="result-value" id="coll-size">-- mm</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Couch Isocenter Size:</span>
+                    <span class="result-value" id="couch-size">-- mm</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">3D Isocenter Sphere Diameter:</span>
+                    <span class="result-value" id="sphere-diameter">-- mm</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>Understanding Winston-Lutz Analysis</h3>
+            <p><strong>Test Principle:</strong> A small metallic sphere (typically 3-5 mm) is positioned at the nominal isocenter using room lasers. Images are acquired at various gantry, collimator, and couch angles with a small radiation field.</p>
+            
+            <h4>Key Metrics:</h4>
+            <ul>
+                <li><strong>2D Deviation:</strong> Distance between radiation field center and sphere center in the imaging plane</li>
+                <li><strong>Isocenter Size:</strong> Diameter of the smallest sphere containing all measured positions</li>
+                <li><strong>3D Sphere:</strong> The minimum sphere containing all beam axes in 3D space</li>
+            </ul>
+
+            <table class="tolerance-table">
+                <thead>
+                    <tr>
+                        <th>Treatment Type</th>
+                        <th>Recommended Tolerance</th>
+                        <th>Action Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Conventional RT</td>
+                        <td>≤ 2.0 mm</td>
+                        <td>> 3.0 mm</td>
+                    </tr>
+                    <tr>
+                        <td>IMRT/VMAT</td>
+                        <td>≤ 1.0 mm</td>
+                        <td>> 1.5 mm</td>
+                    </tr>
+                    <tr>
+                        <td>SRS/SBRT</td>
+                        <td>≤ 0.5 mm</td>
+                        <td>> 1.0 mm</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        class WinstonLutzAnalyzer {
+            constructor() {
+                this.canvas = document.getElementById('wl-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.form = document.getElementById('wl-form');
+                this.setupCanvas();
+                this.bindEvents();
+                this.calculate(); // Initial calculation
+            }
+
+            setupCanvas() {
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
+            }
+
+            bindEvents() {
+                this.form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.calculate();
+                });
+
+                window.addEventListener('resize', () => {
+                    this.setupCanvas();
+                    this.draw();
+                });
+            }
+
+            calculate() {
+                // Get all measurements
+                const measurements = {
+                    gantry: [
+                        parseFloat(document.getElementById('g0').value) || 0,
+                        parseFloat(document.getElementById('g90').value) || 0,
+                        parseFloat(document.getElementById('g180').value) || 0,
+                        parseFloat(document.getElementById('g270').value) || 0
+                    ],
+                    collimator: [
+                        parseFloat(document.getElementById('c90').value) || 0,
+                        parseFloat(document.getElementById('c270').value) || 0
+                    ],
+                    table: [
+                        parseFloat(document.getElementById('t90').value) || 0,
+                        parseFloat(document.getElementById('t270').value) || 0
+                    ]
+                };
+
+                // Calculate statistics
+                const allMeasurements = [
+                    ...measurements.gantry,
+                    ...measurements.collimator,
+                    ...measurements.table
+                ];
+
+                const max2D = Math.max(...allMeasurements);
+                const meanError = allMeasurements.reduce((a, b) => a + b, 0) / allMeasurements.length;
+                
+                // Calculate isocenter sizes (simplified - using range)
+                const gantrySize = Math.max(...measurements.gantry) - Math.min(...measurements.gantry);
+                const collSize = Math.max(...measurements.collimator) - Math.min(...measurements.collimator);
+                const couchSize = Math.max(...measurements.table) - Math.min(...measurements.table);
+                
+                // 3D sphere diameter (simplified calculation)
+                const sphereDiameter = Math.sqrt(
+                    Math.pow(Math.max(...measurements.gantry), 2) +
+                    Math.pow(Math.max(...measurements.collimator), 2) +
+                    Math.pow(Math.max(...measurements.table), 2)
+                ) * 2;
+
+                // Update display
+                this.updateResults(max2D, meanError, gantrySize, collSize, couchSize, sphereDiameter);
+                this.draw(measurements);
+            }
+
+            updateResults(max2D, meanError, gantrySize, collSize, couchSize, sphereDiameter) {
+                document.getElementById('max-2d').textContent = max2D.toFixed(2) + ' mm';
+                document.getElementById('mean-error').textContent = meanError.toFixed(2) + ' mm';
+                document.getElementById('gantry-size').textContent = gantrySize.toFixed(2) + ' mm';
+                document.getElementById('coll-size').textContent = collSize.toFixed(2) + ' mm';
+                document.getElementById('couch-size').textContent = couchSize.toFixed(2) + ' mm';
+                document.getElementById('sphere-diameter').textContent = sphereDiameter.toFixed(2) + ' mm';
+
+                // Update result colors based on tolerances
+                const resultItems = document.querySelectorAll('.result-item');
+                resultItems.forEach(item => {
+                    const value = parseFloat(item.querySelector('.result-value').textContent);
+                    item.classList.remove('pass', 'warning', 'fail');
+                    
+                    if (value <= 0.5) {
+                        item.classList.add('pass');
+                    } else if (value <= 1.0) {
+                        item.classList.add('warning');
+                    } else {
+                        item.classList.add('fail');
+                    }
+                });
+            }
+
+            draw(measurements) {
+                const ctx = this.ctx;
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const scale = 100; // pixels per mm
+
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw grid
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                for (let i = -5; i <= 5; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(centerX + i * scale / 2, 0);
+                    ctx.lineTo(centerX + i * scale / 2, height);
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(0, centerY + i * scale / 2);
+                    ctx.lineTo(width, centerY + i * scale / 2);
+                    ctx.stroke();
+                }
+
+                // Draw axes
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(centerX, 0);
+                ctx.lineTo(centerX, height);
+                ctx.moveTo(0, centerY);
+                ctx.lineTo(width, centerY);
+                ctx.stroke();
+
+                // Draw nominal isocenter
+                ctx.fillStyle = '#4caf50';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Draw gantry measurements
+                const gantryAngles = [0, 90, 180, 270];
+                ctx.fillStyle = '#ff5722';
+                measurements.gantry.forEach((offset, i) => {
+                    const angle = gantryAngles[i] * Math.PI / 180;
+                    const x = centerX + offset * scale * Math.cos(angle);
+                    const y = centerY + offset * scale * Math.sin(angle);
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    // Label
+                    ctx.fillStyle = 'white';
+                    ctx.font = '12px Arial';
+                    ctx.fillText(`G${gantryAngles[i]}°`, x + 10, y - 5);
+                    ctx.fillStyle = '#ff5722';
+                });
+
+                // Draw scale
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.fillText('1mm', centerX + scale + 5, centerY - 5);
+                
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY - 10);
+                ctx.lineTo(centerX + scale, centerY - 10);
+                ctx.stroke();
+            }
+        }
+
+        // Initialize analyzer when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new WinstonLutzAnalyzer();
+        });
+    </script>
+
+    <footer class="disclaimer-footer">
+        <div class="disclaimer-content">
+            <p><strong>⚠️ Educational Purpose Only:</strong> This tool is for educational purposes only. Clinical Winston-Lutz analysis should be performed using validated clinical software.</p>
+        </div>
+    </footer>
+</body>
+</html>

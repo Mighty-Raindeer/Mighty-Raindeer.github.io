@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MU Calculator</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            margin-bottom: 120px;
+        }
+
+        h1 {
+            color: var(--accent-primary);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .calculator-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .section {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        h2 {
+            color: var(--accent-primary);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            font-size: 12px;
+            cursor: help;
+            color: var(--text-secondary);
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 10px;
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 10;
+            font-size: 12px;
+            color: var(--text-primary);
+            font-weight: normal;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .field-size-inputs {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .field-size-inputs span {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .toggle-button {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-button:hover {
+            background: var(--bg-secondary);
+        }
+
+        .toggle-button.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .calculate-button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent-primary);
+            border: none;
+            color: white;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
+
+        .calculate-button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .reference-table {
+            margin-top: 1.5rem;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--bg-card);
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        td {
+            background: var(--bg-secondary);
+        }
+
+        .formula-display {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .formula-display h3 {
+            margin-top: 0;
+            color: var(--accent-primary);
+            font-size: 1.2rem;
+        }
+
+        .formula-step {
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .formula-step.highlight {
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .result-display {
+            background: var(--accent-primary);
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .result-display h3 {
+            margin: 0 0 1rem 0;
+            color: white;
+        }
+
+        .result-value {
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .result-unit {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .error-message {
+            background: rgba(255, 87, 34, 0.2);
+            border: 1px solid var(--accent-primary);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .disclaimer-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 20px;
+            z-index: 1000;
+        }
+
+        .disclaimer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .disclaimer-text {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+
+        .disclaimer-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .disclaimer-version {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        .step-title {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .param-list {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .reference-heading {
+            color: var(--accent-primary);
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 968px) {
+            .calculator-layout {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 1rem;
+            }
+
+            .section {
+                padding: 1rem;
+            }
+
+            .tooltip:hover::after {
+                left: 50%;
+                top: 100%;
+                transform: translateX(-50%);
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monitor Unit (MU) Calculator</h1>
+
+        <div class="error-message" id="error-message"></div>
+
+        <div class="calculator-layout">
+            <!-- Input Section -->
+            <div class="section">
+                <h2>Calculation Parameters</h2>
+
+                <div class="form-group">
+                    <label for="energy">
+                        Beam Energy
+                        <span class="tooltip" data-tooltip="Photon beam energy from linear accelerator">?</span>
+                    </label>
+                    <select id="energy" aria-label="Select beam energy">
+                        <option value="6">6 MV</option>
+                        <option value="10">10 MV</option>
+                        <option value="15">15 MV</option>
+                        <option value="18">18 MV</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Prescribed Dose (cGy)
+                        <span class="tooltip" data-tooltip="Total dose to be delivered at prescription point">?</span>
+                    </label>
+                    <input type="number" id="dose" min="0" step="0.1" value="200" placeholder="e.g., 200">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Depth (cm)
+                        <span class="tooltip" data-tooltip="Depth of prescription point from surface">?</span>
+                    </label>
+                    <input type="number" id="depth" min="0" step="0.1" value="10" placeholder="e.g., 10">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Field Size
+                        <span class="tooltip" data-tooltip="Square or equivalent square field size">?</span>
+                    </label>
+                    <div class="field-size-inputs">
+                        <input type="number" id="field-x" min="0" step="0.1" value="10" placeholder="Width">
+                        <span>×</span>
+                        <input type="number" id="field-y" min="0" step="0.1" value="10" placeholder="Height">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        SSD (cm)
+                        <span class="tooltip" data-tooltip="Source-to-Surface Distance">?</span>
+                    </label>
+                    <input type="number" id="ssd" min="0" step="0.1" value="100" placeholder="e.g., 100">
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Dose Calculation Method
+                        <span class="tooltip" data-tooltip="PDD for SSD technique, TMR for SAD technique">?</span>
+                    </label>
+                    <div class="toggle-group">
+                        <button class="toggle-button active" id="pdd-toggle">PDD</button>
+                        <button class="toggle-button" id="tmr-toggle">TMR</button>
+                    </div>
+                </div>
+
+                <button class="calculate-button" id="calculate">Calculate MU</button>
+            </div>
+
+            <!-- Results Section -->
+            <div class="section">
+                <h2>Calculation Results</h2>
+
+                <div class="formula-display">
+                    <h3>MU Calculation Formula</h3>
+                    <div class="formula-step">
+                        MU = Prescribed Dose / (OF × PDD/TMR × CF)
+                    </div>
+                    <div class="step-title">
+                        <p><strong>Where:</strong></p>
+                        <ul class="param-list">
+                            <li>OF = Output Factor</li>
+                            <li>PDD = Percent Depth Dose / 100</li>
+                            <li>TMR = Tissue Maximum Ratio</li>
+                            <li>CF = Calibration Factor (1.0 cGy/MU)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="calculation-steps"></div>
+
+                <div class="reference-table">
+                    <h3 class="reference-heading">Reference: Output Factors</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Field Size (cm²)</th>
+                                <th>6 MV</th>
+                                <th>10 MV</th>
+                                <th>15 MV</th>
+                                <th>18 MV</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>5×5</td><td>0.968</td><td>0.971</td><td>0.973</td><td>0.974</td></tr>
+                            <tr><td>10×10</td><td>1.000</td><td>1.000</td><td>1.000</td><td>1.000</td></tr>
+                            <tr><td>15×15</td><td>1.021</td><td>1.018</td><td>1.016</td><td>1.015</td></tr>
+                            <tr><td>20×20</td><td>1.035</td><td>1.030</td><td>1.027</td><td>1.025</td></tr>
+                            <tr><td>25×25</td><td>1.046</td><td>1.040</td><td>1.036</td><td>1.034</td></tr>
+                            <tr><td>30×30</td><td>1.055</td><td>1.048</td><td>1.043</td><td>1.041</td></tr>
+                            <tr><td>40×40</td><td>1.069</td><td>1.060</td><td>1.054</td><td>1.051</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="disclaimer-footer">
+        <div class="disclaimer-content">
+            <p class="disclaimer-text">
+                <span class="disclaimer-icon">⚠️</span>
+                <strong>Educational Purpose Only:</strong> 
+                This tool is designed for educational and training purposes only. It should not be used for clinical decision-making or patient treatment planning.
+                All calculations must be verified using commissioned clinical systems.
+            </p>
+            <p class="disclaimer-version">
+                Last Updated: October 2024 | Version 1.0
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Reference data
+        const outputFactors = {
+            6: { 5: 0.968, 10: 1.000, 15: 1.021, 20: 1.035, 25: 1.046, 30: 1.055, 40: 1.069 },
+            10: { 5: 0.971, 10: 1.000, 15: 1.018, 20: 1.030, 25: 1.040, 30: 1.048, 40: 1.060 },
+            15: { 5: 0.973, 10: 1.000, 15: 1.016, 20: 1.027, 25: 1.036, 30: 1.043, 40: 1.054 },
+            18: { 5: 0.974, 10: 1.000, 15: 1.015, 20: 1.025, 25: 1.034, 30: 1.041, 40: 1.051 }
+        };
+
+        // PDD values (depth, energy) - simplified reference values
+        const pddValues = {
+            6: { 5: 0.847, 10: 0.670, 15: 0.551, 20: 0.461 },
+            10: { 5: 0.857, 10: 0.733, 15: 0.633, 20: 0.552 },
+            15: { 5: 0.863, 10: 0.764, 15: 0.678, 20: 0.606 },
+            18: { 5: 0.866, 10: 0.776, 15: 0.696, 20: 0.627 }
+        };
+
+        // TMR values (depth, energy) - simplified reference values
+        const tmrValues = {
+            6: { 5: 0.892, 10: 0.762, 15: 0.663, 20: 0.581 },
+            10: { 5: 0.901, 10: 0.812, 15: 0.734, 20: 0.666 },
+            15: { 5: 0.906, 10: 0.835, 15: 0.770, 20: 0.712 },
+            18: { 5: 0.909, 10: 0.846, 15: 0.786, 20: 0.732 }
+        };
+
+        let calculationMethod = 'pdd';
+
+        // Toggle calculation method
+        document.getElementById('pdd-toggle').addEventListener('click', function() {
+            calculationMethod = 'pdd';
+            this.classList.add('active');
+            document.getElementById('tmr-toggle').classList.remove('active');
+        });
+
+        document.getElementById('tmr-toggle').addEventListener('click', function() {
+            calculationMethod = 'tmr';
+            this.classList.add('active');
+            document.getElementById('pdd-toggle').classList.remove('active');
+        });
+
+        // Interpolation helper
+        function interpolate(x1, y1, x2, y2, x) {
+            return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+        }
+
+        // Get output factor with interpolation
+        function getOutputFactor(energy, fieldSize) {
+            const energyData = outputFactors[energy];
+            const sizes = Object.keys(energyData).map(Number).sort((a, b) => a - b);
+            
+            if (energyData[fieldSize]) {
+                return energyData[fieldSize];
+            }
+            
+            // Interpolate
+            for (let i = 0; i < sizes.length - 1; i++) {
+                if (fieldSize >= sizes[i] && fieldSize <= sizes[i + 1]) {
+                    return interpolate(sizes[i], energyData[sizes[i]], sizes[i + 1], energyData[sizes[i + 1]], fieldSize);
+                }
+            }
+            
+            // Extrapolate if outside range
+            if (fieldSize < sizes[0]) return energyData[sizes[0]];
+            return energyData[sizes[sizes.length - 1]];
+        }
+
+        // Get PDD/TMR with interpolation
+        function getDepthValue(energy, depth, method) {
+            const data = method === 'pdd' ? pddValues[energy] : tmrValues[energy];
+            const depths = Object.keys(data).map(Number).sort((a, b) => a - b);
+            
+            if (data[depth]) {
+                return data[depth];
+            }
+            
+            // Interpolate
+            for (let i = 0; i < depths.length - 1; i++) {
+                if (depth >= depths[i] && depth <= depths[i + 1]) {
+                    return interpolate(depths[i], data[depths[i]], depths[i + 1], data[depths[i + 1]], depth);
+                }
+            }
+            
+            // Extrapolate
+            if (depth < depths[0]) return data[depths[0]];
+            return data[depths[depths.length - 1]];
+        }
+
+        // Validate inputs
+        function validateInputs() {
+            const dose = parseFloat(document.getElementById('dose').value);
+            const depth = parseFloat(document.getElementById('depth').value);
+            const fieldX = parseFloat(document.getElementById('field-x').value);
+            const fieldY = parseFloat(document.getElementById('field-y').value);
+            const ssd = parseFloat(document.getElementById('ssd').value);
+
+            const errors = [];
+
+            if (!dose || dose <= 0) errors.push("Dose must be a positive number");
+            if (!depth || depth <= 0) errors.push("Depth must be a positive number");
+            if (!fieldX || fieldX <= 0) errors.push("Field width must be a positive number");
+            if (!fieldY || fieldY <= 0) errors.push("Field height must be a positive number");
+            if (!ssd || ssd <= 0) errors.push("SSD must be a positive number");
+
+            if (errors.length > 0) {
+                const errorDiv = document.getElementById('error-message');
+                errorDiv.textContent = errors.join('. ');
+                errorDiv.style.display = 'block';
+                return false;
+            }
+
+            document.getElementById('error-message').style.display = 'none';
+            return true;
+        }
+
+        // Calculate MU
+        document.getElementById('calculate').addEventListener('click', function() {
+            if (!validateInputs()) return;
+
+            const energy = parseInt(document.getElementById('energy').value);
+            const dose = parseFloat(document.getElementById('dose').value);
+            const depth = parseFloat(document.getElementById('depth').value);
+            const fieldX = parseFloat(document.getElementById('field-x').value);
+            const fieldY = parseFloat(document.getElementById('field-y').value);
+            const ssd = parseFloat(document.getElementById('ssd').value);
+
+            // Calculate equivalent square
+            const equivSquare = (2 * fieldX * fieldY) / (fieldX + fieldY);
+
+            // Get factors
+            const outputFactor = getOutputFactor(energy, equivSquare);
+            const depthValue = getDepthValue(energy, depth, calculationMethod);
+            const calibrationFactor = 1.0; // cGy/MU
+
+            // Calculate MU
+            const mu = dose / (outputFactor * depthValue * calibrationFactor);
+
+            // Display calculation steps
+            const stepsDiv = document.getElementById('calculation-steps');
+            stepsDiv.innerHTML = `
+                <div class="formula-display">
+                    <h3>Step-by-Step Calculation</h3>
+                    
+                    <div class="formula-step">
+                        <strong>1. Equivalent Square Field Size:</strong><br>
+                        ES = (2 × ${fieldX.toFixed(1)} × ${fieldY.toFixed(1)}) / (${fieldX.toFixed(1)} + ${fieldY.toFixed(1)}) = ${equivSquare.toFixed(2)} cm
+                    </div>
+                    
+                    <div class="formula-step">
+                        <strong>2. Parameters:</strong><br>
+                        • Energy: ${energy} MV<br>
+                        • Output Factor (OF): ${outputFactor.toFixed(4)}<br>
+                        • ${calculationMethod.toUpperCase()}: ${depthValue.toFixed(4)}<br>
+                        • Calibration Factor (CF): ${calibrationFactor.toFixed(1)} cGy/MU
+                    </div>
+                    
+                    <div class="formula-step">
+                        <strong>3. MU Calculation:</strong><br>
+                        MU = ${dose.toFixed(1)} / (${outputFactor.toFixed(4)} × ${depthValue.toFixed(4)} × ${calibrationFactor.toFixed(1)})<br>
+                        MU = ${dose.toFixed(1)} / ${(outputFactor * depthValue * calibrationFactor).toFixed(4)}
+                    </div>
+                    
+                    <div class="formula-step highlight">
+                        <strong>Final Result:</strong><br>
+                        MU = ${mu.toFixed(1)}
+                    </div>
+                </div>
+                
+                <div class="result-display">
+                    <h3>Monitor Units Required</h3>
+                    <div class="result-value">${mu.toFixed(1)}</div>
+                    <div class="result-unit">MU</div>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiation Therapy Technique Comparison | 3D-CRT vs IMRT vs VMAT</title>
+    <meta name="description" content="Interactive comparison of radiation therapy techniques: 3D Conformal, IMRT, and VMAT. Understand dose distributions, treatment times, and clinical applications.">
+    
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .technique-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .technique-btn {
+            padding: 12px 24px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .technique-btn:hover {
+            background: var(--bg-card);
+            transform: translateY(-2px);
+        }
+
+        .technique-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .image-comparison {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 4px;
+            background: var(--bg-card);
+        }
+
+        .slider-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dose-display {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .slider-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .slider-input {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            background: var(--bg-card);
+            outline: none;
+            border-radius: 3px;
+        }
+
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-primary);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .slider-input::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-primary);
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .slider-label {
+            min-width: 60px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .info-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .info-section h2 {
+            color: var(--accent-primary);
+            margin-top: 0;
+        }
+
+        .technique-details {
+            display: none;
+        }
+
+        .technique-details.active {
+            display: block;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .comparison-table th {
+            background: var(--bg-card);
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            color: var(--text-secondary);
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .pros, .cons {
+            padding: 15px;
+            background: var(--bg-card);
+            border-radius: 4px;
+        }
+
+        .pros {
+            border-left: 3px solid #4caf50;
+        }
+
+        .cons {
+            border-left: 3px solid #f44336;
+        }
+
+        .pros h3, .cons h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .pros ul, .cons ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .pros li, .cons li {
+            margin: 5px 0;
+            color: var(--text-secondary);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pros-cons {
+                grid-template-columns: 1fr;
+            }
+            
+            .technique-selector {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Radiation Therapy Technique Comparison</h1>
+        
+        <div class="technique-selector">
+            <button class="technique-btn active" data-technique="3dcrt">3D-CRT</button>
+            <button class="technique-btn" data-technique="imrt">Static IMRT</button>
+            <button class="technique-btn" data-technique="vmat">VMAT</button>
+        </div>
+
+        <div class="comparison-grid">
+            <div class="image-comparison">
+                <h2>Dose Distribution Visualization</h2>
+                <div class="slider-container">
+                    <div class="dose-display">
+                        <canvas id="dose-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="slider-control">
+                    <span class="slider-label">Axial</span>
+                    <input type="range" class="slider-input" id="view-slider" min="0" max="2" value="0">
+                    <span class="slider-label">Sagittal</span>
+                </div>
+            </div>
+
+            <div class="image-comparison">
+                <h2>Beam Arrangement</h2>
+                <div class="slider-container">
+                    <div class="dose-display">
+                        <canvas id="beam-canvas"></canvas>
+                    </div>
+                </div>
+                <div class="slider-control">
+                    <span class="slider-label">0°</span>
+                    <input type="range" class="slider-input" id="angle-slider" min="0" max="360" value="0">
+                    <span class="slider-label">360°</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <!-- 3D-CRT Details -->
+            <div class="technique-details active" id="3dcrt-details">
+                <h2>3D Conformal Radiation Therapy (3D-CRT)</h2>
+                <p>3D-CRT uses imaging technologies to create three-dimensional representations of tumors and surrounding organs. The radiation beams are shaped to match the tumor from multiple angles using uniform beam intensities.</p>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Typical Value</th>
+                            <th>Clinical Context</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Number of Beams</td>
+                            <td>3-7 static fields</td>
+                            <td>Simple beam arrangements (box, wedge pair)</td>
+                        </tr>
+                        <tr>
+                            <td>Beam Modulation</td>
+                            <td>None (uniform fluence)</td>
+                            <td>May use wedges for dose homogeneity</td>
+                        </tr>
+                        <tr>
+                            <td>Treatment Time</td>
+                            <td>5-10 minutes</td>
+                            <td>Fast delivery, minimal MU</td>
+                        </tr>
+                        <tr>
+                            <td>Dose Conformity</td>
+                            <td>Moderate</td>
+                            <td>Limited by beam geometry</td>
+                        </tr>
+                        <tr>
+                            <td>MU Efficiency</td>
+                            <td>100-300 MU typical</td>
+                            <td>Direct beam delivery</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h3>✓ Advantages</h3>
+                        <ul>
+                            <li>Simple planning process</li>
+                            <li>Fast treatment delivery</li>
+                            <li>Low integral dose</li>
+                            <li>Easy QA verification</li>
+                            <li>Minimal leakage radiation</li>
+                            <li>Cost-effective</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h3>✗ Limitations</h3>
+                        <ul>
+                            <li>Limited dose conformity</li>
+                            <li>Difficulty sparing nearby OARs</li>
+                            <li>Cannot create concave distributions</li>
+                            <li>Limited dose escalation potential</li>
+                            <li>Higher dose to normal tissue</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMRT Details -->
+            <div class="technique-details" id="imrt-details">
+                <h2>Intensity-Modulated Radiation Therapy (IMRT)</h2>
+                <p>IMRT uses computer-controlled linear accelerators to deliver precise radiation doses. The beam intensity is modulated using multileaf collimators (MLCs) to create highly conformal dose distributions with steep gradients.</p>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Typical Value</th>
+                            <th>Clinical Context</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Number of Beams</td>
+                            <td>5-9 static fields</td>
+                            <td>Optimized angles for OAR sparing</td>
+                        </tr>
+                        <tr>
+                            <td>Beam Modulation</td>
+                            <td>Step-and-shoot or sliding window</td>
+                            <td>10-100 segments per field</td>
+                        </tr>
+                        <tr>
+                            <td>Treatment Time</td>
+                            <td>10-20 minutes</td>
+                            <td>Longer due to MLC motion</td>
+                        </tr>
+                        <tr>
+                            <td>Dose Conformity</td>
+                            <td>High</td>
+                            <td>Excellent target coverage</td>
+                        </tr>
+                        <tr>
+                            <td>MU Efficiency</td>
+                            <td>600-1500 MU typical</td>
+                            <td>2-5x higher than 3D-CRT</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h3>✓ Advantages</h3>
+                        <ul>
+                            <li>Superior dose conformity</li>
+                            <li>Excellent OAR sparing</li>
+                            <li>Simultaneous integrated boost capability</li>
+                            <li>Can create concave distributions</li>
+                            <li>Dose painting possibilities</li>
+                            <li>Reduced late toxicity</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h3>✗ Limitations</h3>
+                        <ul>
+                            <li>Complex planning process</li>
+                            <li>Longer treatment times</li>
+                            <li>Higher integral dose</li>
+                            <li>Increased leakage radiation</li>
+                            <li>More complex QA requirements</li>
+                            <li>Higher cost</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VMAT Details -->
+            <div class="technique-details" id="vmat-details">
+                <h2>Volumetric Modulated Arc Therapy (VMAT)</h2>
+                <p>VMAT delivers radiation therapy through one or more arcs with simultaneous variation of gantry speed, MLC positions, and dose rate. This creates highly conformal distributions with improved delivery efficiency.</p>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Typical Value</th>
+                            <th>Clinical Context</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Number of Arcs</td>
+                            <td>1-3 full or partial arcs</td>
+                            <td>Single arc often sufficient</td>
+                        </tr>
+                        <tr>
+                            <td>Beam Modulation</td>
+                            <td>Continuous (dynamic MLC)</td>
+                            <td>178-360 control points per arc</td>
+                        </tr>
+                        <tr>
+                            <td>Treatment Time</td>
+                            <td>2-5 minutes</td>
+                            <td>Fastest modulated delivery</td>
+                        </tr>
+                        <tr>
+                            <td>Dose Conformity</td>
+                            <td>Very High</td>
+                            <td>Similar or better than IMRT</td>
+                        </tr>
+                        <tr>
+                            <td>MU Efficiency</td>
+                            <td>300-800 MU typical</td>
+                            <td>More efficient than static IMRT</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h3>✓ Advantages</h3>
+                        <ul>
+                            <li>Fastest modulated delivery</li>
+                            <li>Excellent dose conformity</li>
+                            <li>Superior OAR sparing</li>
+                            <li>Reduced treatment time improves patient comfort</li>
+                            <li>Lower integral dose vs IMRT</li>
+                            <li>Reduced intrafraction motion effects</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h3>✗ Limitations</h3>
+                        <ul>
+                            <li>Complex planning optimization</li>
+                            <li>Sophisticated QA required</li>
+                            <li>Machine-specific planning</li>
+                            <li>Limited manual intervention</li>
+                            <li>Requires advanced linac capabilities</li>
+                            <li>Complex commissioning</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TechniqueComparison {
+            constructor() {
+                this.currentTechnique = '3dcrt';
+                this.doseCanvas = document.getElementById('dose-canvas');
+                this.beamCanvas = document.getElementById('beam-canvas');
+                this.doseCtx = this.doseCanvas.getContext('2d');
+                this.beamCtx = this.beamCanvas.getContext('2d');
+                
+                this.setupCanvases();
+                this.bindEvents();
+                this.drawVisualizations();
+            }
+
+            setupCanvases() {
+                const setupCanvas = (canvas) => {
+                    const rect = canvas.parentElement.getBoundingClientRect();
+                    canvas.width = rect.width;
+                    canvas.height = rect.height;
+                };
+                
+                setupCanvas(this.doseCanvas);
+                setupCanvas(this.beamCanvas);
+            }
+
+            bindEvents() {
+                // Technique selection
+                document.querySelectorAll('.technique-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.technique-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        const technique = btn.dataset.technique;
+                        this.currentTechnique = technique;
+                        
+                        // Update details section
+                        document.querySelectorAll('.technique-details').forEach(detail => {
+                            detail.classList.remove('active');
+                        });
+                        document.getElementById(`${technique}-details`).classList.add('active');
+                        
+                        this.drawVisualizations();
+                    });
+                });
+
+                // View slider
+                document.getElementById('view-slider').addEventListener('input', () => {
+                    this.drawDoseDistribution();
+                });
+
+                // Angle slider
+                document.getElementById('angle-slider').addEventListener('input', () => {
+                    this.drawBeamArrangement();
+                });
+
+                // Window resize
+                window.addEventListener('resize', () => {
+                    this.setupCanvases();
+                    this.drawVisualizations();
+                });
+            }
+
+            drawVisualizations() {
+                this.drawDoseDistribution();
+                this.drawBeamArrangement();
+            }
+
+            drawDoseDistribution() {
+                const ctx = this.doseCtx;
+                const width = this.doseCanvas.width;
+                const height = this.doseCanvas.height;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                
+                // Clear canvas
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Draw anatomy outline (simplified)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                
+                // Body outline
+                ctx.beginPath();
+                ctx.ellipse(centerX, centerY, width * 0.35, height * 0.4, 0, 0, 2 * Math.PI);
+                ctx.stroke();
+                
+                // Target volume
+                ctx.strokeStyle = '#ff5722';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                if (this.currentTechnique === '3dcrt') {
+                    // Simple rectangular target
+                    ctx.rect(centerX - 60, centerY - 40, 120, 80);
+                } else {
+                    // Irregular target shape
+                    ctx.moveTo(centerX - 40, centerY - 30);
+                    ctx.quadraticCurveTo(centerX - 60, centerY, centerX - 40, centerY + 30);
+                    ctx.quadraticCurveTo(centerX, centerY + 40, centerX + 40, centerY + 30);
+                    ctx.quadraticCurveTo(centerX + 60, centerY, centerX + 40, centerY - 30);
+                    ctx.quadraticCurveTo(centerX, centerY - 40, centerX - 40, centerY - 30);
+                }
+                ctx.closePath();
+                ctx.stroke();
+                
+                // Draw isodose lines
+                const isodoses = this.currentTechnique === '3dcrt' ? 
+                    [100, 95, 80, 50, 20] : 
+                    [100, 95, 90, 50, 30, 10];
+                
+                const colors = [
+                    'rgba(255, 0, 0, 0.8)',
+                    'rgba(255, 128, 0, 0.7)',
+                    'rgba(255, 255, 0, 0.6)',
+                    'rgba(0, 255, 0, 0.5)',
+                    'rgba(0, 128, 255, 0.4)',
+                    'rgba(128, 0, 255, 0.3)'
+                ];
+                
+                isodoses.forEach((dose, index) => {
+                    ctx.strokeStyle = colors[index];
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    
+                    const scale = dose / 100;
+                    if (this.currentTechnique === '3dcrt') {
+                        // Rectangular isodose lines for 3D-CRT
+                        const rectWidth = 120 + (100 - dose) * 2;
+                        const rectHeight = 80 + (100 - dose) * 2;
+                        ctx.rect(centerX - rectWidth/2, centerY - rectHeight/2, rectWidth, rectHeight);
+                    } else if (this.currentTechnique === 'imrt') {
+                        // Conformal isodose for IMRT
+                        const radius = 50 + (100 - dose) * 1.5;
+                        ctx.ellipse(centerX, centerY, radius * 1.2, radius, 0, 0, 2 * Math.PI);
+                    } else {
+                        // Highly conformal for VMAT
+                        const radius = 50 + (100 - dose) * 0.8;
+                        ctx.ellipse(centerX, centerY, radius * 1.1, radius * 0.9, 0, 0, 2 * Math.PI);
+                    }
+                    ctx.stroke();
+                });
+                
+                // Add dose color legend
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.fillText('Isodose Lines (%)', 10, 20);
+                
+                isodoses.forEach((dose, index) => {
+                    ctx.fillStyle = colors[index];
+                    ctx.fillRect(10, 30 + index * 20, 30, 10);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(`${dose}%`, 45, 38 + index * 20);
+                });
+            }
+
+            drawBeamArrangement() {
+                const ctx = this.beamCtx;
+                const width = this.beamCanvas.width;
+                const height = this.beamCanvas.height;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const radius = Math.min(width, height) * 0.35;
+                
+                const angle = parseFloat(document.getElementById('angle-slider').value);
+                
+                // Clear canvas
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Draw patient outline (circle representing axial view)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.stroke();
+                
+                // Draw target
+                ctx.fillStyle = 'rgba(255, 87, 34, 0.3)';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius * 0.3, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.strokeStyle = '#ff5722';
+                ctx.stroke();
+                
+                // Draw beams based on technique
+                ctx.strokeStyle = '#00ff00';
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+                ctx.lineWidth = 2;
+                
+                if (this.currentTechnique === '3dcrt') {
+                    // Draw 4-field box
+                    const beamAngles = [0, 90, 180, 270];
+                    beamAngles.forEach(beamAngle => {
+                        const radAngle = (beamAngle + angle) * Math.PI / 180;
+                        const x1 = centerX + Math.cos(radAngle) * radius * 1.5;
+                        const y1 = centerY + Math.sin(radAngle) * radius * 1.5;
+                        const x2 = centerX + Math.cos(radAngle) * radius;
+                        const y2 = centerY + Math.sin(radAngle) * radius;
+                        
+                        // Draw beam line
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                        
+                        // Draw beam cone
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        const spread = 0.3;
+                        ctx.lineTo(centerX + Math.cos(radAngle - spread) * radius * 0.3, 
+                                  centerY + Math.sin(radAngle - spread) * radius * 0.3);
+                        ctx.lineTo(centerX + Math.cos(radAngle + spread) * radius * 0.3, 
+                                  centerY + Math.sin(radAngle + spread) * radius * 0.3);
+                        ctx.closePath();
+                        ctx.fill();
+                    });
+                } else if (this.currentTechnique === 'imrt') {
+                    // Draw 7-field IMRT
+                    const numBeams = 7;
+                    for (let i = 0; i < numBeams; i++) {
+                        const beamAngle = (360 / numBeams * i + angle) * Math.PI / 180;
+                        const x1 = centerX + Math.cos(beamAngle) * radius * 1.5;
+                        const y1 = centerY + Math.sin(beamAngle) * radius * 1.5;
+                        const x2 = centerX + Math.cos(beamAngle) * radius;
+                        const y2 = centerY + Math.sin(beamAngle) * radius;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                        
+                        // Modulated beam intensity visualization
+                        for (let j = 0; j < 5; j++) {
+                            ctx.fillStyle = `rgba(0, 255, 0, ${0.05 + j * 0.02})`;
+                            const segmentSpread = 0.1 + j * 0.02;
+                            ctx.beginPath();
+                            ctx.moveTo(x1, y1);
+                            ctx.lineTo(centerX + Math.cos(beamAngle - segmentSpread) * radius * 0.4, 
+                                      centerY + Math.sin(beamAngle - segmentSpread) * radius * 0.4);
+                            ctx.lineTo(centerX + Math.cos(beamAngle + segmentSpread) * radius * 0.4, 
+                                      centerY + Math.sin(beamAngle + segmentSpread) * radius * 0.4);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
+                    }
+                } else {
+                    // Draw VMAT arc
+                    const arcStart = angle * Math.PI / 180;
+                    const arcEnd = (angle + 180) * Math.PI / 180;
+                    
+                    // Draw arc path
+                    ctx.strokeStyle = '#00ff00';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius * 1.3, arcStart, arcEnd);
+                    ctx.stroke();
+                    
+                    // Draw moving beam
+                    const currentBeamAngle = (angle + 90) * Math.PI / 180;
+                    const x1 = centerX + Math.cos(currentBeamAngle) * radius * 1.5;
+                    const y1 = centerY + Math.sin(currentBeamAngle) * radius * 1.5;
+                    
+                    // Gradient beam to show motion
+                    const gradient = ctx.createLinearGradient(x1, y1, centerX, centerY);
+                    gradient.addColorStop(0, 'rgba(0, 255, 0, 0.8)');
+                    gradient.addColorStop(1, 'rgba(0, 255, 0, 0.1)');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(centerX + Math.cos(currentBeamAngle - 0.3) * radius * 0.3, 
+                              centerY + Math.sin(currentBeamAngle - 0.3) * radius * 0.3);
+                    ctx.lineTo(centerX + Math.cos(currentBeamAngle + 0.3) * radius * 0.3, 
+                              centerY + Math.sin(currentBeamAngle + 0.3) * radius * 0.3);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Add rotation arrows
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, radius * 1.3, arcEnd, arcEnd + 0.3);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                // Add labels
+                ctx.fillStyle = 'white';
+                ctx.font = '14px Arial';
+                ctx.fillText(this.currentTechnique.toUpperCase(), 10, 20);
+                
+                if (this.currentTechnique === 'vmat') {
+                    ctx.fillText(`Arc: ${angle.toFixed(0)}°`, 10, 40);
+                } else {
+                    ctx.fillText(`Gantry: ${angle.toFixed(0)}°`, 10, 40);
+                }
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new TechniqueComparison();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What's Coming - Medical Physics Study Guide</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --status-planned: #64B5F6;
+            --status-progress: #FFA726;
+            --status-testing: #9CCC65;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            color: var(--accent-primary);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .progress-section {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 3rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-section h2 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background: var(--bg-card);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 1rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .roadmap-section {
+            margin-bottom: 3rem;
+        }
+
+        .roadmap-section h2 {
+            color: var(--accent-primary);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .feature-item {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .feature-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-primary);
+        }
+
+        .feature-content {
+            flex: 1;
+        }
+
+        .feature-name {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            margin-left: 1rem;
+        }
+
+        .status-planned {
+            background: rgba(100, 181, 246, 0.2);
+            color: var(--status-planned);
+            border: 1px solid var(--status-planned);
+        }
+
+        .status-progress {
+            background: rgba(255, 167, 38, 0.2);
+            color: var(--status-progress);
+            border: 1px solid var(--status-progress);
+        }
+
+        .status-testing {
+            background: rgba(156, 204, 101, 0.2);
+            color: var(--status-testing);
+            border: 1px solid var(--status-testing);
+        }
+
+        .contribution-section {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .contribution-section h3 {
+            color: var(--accent-primary);
+            margin-top: 0;
+        }
+
+        .github-link {
+            display: inline-block;
+            background: var(--accent-primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: background 0.2s ease;
+        }
+
+        .github-link:hover {
+            background: var(--accent-hover);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            color: var(--accent-hover);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .feature-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .status-badge {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../../study.html" class="back-link">← Back to Study Materials</a>
+
+        <div class="header">
+            <h1>What's Coming</h1>
+            <p>Our roadmap for expanding the medical physics education toolkit</p>
+        </div>
+
+        <div class="progress-section">
+            <h2>Overall Development Progress</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div id="roadmap-container"></div>
+
+        <div class="contribution-section">
+            <h3>Want to Contribute?</h3>
+            <p>This is an open-source project! If you'd like to contribute tools, content, or suggestions, visit our GitHub repository.</p>
+            <a\1 rel="noopener"
+>Visit GitHub Repository</a>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // EASY UPDATE SECTION - EDIT THIS DATA ONLY
+        // ============================================
+        
+        const roadmapData = {
+            progress: 35, // Overall progress percentage (0-100)
+            
+            sections: [
+                {
+                    title: "Current Tasks",
+                    features: [
+                        {
+                            name: "DVH Analysis Tool",
+                            description: "Interactive dose-volume histogram analyzer for treatment plan evaluation",
+                            status: "progress" // Options: "planned", "progress", "testing"
+                        },
+                        {
+                            name: "TG-51 Calculator",
+                            description: "Reference dosimetry calculator following AAPM TG-51 protocol",
+                            status: "testing"
+                        },
+                        {
+                            name: "Electron Cutout Factors",
+                            description: "Calculator and visualization for electron beam cutout factor determination",
+                            status: "progress"
+                        },
+                        {
+                            name: "MLC QA Module",
+                            description: "Multi-leaf collimator quality assurance tracking and analysis tool",
+                            status: "planned"
+                        }
+                    ]
+                },
+                {
+                    title: "Planned",
+                    features: [
+                        {
+                            name: "Radiobiology Section",
+                            description: "Educational modules covering BED, EQD2, and radiobiological modeling",
+                            status: "planned"
+                        },
+                        {
+                            name: "IMRT QA Module",
+                            description: "Comprehensive IMRT quality assurance analysis and gamma evaluation tools",
+                            status: "planned"
+                        },
+                        {
+                            name: "Phantom Library",
+                            description: "Database of QA phantoms with specifications and measurement protocols",
+                            status: "planned"
+                        },
+                        {
+                            name: "Treatment Planning Exercises",
+                            description: "Interactive case studies for treatment planning practice and education",
+                            status: "planned"
+                        },
+                        {
+                            name: "VMAT Optimization Visualizer",
+                            description: "Educational tool showing VMAT arc optimization principles and techniques",
+                            status: "planned"
+                        },
+                        {
+                            name: "Regulatory Standards Guide",
+                            description: "Comprehensive reference for AAPM, ACR, and regulatory compliance requirements",
+                            status: "planned"
+                        }
+                    ]
+                },
+                {
+                    title: "Wishlist",
+                    features: [
+                        {
+                            name: "Video Tutorials",
+                            description: "Comprehensive video library covering key medical physics concepts and procedures",
+                            status: "planned"
+                        },
+                        {
+                            name: "Mobile App",
+                            description: "Dedicated mobile application for on-the-go access to calculators and references",
+                            status: "planned"
+                        },
+                        {
+                            name: "Community Forum",
+                            description: "Discussion platform for medical physics students and professionals",
+                            status: "planned"
+                        },
+                        {
+                            name: "ABR Exam Prep",
+                            description: "Comprehensive study materials and practice questions for ABR board certification",
+                            status: "planned"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // ============================================
+        // END OF EASY UPDATE SECTION
+        // ============================================
+
+        // Render the roadmap (don't edit below unless you want to change styling/structure)
+        function renderRoadmap() {
+            // Update progress bar
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = `${roadmapData.progress}%`;
+            progressBar.textContent = `${roadmapData.progress}%`;
+
+            // Render sections
+            const container = document.getElementById('roadmap-container');
+            container.innerHTML = '';
+
+            roadmapData.sections.forEach(section => {
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'roadmap-section';
+
+                const title = document.createElement('h2');
+                title.textContent = section.title;
+                sectionDiv.appendChild(title);
+
+                const featureList = document.createElement('div');
+                featureList.className = 'feature-list';
+
+                section.features.forEach(feature => {
+                    const featureItem = document.createElement('div');
+                    featureItem.className = 'feature-item';
+
+                    const content = document.createElement('div');
+                    content.className = 'feature-content';
+
+                    const name = document.createElement('div');
+                    name.className = 'feature-name';
+                    name.textContent = feature.name;
+
+                    const description = document.createElement('div');
+                    description.className = 'feature-description';
+                    description.textContent = feature.description;
+
+                    content.appendChild(name);
+                    content.appendChild(description);
+
+                    const badge = document.createElement('div');
+                    badge.className = `status-badge status-${feature.status}`;
+                    badge.textContent = feature.status === 'progress' ? 'In Progress' : 
+                                       feature.status === 'testing' ? 'Testing' : 'Planned';
+
+                    featureItem.appendChild(content);
+                    featureItem.appendChild(badge);
+                    featureList.appendChild(featureItem);
+                });
+
+                sectionDiv.appendChild(featureList);
+                container.appendChild(sectionDiv);
+            });
+        }
+
+        // Load the roadmap on page load
+        renderRoadmap();
+    </script>
+</body>
+</html>

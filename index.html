@@ -3,8 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/styles.css">
-    <title>Rainor Connor - Medical Physics & Radiation Oncology</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Medical Physics Study Guide | Free ABR Board Exam Prep & Calculators</title>
+    <meta name="title" content="Medical Physics Study Guide | Free ABR Board Exam Prep & Calculators">
+    <meta name="description" content="Comprehensive medical physics study materials, interactive calculators, and ABR board exam preparation tools. Learn radiation therapy physics, dosimetry, and treatment planning.">
+    <meta name="keywords" content="medical physics, ABR exam, radiation therapy, dosimetry calculator, PDD curves, treatment planning, board certification, physics residency, AAPM, TG-51">
+    <meta name="author" content="Rainor Connor MS DABR">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mighty-raindeer.github.io/">
+    <meta property="og:title" content="Medical Physics Study Guide & Calculators">
+    <meta property="og:description" content="Free medical physics education resources, interactive tools, and ABR exam preparation materials.">
+    <meta property="og:image" content="https://mighty-raindeer.github.io/assets/preview.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://mighty-raindeer.github.io/">
+    <meta property="twitter:title" content="Medical Physics Study Guide">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://mighty-raindeer.github.io/">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalWebSite",
+      "name": "Medical Physics Study Guide",
+      "description": "Comprehensive medical physics education and ABR board exam preparation",
+      "url": "https://mighty-raindeer.github.io/",
+      "author": {
+        "@type": "Person",
+        "name": "Rainor Connor",
+        "jobTitle": "Medical Physicist",
+        "alumniOf": "Duke University"
+      },
+      "educationalLevel": "Graduate",
+      "teaches": ["Medical Physics", "Radiation Therapy", "Dosimetry"],
+      "hasCourseInstance": [
+        {
+          "@type": "Course",
+          "name": "PDD Visualization Tool",
+          "description": "Interactive depth dose curve comparison"
+        },
+        {
+          "@type": "Course", 
+          "name": "Brachytherapy Calculator",
+          "description": "TG-43 dose calculation tool"
+        }
+      ]
+    }
+    </script>
+    
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+
+        // Track tool usage
+        function trackToolUse(toolName) {
+            gtag('event', 'use_tool', {
+                'tool_name': toolName
+            });
+        }
+
+        // Track navigation events
+        function trackNavigation(destination) {
+            gtag('event', 'navigate_study', {
+                'destination': destination
+            });
+        }
+
+        // Track external link clicks
+        function trackExternalLink(url) {
+            gtag('event', 'external_link', {
+                'link_url': url
+            });
+        }
+    </script>
 
     <style>
         :root {
@@ -145,19 +226,21 @@
         </div>
 
         <div class="nav-grid">
-            <a href="study.html" class="nav-card">
+            <a href="study.html" class="nav-card" onclick="trackNavigation('study_materials')">
                 <div class="icon">📚</div>
                 <h2>Study Materials</h2>
                 <p>Comprehensive guides and interactive tools for medical physics and radiation oncology.</p>
             </a>
 
-            <a href="cv.html" class="nav-card">
+            <a href="cv.html" class="nav-card" onclick="trackNavigation('curriculum_vitae')">
                 <div class="icon">📄</div>
                 <h2>Curriculum Vitae</h2>
                 <p>Academic background, research publications, and professional experience.</p>
             </a>
 
-            <a href="https://github.com/Mighty-Raindeer" class="nav-card" target="_blank">
+            <a\1 rel="noopener"
+ 
+               onclick="trackExternalLink('https://github.com/Mighty-Raindeer')">
                 <div class="icon">💻</div>
                 <h2>GitHub Projects</h2>
                 <p>Open-source contributions and research tools for the medical physics community.</p>
@@ -168,5 +251,25 @@
     <footer>
         <p>© 2024 Rainor Connor. All rights reserved.</p>
     </footer>
+
+    <script>
+        // Additional event tracking setup
+        document.addEventListener('DOMContentLoaded', function() {
+            // Track page view
+            gtag('event', 'page_view', {
+                'page_title': 'Home',
+                'page_location': window.location.href
+            });
+
+            // Add tracking to all links if not already set
+            document.querySelectorAll('a[href^="http"]').forEach(function(link) {
+                if (!link.hasAttribute('onclick')) {
+                    link.addEventListener('click', function(e) {
+                        trackExternalLink(this.href);
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>

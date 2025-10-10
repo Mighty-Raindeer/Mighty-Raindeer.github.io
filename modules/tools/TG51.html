@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TG-51 Reference Dosimetry Calculator | AAPM Protocol</title>
+    <meta name="description" content="Complete TG-51 protocol calculator for reference dosimetry. Calculate Pion, Ppol, Pelec, and determine dose with kQ factors.">
+    
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .protocol-description {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            color: var(--accent-primary);
+            margin-top: 0;
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .input-group small {
+            display: block;
+            margin-top: 4px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .calculate-button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .calculate-button:hover {
+            background: var(--accent-hover);
+        }
+
+        .results-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            color: var(--text-primary);
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .result-unit {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-left: 4px;
+        }
+
+        .formula-display {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .formula-display h3 {
+            margin-top: 0;
+            color: var(--accent-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .measurement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .measurement-table th,
+        .measurement-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .measurement-table th {
+            background: var(--bg-card);
+            color: var(--accent-primary);
+        }
+
+        .measurement-table input {
+            width: 100%;
+            padding: 4px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 2px;
+        }
+
+        .info-box {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            border-left: 3px solid var(--warning-color);
+        }
+
+        .info-box h4 {
+            margin-top: 0;
+            color: var(--warning-color);
+        }
+
+        .info-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+            color: var(--text-secondary);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-button.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .disclaimer-footer {
+            margin-top: 40px;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AAPM TG-51 Reference Dosimetry Calculator</h1>
+        <p class="protocol-description">
+            Complete implementation of the AAPM TG-51 protocol for reference dosimetry of high-energy photon and electron beams.
+            Calculate all correction factors and determine absorbed dose to water at the reference point.
+        </p>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('photon')">Photon Beams</button>
+            <button class="tab-button" onclick="switchTab('electron')">Electron Beams</button>
+        </div>
+
+        <!-- Photon Beam Tab -->
+        <div id="photon-tab" class="tab-content active">
+            <div class="calculator-grid">
+                <div class="section">
+                    <h2>Chamber & Beam Parameters</h2>
+                    
+                    <div class="input-group">
+                        <label for="chamber-type">Ion Chamber Model:</label>
+                        <select id="chamber-type">
+                            <option value="PTW30013">PTW 30013 (Farmer)</option>
+                            <option value="PTW31010">PTW 31010 (Semiflex)</option>
+                            <option value="NE2571">NE 2571 (Farmer)</option>
+                            <option value="Exradin-A12">Exradin A12 (Farmer)</option>
+                            <option value="Exradin-A19">Exradin A19</option>
+                            <option value="custom">Custom (Enter N_D,w)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="beam-energy">Nominal Energy:</label>
+                        <select id="beam-energy">
+                            <option value="6X">6 MV</option>
+                            <option value="10X">10 MV</option>
+                            <option value="15X">15 MV</option>
+                            <option value="18X">18 MV</option>
+                            <option value="20X">20 MV</option>
+                            <option value="25X">25 MV</option>
+                        </select>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="pdd10">%dd(10)_x:</label>
+                            <input type="number" id="pdd10" step="0.1" value="66.5">
+                            <small>For 10×10 cm² field</small>
+                        </div>
+                        <div class="input-group">
+                            <label for="tpr2010">TPR₂₀,₁₀:</label>
+                            <input type="number" id="tpr2010" step="0.001" value="0.670">
+                            <small>Optional (for FFF beams)</small>
+                        </div>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="ndw">N_D,w (Gy/nC):</label>
+                            <input type="number" id="ndw" step="0.001" value="5.394">
+                            <small>At reference conditions</small>
+                        </div>
+                        <div class="input-group">
+                            <label for="calibration-date">Calibration Date:</label>
+                            <input type="date" id="calibration-date" value="2024-01-15">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Environmental Conditions</h2>
+                    
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="temperature">Temperature (°C):</label>
+                            <input type="number" id="temperature" step="0.1" value="22.0">
+                        </div>
+                        <div class="input-group">
+                            <label for="pressure">Pressure (kPa):</label>
+                            <input type="number" id="pressure" step="0.1" value="101.33">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="humidity">Relative Humidity (%):</label>
+                        <input type="number" id="humidity" step="1" value="50">
+                        <small>For information only (not used in P_TP)</small>
+                    </div>
+
+                    <div class="formula-display">
+                        <h3>P_TP Calculation:</h3>
+                        <code>P_TP = (273.2 + T) / 295.2 × 101.33 / P</code>
+                        <div style="margin-top: 10px;">
+                            <strong>P_TP = <span id="ptp-value">1.000</span></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Charge Measurements</h2>
+                
+                <h3>P_ion - Recombination Correction</h3>
+                <table class="measurement-table">
+                    <thead>
+                        <tr>
+                            <th>Voltage (V)</th>
+                            <th>M_raw⁺ (nC)</th>
+                            <th>M_raw⁻ (nC)</th>
+                            <th>M_raw (avg)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>300 (V_H)</td>
+                            <td><input type="number" id="mh-plus" step="0.001" value="10.000"></td>
+                            <td><input type="number" id="mh-minus" step="0.001" value="9.995"></td>
+                            <td><span id="mh-avg">9.998</span></td>
+                        </tr>
+                        <tr>
+                            <td>150 (V_L)</td>
+                            <td><input type="number" id="ml-plus" step="0.001" value="9.950"></td>
+                            <td><input type="number" id="ml-minus" step="0.001" value="9.945"></td>
+                            <td><span id="ml-avg">9.948</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="input-row" style="margin-top: 15px;">
+                    <div class="result-card">
+                        <div class="result-label">P_ion (Two-Voltage)</div>
+                        <div class="result-value" id="pion-result">1.0025</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">P_pol (Polarity)</div>
+                        <div class="result-value" id="ppol-result">1.0003</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 20px;">P_elec - Electrometer Correction</h3>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="pelec">P_elec:</label>
+                        <input type="number" id="pelec" step="0.0001" value="1.000">
+                        <small>From calibration certificate</small>
+                    </div>
+                    <div class="input-group">
+                        <label for="pgrad">P_grad (if applicable):</label>
+                        <input type="number" id="pgrad" step="0.0001" value="1.000">
+                        <small>Usually 1.000 for Farmer chambers</small>
+                    </div>
+                </div>
+
+                <button class="calculate-button" onclick="calculateTG51Photon()">Calculate Dose</button>
+            </div>
+        </div>
+
+        <!-- Electron Beam Tab -->
+        <div id="electron-tab" class="tab-content">
+            <div class="calculator-grid">
+                <div class="section">
+                    <h2>Electron Beam Parameters</h2>
+                    
+                    <div class="input-group">
+                        <label for="electron-energy">Nominal Energy:</label>
+                        <select id="electron-energy">
+                            <option value="6E">6 MeV</option>
+                            <option value="9E">9 MeV</option>
+                            <option value="12E">12 MeV</option>
+                            <option value="15E">15 MeV</option>
+                            <option value="18E">18 MeV</option>
+                            <option value="20E">20 MeV</option>
+                        </select>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="r50">R₅₀ (g/cm²):</label>
+                            <input type="number" id="r50" step="0.01" value="3.50">
+                            <small>50% depth from I₅₀</small>
+                        </div>
+                        <div class="input-group">
+                            <label for="cone-size">Cone Size (cm×cm):</label>
+                            <input type="text" id="cone-size" value="10×10">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="dref-depth">d_ref Depth (cm):</label>
+                        <input type="number" id="dref-depth" step="0.1" value="2.3" readonly>
+                        <small>0.6×R₅₀ - 0.1 cm</small>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Electron Specific Corrections</h2>
+                    
+                    <div class="input-group">
+                        <label for="pgradE">P_grad,E:</label>
+                        <input type="number" id="pgradE" step="0.001" value="0.985">
+                        <small>From Table VII or measurements</small>
+                    </div>
+
+                    <div class="formula-display">
+                        <h3>k'_R50 Calculation:</h3>
+                        <code>k'_R50 = 0.9905 + 0.0710×e^(-R₅₀/3.67)</code>
+                        <div style="margin-top: 10px;">
+                            <strong>k'_R50 = <span id="kr50-value">1.010</span></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="calculate-button" onclick="calculateTG51Electron()">Calculate Electron Dose</button>
+        </div>
+
+        <div class="results-section">
+            <h2>TG-51 Calculation Results</h2>
+            
+            <div class="result-grid">
+                <div class="result-card">
+                    <div class="result-label">k_Q (Beam Quality Factor)</div>
+                    <div class="result-value"><span id="kq-result">0.990</span></div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">M_corrected</div>
+                    <div class="result-value"><span id="mcorr-result">10.05</span><span class="result-unit">nC</span></div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">D_w (Dose to Water)</div>
+                    <div class="result-value"><span id="dw-result">1.000</span><span class="result-unit">cGy/MU</span></div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Dose per nC</div>
+                    <div class="result-value"><span id="dose-per-nc">0.0995</span><span class="result-unit">cGy/nC</span></div>
+                </div>
+            </div>
+
+            <div class="formula-display">
+                <h3>TG-51 Dose Equation:</h3>
+                <code>D_w^Q = M × k_Q × N_D,w × P_ion × P_TP × P_elec × P_pol</code>
+                <div style="margin-top: 10px;">
+                    Full calculation: D_w = <span id="full-calculation">...</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h4>Important Notes:</h4>
+                <ul>
+                    <li>Measurement depth: 10 cm for photons, d_ref for electrons</li>
+                    <li>Field size: 10×10 cm² at phantom surface</li>
+                    <li>SSD: 100 cm to phantom surface (photons)</li>
+                    <li>Chamber positioned with effective point of measurement at depth</li>
+                    <li>Allow sufficient time for temperature equilibration</li>
+                    <li>Verify chamber waterproofing before measurements</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>k_Q Reference Table (Photons)</h2>
+            <table class="measurement-table">
+                <thead>
+                    <tr>
+                        <th>%dd(10)_x</th>
+                        <th>PTW 30013</th>
+                        <th>Exradin A12</th>
+                        <th>NE 2571</th>
+                        <th>Exradin A19</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>58-60</td>
+                        <td>1.003</td>
+                        <td>1.002</td>
+                        <td>1.004</td>
+                        <td>1.004</td>
+                    </tr>
+                    <tr>
+                        <td>63-65</td>
+                        <td>0.994</td>
+                        <td>0.993</td>
+                        <td>0.995</td>
+                        <td>0.995</td>
+                    </tr>
+                    <tr>
+                        <td>68-70</td>
+                        <td>0.985</td>
+                        <td>0.984</td>
+                        <td>0.986</td>
+                        <td>0.986</td>
+                    </tr>
+                    <tr>
+                        <td>73-75</td>
+                        <td>0.975</td>
+                        <td>0.974</td>
+                        <td>0.976</td>
+                        <td>0.975</td>
+                    </tr>
+                    <tr>
+                        <td>78-80</td>
+                        <td>0.965</td>
+                        <td>0.964</td>
+                        <td>0.966</td>
+                        <td>0.965</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="disclaimer-footer">
+        <strong>⚠️ Educational Purpose Only:</strong> This TG-51 calculator is for educational purposes. 
+        Clinical reference dosimetry must be performed with calibrated equipment and verified procedures.
+        Always refer to the official AAPM TG-51 protocol document for clinical use.
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if (tab === 'photon') {
+                document.querySelector('.tab-button:nth-child(1)').classList.add('active');
+                document.getElementById('photon-tab').classList.add('active');
+            } else {
+                document.querySelector('.tab-button:nth-child(2)').classList.add('active');
+                document.getElementById('electron-tab').classList.add('active');
+            }
+        }
+
+        // Update P_TP in real-time
+        function updatePTP() {
+            const temp = parseFloat(document.getElementById('temperature').value) || 22;
+            const pressure = parseFloat(document.getElementById('pressure').value) || 101.33;
+            
+            const ptp = ((273.2 + temp) / 295.2) * (101.33 / pressure);
+            document.getElementById('ptp-value').textContent = ptp.toFixed(4);
+            return ptp;
+        }
+
+        // Calculate averages for charge measurements
+        function updateAverages() {
+            const mhPlus = parseFloat(document.getElementById('mh-plus').value) || 0;
+            const mhMinus = parseFloat(document.getElementById('mh-minus').value) || 0;
+            const mlPlus = parseFloat(document.getElementById('ml-plus').value) || 0;
+            const mlMinus = parseFloat(document.getElementById('ml-minus').value) || 0;
+            
+            const mhAvg = (mhPlus + Math.abs(mhMinus)) / 2;
+            const mlAvg = (mlPlus + Math.abs(mlMinus)) / 2;
+            
+            document.getElementById('mh-avg').textContent = mhAvg.toFixed(3);
+            document.getElementById('ml-avg').textContent = mlAvg.toFixed(3);
+            
+            // Calculate P_ion (two-voltage method)
+            if (mlAvg > 0) {
+                const ratio = mhAvg / mlAvg;
+                let pion;
+                
+                if (ratio >= 1.05) {
+                    // Use Equation 9 from TG-51
+                    pion = 1.0 + 0.0017 * (300/150 - 1) / (ratio - 1);
+                } else {
+                    // Use standard two-voltage formula
+                    const a0 = 2.337;
+                    const a1 = -3.636;
+                    const a2 = 2.299;
+                    pion = a0 - a1 * ratio + a2 * ratio * ratio;
+                }
+                
+                document.getElementById('pion-result').textContent = pion.toFixed(4);
+                
+                // Calculate P_pol
+                const ppol = Math.abs((mhPlus - Math.abs(mhMinus)) / (2 * mhAvg));
+                document.getElementById('ppol-result').textContent = (1 + ppol).toFixed(4);
+            }
+        }
+
+        // Calculate k_Q based on beam quality
+        function calculateKQ() {
+            const pdd10 = parseFloat(document.getElementById('pdd10').value) || 66.5;
+            const chamber = document.getElementById('chamber-type').value;
+            
+            // Simplified k_Q lookup table (would be more comprehensive in practice)
+            const kqTable = {
+                'PTW30013': {
+                    58: 1.003, 60: 1.000, 63: 0.994, 65: 0.991,
+                    68: 0.985, 70: 0.982, 73: 0.975, 75: 0.972,
+                    78: 0.965, 80: 0.962
+                },
+                'Exradin-A12': {
+                    58: 1.002, 60: 0.999, 63: 0.993, 65: 0.990,
+                    68: 0.984, 70: 0.981, 73: 0.974, 75: 0.971,
+                    78: 0.964, 80: 0.961
+                },
+                'NE2571': {
+                    58: 1.004, 60: 1.001, 63: 0.995, 65: 0.992,
+                    68: 0.986, 70: 0.983, 73: 0.976, 75: 0.973,
+                    78: 0.966, 80: 0.963
+                }
+            };
+            
+            // Linear interpolation for k_Q
+            const chamberData = kqTable[chamber] || kqTable['PTW30013'];
+            const pddKeys = Object.keys(chamberData).map(Number).sort((a, b) => a - b);
+            
+            let kq = 0.990; // default
+            for (let i = 0; i < pddKeys.length - 1; i++) {
+                if (pdd10 >= pddKeys[i] && pdd10 <= pddKeys[i + 1]) {
+                    const x1 = pddKeys[i], x2 = pddKeys[i + 1];
+                    const y1 = chamberData[x1], y2 = chamberData[x2];
+                    kq = y1 + (pdd10 - x1) * (y2 - y1) / (x2 - x1);
+                    break;
+                }
+            }
+            
+            return kq;
+        }
+
+        // Main calculation for photon beams
+        function calculateTG51Photon() {
+            // Get all correction factors
+            const ptp = updatePTP();
+            updateAverages();
+            
+            const pion = parseFloat(document.getElementById('pion-result').textContent) || 1.0025;
+            const ppol = parseFloat(document.getElementById('ppol-result').textContent) || 1.0003;
+            const pelec = parseFloat(document.getElementById('pelec').value) || 1.000;
+            const pgrad = parseFloat(document.getElementById('pgrad').value) || 1.000;
+            
+            // Get charge reading (using high voltage average)
+            const mRaw = parseFloat(document.getElementById('mh-avg').textContent) || 10.0;
+            
+            // Get calibration factors
+            const ndw = parseFloat(document.getElementById('ndw').value) || 5.394;
+            const kq = calculateKQ();
+            
+            // Calculate corrected charge
+            const mCorrected = mRaw * pion * ppol * pelec * pgrad * ptp;
+            
+            // Calculate dose
+            const dose = mCorrected * kq * ndw; // Result in Gy
+            const doseCGy = dose * 100; // Convert to cGy
+            
+            // Update results
+            document.getElementById('kq-result').textContent = kq.toFixed(4);
+            document.getElementById('mcorr-result').textContent = mCorrected.toFixed(3);
+            document.getElementById('dw-result').textContent = doseCGy.toFixed(3);
+            document.getElementById('dose-per-nc').textContent = (doseCGy / mRaw).toFixed(4);
+            
+            // Show full calculation
+            const calcString = `${mRaw.toFixed(3)} × ${kq.toFixed(4)} × ${ndw.toFixed(3)} × ${pion.toFixed(4)} × ${ptp.toFixed(4)} × ${pelec.toFixed(4)} × ${ppol.toFixed(4)} × 100 = ${doseCGy.toFixed(3)} cGy`;
+            document.getElementById('full-calculation').textContent = calcString;
+        }
+
+        // Calculate for electron beams
+        function calculateTG51Electron() {
+            const r50 = parseFloat(document.getElementById('r50').value) || 3.5;
+            const pgradE = parseFloat(document.getElementById('pgradE').value) || 0.985;
+            
+            // Calculate d_ref
+            const dref = 0.6 * r50 - 0.1;
+            document.getElementById('dref-depth').value = dref.toFixed(1);
+            
+            // Calculate k'_R50
+            const kr50 = 0.9905 + 0.0710 * Math.exp(-r50 / 3.67);
+            document.getElementById('kr50-value').textContent = kr50.toFixed(4);
+            
+            // Use photon corrections as base
+            const ptp = updatePTP();
+            const pion = parseFloat(document.getElementById('pion-result').textContent) || 1.0025;
+            const ppol = parseFloat(document.getElementById('ppol-result').textContent) || 1.0003;
+            const pelec = parseFloat(document.getElementById('pelec').value) || 1.000;
+            
+            // Get charge and N_D,w
+            const mRaw = parseFloat(document.getElementById('mh-avg').textContent) || 10.0;
+            const ndw = parseFloat(document.getElementById('ndw').value) || 5.394;
+            
+            // Calculate corrected charge (including P_grad,E)
+            const mCorrected = mRaw * pion * ppol * pelec * pgradE * ptp;
+            
+            // Calculate dose with k'_R50
+            const dose = mCorrected * kr50 * ndw * 100; // Convert to cGy
+            
+            // Update results
+            document.getElementById('kq-result').textContent = kr50.toFixed(4);
+            document.getElementById('mcorr-result').textContent = mCorrected.toFixed(3);
+            document.getElementById('dw-result').textContent = dose.toFixed(3);
+            document.getElementById('dose-per-nc').textContent = (dose / mRaw).toFixed(4);
+        }
+
+        // Event listeners
+        document.getElementById('temperature').addEventListener('input', updatePTP);
+        document.getElementById('pressure').addEventListener('input', updatePTP);
+        document.getElementById('mh-plus').addEventListener('input', updateAverages);
+        document.getElementById('mh-minus').addEventListener('input', updateAverages);
+        document.getElementById('ml-plus').addEventListener('input', updateAverages);
+        document.getElementById('ml-minus').addEventListener('input', updateAverages);
+        
+        // R50 calculation update
+        document.getElementById('r50').addEventListener('input', function() {
+            const r50 = parseFloat(this.value) || 3.5;
+            const dref = 0.6 * r50 - 0.1;
+            document.getElementById('dref-depth').value = dref.toFixed(1);
+            
+            const kr50 = 0.9905 + 0.0710 * Math.exp(-r50 / 3.67);
+            document.getElementById('kr50-value').textContent = kr50.toFixed(4);
+        });
+        
+        // Initialize
+        updatePTP();
+        updateAverages();
+    </script>
+</body>
+</html>

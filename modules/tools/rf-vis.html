@@ -51,12 +51,10 @@
             position: relative;
             width: 100%;
             height: 400px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
             border: 1px solid #e5e7eb;
             border-radius: 4px;
             overflow: hidden;
+            background-color: white;
         }
 
         /* Enhanced electron styles */
@@ -213,12 +211,77 @@
             }
 
             setupContainer() {
-                // Set background image based on type
-                const imagePath = this.type === 'klystron' 
-                    ? '../../assets/images/klystron.png'  // Replace with your image path
-                    : '../../assets/images/magnetron.png'; // Replace with your image path
+                // Create inline SVG diagrams
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                svg.setAttribute('viewBox', '0 0 400 400');
+                svg.style.position = 'absolute';
+                svg.style.top = '0';
+                svg.style.left = '0';
+                svg.style.zIndex = '0';
                 
-                this.container.style.backgroundImage = `url(${imagePath})`;
+                if (this.type === 'klystron') {
+                    // Klystron tube structure
+                    svg.innerHTML = `
+                        <!-- Electron gun -->
+                        <rect x="30" y="170" width="40" height="60" fill="#f8fafc" stroke="#1a365d" stroke-width="2"/>
+                        <text x="50" y="165" text-anchor="middle" font-size="12" fill="#1a365d">Gun</text>
+                        
+                        <!-- Drift tube with cavities -->
+                        <rect x="70" y="180" width="260" height="40" fill="#f8fafc" stroke="#1a365d" stroke-width="2"/>
+                        
+                        <!-- Input cavity -->
+                        <rect x="100" y="165" width="30" height="70" fill="none" stroke="#2563eb" stroke-width="2"/>
+                        <text x="115" y="250" text-anchor="middle" font-size="10" fill="#2563eb">Input</text>
+                        
+                        <!-- Buncher cavities -->
+                        <rect x="160" y="170" width="20" height="60" fill="none" stroke="#1a365d" stroke-width="1.5"/>
+                        <rect x="200" y="170" width="20" height="60" fill="none" stroke="#1a365d" stroke-width="1.5"/>
+                        <rect x="240" y="170" width="20" height="60" fill="none" stroke="#1a365d" stroke-width="1.5"/>
+                        
+                        <!-- Output cavity -->
+                        <rect x="280" y="165" width="30" height="70" fill="none" stroke="#2563eb" stroke-width="2"/>
+                        <text x="295" y="250" text-anchor="middle" font-size="10" fill="#2563eb">Output</text>
+                        
+                        <!-- Collector -->
+                        <rect x="330" y="170" width="40" height="60" fill="#f8fafc" stroke="#1a365d" stroke-width="2"/>
+                        <text x="350" y="165" text-anchor="middle" font-size="12" fill="#1a365d">Collector</text>
+                        
+                        <!-- Beam path line -->
+                        <line x1="70" y1="200" x2="330" y2="200" stroke="#1a365d" stroke-width="1" stroke-dasharray="5,5" opacity="0.5"/>
+                    `;
+                } else {
+                    // Magnetron circular cavity structure
+                    svg.innerHTML = `
+                        <!-- Outer housing -->
+                        <circle cx="200" cy="200" r="120" fill="none" stroke="#1a365d" stroke-width="3"/>
+                        
+                        <!-- Central cathode -->
+                        <circle cx="200" cy="200" r="60" fill="#f8fafc" stroke="#1a365d" stroke-width="2"/>
+                        <text x="200" y="205" text-anchor="middle" font-size="14" fill="#1a365d">Cathode</text>
+                        
+                        <!-- Anode cavities (8 cavities around the circle) -->
+                        <g>
+                            ${[0, 45, 90, 135, 180, 225, 270, 315].map(angle => {
+                                const rad = angle * Math.PI / 180;
+                                const x = 200 + 90 * Math.cos(rad);
+                                const y = 200 + 90 * Math.sin(rad);
+                                return `<circle cx="${x}" cy="${y}" r="15" fill="#f8fafc" stroke="#2563eb" stroke-width="2"/>`;
+                            }).join('')}
+                        </g>
+                        
+                        <!-- Output coupling -->
+                        <rect x="310" y="190" width="50" height="20" fill="none" stroke="#2563eb" stroke-width="2"/>
+                        <line x1="320" y1="200" x2="360" y2="200" stroke="#2563eb" stroke-width="2"/>
+                        <text x="335" y="180" text-anchor="middle" font-size="10" fill="#2563eb">RF Out</text>
+                        
+                        <!-- Magnetic field indicators -->
+                        <text x="200" y="160" text-anchor="middle" font-size="12" fill="#1a365d" opacity="0.7">⊙ B-field</text>
+                    `;
+                }
+                
+                this.container.appendChild(svg);
             }
 
             toggle() {
@@ -358,23 +421,23 @@
         let klystronController, magnetronController;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Klystron configuration
+            // Klystron configuration - adjusted for inline SVG
             const klystronConfig = {
                 electronPath: {
-                    startX: 50,   // Adjust based on your image
-                    startY: 180,  // Adjust based on your image
-                    endX: 320,    // Adjust based on your image
-                    endY: 180     // Adjust based on your image
+                    startX: 70,   // Starts at drift tube entrance
+                    startY: 200,  // Center line
+                    endX: 330,    // Ends at collector entrance
+                    endY: 200     // Center line
                 }
             };
 
-            // Magnetron configuration
+            // Magnetron configuration - adjusted for inline SVG
             const magnetronConfig = {
                 magnetronCenter: {
-                    x: 155,       // Adjust based on your image
-                    y: 192        // Adjust based on your image
+                    x: 200,       // Center of magnetron
+                    y: 200        // Center of magnetron
                 },
-                orbitRadius: 100  // Adjust based on your image
+                orbitRadius: 80   // Orbit between cathode and anode cavities
             };
 
             klystronController = new RFAnimationController('klystron', 'klystron', klystronConfig);
