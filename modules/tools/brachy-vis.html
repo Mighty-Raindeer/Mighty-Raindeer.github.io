@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TG-43 Brachytherapy Dose Calculator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    
+    <title>TG-43 Brachytherapy Dose Calculator | Medical Physics Study Guide</title>
+
     <style>
         :root {
             --bg-primary: #1a1a1a;
@@ -16,7 +15,12 @@
             --accent-primary: #ff5722;
             --accent-hover: #f4511e;
             --border-color: rgba(255, 255, 255, 0.1);
-            --grid-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
@@ -28,665 +32,1019 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .main-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
+            margin-bottom: 20px;
         }
 
-        .calculator-section, .visualization-section {
+        .card {
             background: var(--bg-secondary);
             padding: 20px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
         }
 
-        .visualization-container {
+        .card h2 {
+            color: var(--accent-primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .canvas-container {
             width: 100%;
-            aspect-ratio: 1;
+            height: 500px;
             background: var(--bg-card);
             border-radius: 4px;
+            position: relative;
             overflow: hidden;
         }
 
         canvas {
-            background: var(--bg-card);
-            touch-action: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
         }
 
-        .control-panel, .results {
-            margin-top: 20px;
-            padding: 15px;
-            background: var(--bg-card);
-            border-radius: 8px;
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
         .form-group {
             margin-bottom: 15px;
         }
 
-        label {
+        .form-group label {
             display: block;
             margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
 
-        select, input {
+        .form-group select,
+        .form-group input {
             width: 100%;
             padding: 8px;
-            background: var(--bg-primary);
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
             border-radius: 4px;
+            font-size: 0.9rem;
         }
 
-        .toggle-button {
+        button {
             padding: 8px 16px;
             background: var(--accent-primary);
+            color: white;
             border: none;
             border-radius: 4px;
-            color: white;
             cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
         }
 
-        .toggle-button:hover {
+        button:hover {
             background: var(--accent-hover);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .results-section {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .results-section h3 {
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .param-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .param-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .param-label {
+            color: var(--text-secondary);
+        }
+
+        .param-value {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+        }
+
+        .formula-display {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .formula-display h3 {
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .formula {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+
+        .info-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+
+        .info-section h3 {
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+        }
+
+        .info-section ul {
+            margin-left: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .info-section li {
+            margin-bottom: 5px;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--bg-card);
+            border-radius: 4px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .legend-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="calculator-section">
-            <h2>TG-43 Dose Calculator</h2>
-            
-            <div class="control-panel">
-                <div class="form-group">
-                    <label for="source-type">Source Type:</label>
-                    <select id="source-type">
-                        <option value="AgX100">AgX100</option>
-                        <option value="IR192HDR">IR-192 HDR</option>
-                        <option value="Cs131">Cs-131</option>
-                        <option value="I125_6711">I-125 (Model 6711)</option>
-                        <option value="Pd103_2335">Pd-103 (Model 200)</option>
-                    </select>
-                </div>
+        <h1>TG-43 Brachytherapy Dose Calculator</h1>
 
-                <div class="form-group">
-                    <label for="activity">Activity (mCi):</label>
-                    <input type="number" id="activity" min="0" step="1" value="1000">
+        <div class="main-grid">
+            <!-- Visualization Section -->
+            <div class="card">
+                <h2>Dose Distribution Visualization</h2>
+                <div class="canvas-container">
+                    <canvas id="dose-canvas"></canvas>
                 </div>
-
-                <button id="toggle-isodose" class="toggle-button">Toggle Isodose Lines</button>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff0000;"></div>
+                        <span class="legend-label">100% isodose</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff8800;"></div>
+                        <span class="legend-label">50% isodose</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffee00;"></div>
+                        <span class="legend-label">20% isodose</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #88ff00;"></div>
+                        <span class="legend-label">10% isodose</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00ffff;"></div>
+                        <span class="legend-label">5% isodose</span>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button onclick="calculator.toggleIsodose()">Toggle Isodose Lines</button>
+                    <button onclick="calculator.resetView()">Reset View</button>
+                </div>
             </div>
 
-            <div class="results">
-                <h3>Calculation Results:</h3>
-                <p id="calculation-results">Select a point on the diagram to calculate dose.</p>
+            <!-- Controls Section -->
+            <div class="card">
+                <h2>Source Parameters</h2>
+                <div class="controls-grid">
+                    <div class="form-group">
+                        <label>Source Type:</label>
+                        <select id="source-type" onchange="calculator.updateSource()">
+                            <option value="I125">I-125 (Low-energy seed)</option>
+                            <option value="Ir192">Ir-192 (HDR)</option>
+                            <option value="Pd103">Pd-103 (Low-energy seed)</option>
+                            <option value="Cs131">Cs-131 (Low-energy seed)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Air Kerma Strength (U):</label>
+                        <input type="number" id="air-kerma" value="1.0" step="0.1" min="0.1" onchange="calculator.updateCalculation()">
+                    </div>
+                </div>
+
+                <div class="results-section">
+                    <h3>Source Properties</h3>
+                    <div class="param-grid">
+                        <div class="param-row">
+                            <span class="param-label">Radionuclide:</span>
+                            <span class="param-value" id="display-radionuclide">I-125</span>
+                        </div>
+                        <div class="param-row">
+                            <span class="param-label">Half-life:</span>
+                            <span class="param-value" id="display-halflife">59.4 days</span>
+                        </div>
+                        <div class="param-row">
+                            <span class="param-label">Active Length (L):</span>
+                            <span class="param-value" id="display-length">0.35 cm</span>
+                        </div>
+                        <div class="param-row">
+                            <span class="param-label">Dose Rate Constant (Λ):</span>
+                            <span class="param-value" id="display-lambda">0.965 cGy·h⁻¹·U⁻¹</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-section">
+                    <h3>Point Dose Calculation</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 10px;">
+                        Click on the visualization to calculate dose at any point
+                    </p>
+                    <div class="param-grid">
+                        <div class="param-row">
+                            <span class="param-label">Distance (r):</span>
+                            <span class="param-value" id="calc-r">1.00 cm</span>
+                        </div>
+                        <div class="param-row">
+                            <span class="param-label">Angle (θ):</span>
+                            <span class="param-value" id="calc-theta">90.0°</span>
+                        </div>
+                        <div class="param-row">
+                            <span class="param-label">G<sub>L</sub>(r,θ):</span>
+                            <span class="param-value" id="calc-G">1.0000</span>
+                        </div>
+                        <div class="param-row">
+                            <span class="param-label">G<sub>L</sub>(r₀,θ₀):</span>
+                            <span class="param-value" id="calc-G0">1.0000</span>
+                        </div>
+                        <div class="param-row">
+                            <span class="param-label">g<sub>L</sub>(r):</span>
+                            <span class="param-value" id="calc-g">1.000</span>
+                        </div>
+                        <div class="param-row">
+                            <span class="param-label">F(r,θ):</span>
+                            <span class="param-value" id="calc-F">1.000</span>
+                        </div>
+                    </div>
+                    <div class="param-row" style="margin-top: 10px; padding-top: 10px; border-top: 2px solid var(--accent-primary);">
+                        <span class="param-label" style="font-size: 1rem; font-weight: bold;">Dose Rate:</span>
+                        <span class="param-value" id="calc-dose" style="font-size: 1.1rem; color: var(--accent-primary);">0.965 cGy/h</span>
+                    </div>
+                </div>
+
+                <div class="formula-display">
+                    <h3>TG-43U1 Formula</h3>
+                    <div class="formula">
+                        Ḋ(r,θ) = S<sub>K</sub> · Λ · [G<sub>L</sub>(r,θ) / G<sub>L</sub>(r₀,θ₀)] · g<sub>L</sub>(r) · F(r,θ)
+                    </div>
+                    <div class="formula" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary);">
+                        Reference: r₀ = 1 cm, θ₀ = 90°
+                    </div>
+                    <div class="formula" style="margin-top: 10px; font-size: 0.8rem;">
+                        Point source: G<sub>P</sub> = 1/r²
+                    </div>
+                    <div class="formula" style="font-size: 0.8rem;">
+                        Line source: G<sub>L</sub> = β / (L·r·sin θ)
+                    </div>
+                    <div class="formula" style="font-size: 0.8rem;">
+                        where β = subtended angle (radians)
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="visualization-section">
-            <h2>Source Visualization</h2>
-            <div class="visualization-container">
-                <canvas id="sourceCanvas"></canvas>
+        <div class="info-section">
+            <h3>Understanding TG-43 Parameters</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 10px;">Key Parameters:</h4>
+                    <ul>
+                        <li><strong>S<sub>K</sub> (Air Kerma Strength):</strong> Source strength in units of U (μGy·m²·h⁻¹)</li>
+                        <li><strong>Λ (Dose Rate Constant):</strong> Dose rate at reference point per unit air kerma strength</li>
+                        <li><strong>G<sub>L</sub> (Geometry Function):</strong> Accounts for spatial distribution and inverse square law</li>
+                        <li><strong>g<sub>L</sub>(r) (Radial Dose Function):</strong> Accounts for scatter and attenuation along transverse axis</li>
+                        <li><strong>F(r,θ) (Anisotropy Function):</strong> Accounts for angular dose variation</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 10px;">Anisotropy Effects:</h4>
+                    <ul>
+                        <li><strong>θ = 0° (along source):</strong> Reduced dose due to self-attenuation and encapsulation</li>
+                        <li><strong>θ = 90° (perpendicular):</strong> Maximum dose, reference orientation</li>
+                        <li><strong>Distance dependence:</strong> Anisotropy effects more pronounced at close distances</li>
+                        <li><strong>Source length:</strong> Longer sources show more anisotropy</li>
+                        <li><strong>Energy dependence:</strong> Low-energy sources (I-125, Pd-103) show greater anisotropy than high-energy (Ir-192)</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        class TG43Calculator {
-          constructor(canvas) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
-        this.calcPoint = { x: 200, y: 200 };
-        this.isDragging = false;
-        this.showIsodose = false;
-        this.sourceType = 'AgX100';
-        this.scale = 1;
-        this.sourceData = {};
-        
-        this.setupCanvas();
-        this.bindEvents();
-        this.loadSourceData().then(() => {
-            this.draw();
-        });
-    }
+        class BrachyCalculator {
+            constructor() {
+                this.canvas = document.getElementById('dose-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.showIsodose = true;
 
-
-    async loadSourceData() {
-        try {
-            // Load source constraints
-            const sourceResponse = await fetch('data/brachy/source_constraints.csv');
-            const sourceText = await sourceResponse.text();
-            const sourceConstraints = await this.parseCSV(sourceText);
-            
-            // Initialize sourceData with constraints
-            sourceConstraints.forEach(source => {
-                this.sourceData[source.source_type] = {
-                    doseRateConstant: source.dose_rate_constant,
-                    activeLength: source.active_length,
-                    halfLifeDays: source.half_life_days,
-                    encapsulation: source.encapsulation_material,
-                    wallThickness: source.wall_thickness_mm,
-                    radioactiveMaterial: source.radioactive_material
+                // Source database (TG-43U1 consensus data)
+                this.sourceData = {
+                    I125: {
+                        name: 'I-125',
+                        halfLife: 59.4,
+                        lambda: 0.965,
+                        activeLength: 0.35,
+                        radialDose: [
+                            {r: 0.25, g: 1.010},
+                            {r: 0.5, g: 1.012},
+                            {r: 0.75, g: 1.011},
+                            {r: 1.0, g: 1.000},
+                            {r: 1.5, g: 0.975},
+                            {r: 2.0, g: 0.951},
+                            {r: 3.0, g: 0.900},
+                            {r: 4.0, g: 0.844},
+                            {r: 5.0, g: 0.781},
+                            {r: 7.0, g: 0.650},
+                            {r: 10.0, g: 0.461}
+                        ],
+                        anisotropy: [
+                            // F(r,θ) values - simplified table
+                            {r: 0.5, theta: 0, F: 0.67}, {r: 0.5, theta: 10, F: 0.73}, {r: 0.5, theta: 20, F: 0.80},
+                            {r: 0.5, theta: 30, F: 0.86}, {r: 0.5, theta: 40, F: 0.91}, {r: 0.5, theta: 50, F: 0.95},
+                            {r: 0.5, theta: 60, F: 0.98}, {r: 0.5, theta: 70, F: 0.99}, {r: 0.5, theta: 80, F: 1.00},
+                            {r: 0.5, theta: 90, F: 1.00},
+                            {r: 1.0, theta: 0, F: 0.76}, {r: 1.0, theta: 10, F: 0.81}, {r: 1.0, theta: 20, F: 0.86},
+                            {r: 1.0, theta: 30, F: 0.90}, {r: 1.0, theta: 40, F: 0.94}, {r: 1.0, theta: 50, F: 0.97},
+                            {r: 1.0, theta: 60, F: 0.99}, {r: 1.0, theta: 70, F: 1.00}, {r: 1.0, theta: 80, F: 1.00},
+                            {r: 1.0, theta: 90, F: 1.00},
+                            {r: 2.0, theta: 0, F: 0.85}, {r: 2.0, theta: 10, F: 0.88}, {r: 2.0, theta: 20, F: 0.91},
+                            {r: 2.0, theta: 30, F: 0.94}, {r: 2.0, theta: 40, F: 0.96}, {r: 2.0, theta: 50, F: 0.98},
+                            {r: 2.0, theta: 60, F: 0.99}, {r: 2.0, theta: 70, F: 1.00}, {r: 2.0, theta: 80, F: 1.00},
+                            {r: 2.0, theta: 90, F: 1.00},
+                            {r: 5.0, theta: 0, F: 0.93}, {r: 5.0, theta: 10, F: 0.94}, {r: 5.0, theta: 20, F: 0.96},
+                            {r: 5.0, theta: 30, F: 0.97}, {r: 5.0, theta: 40, F: 0.98}, {r: 5.0, theta: 50, F: 0.99},
+                            {r: 5.0, theta: 60, F: 1.00}, {r: 5.0, theta: 70, F: 1.00}, {r: 5.0, theta: 80, F: 1.00},
+                            {r: 5.0, theta: 90, F: 1.00}
+                        ]
+                    },
+                    Ir192: {
+                        name: 'Ir-192',
+                        halfLife: 73.8,
+                        lambda: 1.108,
+                        activeLength: 0.5,
+                        radialDose: [
+                            {r: 0.25, g: 1.006},
+                            {r: 0.5, g: 1.004},
+                            {r: 0.75, g: 1.002},
+                            {r: 1.0, g: 1.000},
+                            {r: 1.5, g: 0.997},
+                            {r: 2.0, g: 0.994},
+                            {r: 3.0, g: 0.989},
+                            {r: 4.0, g: 0.983},
+                            {r: 5.0, g: 0.976},
+                            {r: 7.0, g: 0.960},
+                            {r: 10.0, g: 0.932}
+                        ],
+                        anisotropy: [
+                            // Ir-192 shows less anisotropy (higher energy)
+                            {r: 0.5, theta: 0, F: 0.89}, {r: 0.5, theta: 30, F: 0.95}, {r: 0.5, theta: 60, F: 0.99}, {r: 0.5, theta: 90, F: 1.00},
+                            {r: 1.0, theta: 0, F: 0.92}, {r: 1.0, theta: 30, F: 0.96}, {r: 1.0, theta: 60, F: 0.99}, {r: 1.0, theta: 90, F: 1.00},
+                            {r: 2.0, theta: 0, F: 0.95}, {r: 2.0, theta: 30, F: 0.97}, {r: 2.0, theta: 60, F: 0.99}, {r: 2.0, theta: 90, F: 1.00},
+                            {r: 5.0, theta: 0, F: 0.97}, {r: 5.0, theta: 30, F: 0.98}, {r: 5.0, theta: 60, F: 1.00}, {r: 5.0, theta: 90, F: 1.00}
+                        ]
+                    },
+                    Pd103: {
+                        name: 'Pd-103',
+                        halfLife: 17.0,
+                        lambda: 0.686,
+                        activeLength: 0.30,
+                        radialDose: [
+                            {r: 0.25, g: 1.031},
+                            {r: 0.5, g: 1.044},
+                            {r: 0.75, g: 1.035},
+                            {r: 1.0, g: 1.000},
+                            {r: 1.5, g: 0.926},
+                            {r: 2.0, g: 0.858},
+                            {r: 3.0, g: 0.732},
+                            {r: 4.0, g: 0.615},
+                            {r: 5.0, g: 0.509},
+                            {r: 7.0, g: 0.330}
+                        ],
+                        anisotropy: [
+                            // Similar to I-125 (low energy)
+                            {r: 0.5, theta: 0, F: 0.64}, {r: 0.5, theta: 30, F: 0.84}, {r: 0.5, theta: 60, F: 0.97}, {r: 0.5, theta: 90, F: 1.00},
+                            {r: 1.0, theta: 0, F: 0.73}, {r: 1.0, theta: 30, F: 0.88}, {r: 1.0, theta: 60, F: 0.98}, {r: 1.0, theta: 90, F: 1.00},
+                            {r: 2.0, theta: 0, F: 0.83}, {r: 2.0, theta: 30, F: 0.93}, {r: 2.0, theta: 60, F: 0.99}, {r: 2.0, theta: 90, F: 1.00},
+                            {r: 5.0, theta: 0, F: 0.92}, {r: 5.0, theta: 30, F: 0.97}, {r: 5.0, theta: 60, F: 1.00}, {r: 5.0, theta: 90, F: 1.00}
+                        ]
+                    },
+                    Cs131: {
+                        name: 'Cs-131',
+                        halfLife: 9.7,
+                        lambda: 1.039,
+                        activeLength: 0.40,
+                        radialDose: [
+                            {r: 0.5, g: 1.015},
+                            {r: 1.0, g: 1.000},
+                            {r: 2.0, g: 0.940},
+                            {r: 3.0, g: 0.870},
+                            {r: 5.0, g: 0.725}
+                        ],
+                        anisotropy: [
+                            {r: 0.5, theta: 0, F: 0.70}, {r: 0.5, theta: 30, F: 0.86}, {r: 0.5, theta: 60, F: 0.98}, {r: 0.5, theta: 90, F: 1.00},
+                            {r: 1.0, theta: 0, F: 0.78}, {r: 1.0, theta: 30, F: 0.90}, {r: 1.0, theta: 60, F: 0.99}, {r: 1.0, theta: 90, F: 1.00},
+                            {r: 2.0, theta: 0, F: 0.87}, {r: 2.0, theta: 30, F: 0.95}, {r: 2.0, theta: 60, F: 0.99}, {r: 2.0, theta: 90, F: 1.00}
+                        ]
+                    }
                 };
-            });
 
-            // Load radial dose data for current source
-            await this.loadRadialDoseData(this.sourceType);
-            
-            // Load anisotropy data for current source
-            await this.loadAnisotropyData(this.sourceType);
+                this.currentSource = 'I125';
+                this.calcPoint = { x: null, y: null };
 
-        } catch (error) {
-            console.error('Error loading source data:', error);
-        }
-    }
-
-    async loadRadialDoseData(sourceType) {
-        try {
-            const response = await fetch(`data/brachy/${sourceType}_radial_dose.csv`);
-            const text = await response.text();
-            const data = await this.parseCSV(text);
-            this.sourceData[sourceType].radialDoseData = data;
-        } catch (error) {
-            console.error(`Error loading radial dose data for ${sourceType}:`, error);
-        }
-    }
-
-    async loadAnisotropyData(sourceType) {
-        try {
-            const response = await fetch(`data/brachy/${sourceType}_anisotropy.csv`);
-            const text = await response.text();
-            const data = await this.parseCSV(text);
-            this.sourceData[sourceType].anisotropyData = data;
-        } catch (error) {
-            console.error(`Error loading anisotropy data for ${sourceType}:`, error);
-        }
-    }
-
-    parseCSV(csvText) {
-        return new Promise((resolve) => {
-            Papa.parse(csvText, {
-                header: true,
-                dynamicTyping: true,
-                skipEmptyLines: true,
-                complete: (results) => resolve(results.data)
-            });
-        });
-    }
-
-    async updateSourceType(newType) {
-        this.sourceType = newType;
-        await this.loadRadialDoseData(newType);
-        await this.loadAnisotropyData(newType);
-        this.calculateDose();
-        this.draw();
-    }
-
-    interpolateRadialDose(r) {
-        const data = this.sourceData[this.sourceType].radialDoseData;
-        if (!data) return 1.0; // Default if data not loaded
-
-        // Sort by radius
-        const sortedData = [...data].sort((a, b) => a.radius_cm - b.radius_cm);
-        
-        // Handle out of bounds
-        if (r <= sortedData[0].radius_cm) return sortedData[0].g_r;
-        if (r >= sortedData[sortedData.length - 1].radius_cm) return sortedData[sortedData.length - 1].g_r;
-        
-        // Find bracketing points
-        for (let i = 0; i < sortedData.length - 1; i++) {
-            if (sortedData[i].radius_cm <= r && sortedData[i + 1].radius_cm >= r) {
-                const lower = sortedData[i];
-                const upper = sortedData[i + 1];
-                // Linear interpolation
-                const ratio = (r - lower.radius_cm) / (upper.radius_cm - lower.radius_cm);
-                return lower.g_r + (upper.g_r - lower.g_r) * ratio;
+                this.setupCanvas();
+                this.bindEvents();
+                this.updateSource();
+                this.draw();
             }
-        }
-        return 1.0; // Fallback
-    }
-
-    interpolateAnisotropy(r, theta) {
-        const data = this.sourceData[this.sourceType].anisotropyData;
-        if (!data) return 1.0; // Default if data not loaded
-
-        // Find closest radius data points
-        const uniqueRadii = [...new Set(data.map(d => d.radius_cm))].sort((a, b) => a - b);
-        
-        // Handle out of bounds
-        if (r <= uniqueRadii[0]) return this.interpolateAngle(data.filter(d => d.radius_cm === uniqueRadii[0]), theta);
-        if (r >= uniqueRadii[uniqueRadii.length - 1]) {
-            return this.interpolateAngle(data.filter(d => d.radius_cm === uniqueRadii[uniqueRadii.length - 1]), theta);
-        }
-        
-        // Find bracketing radii
-        for (let i = 0; i < uniqueRadii.length - 1; i++) {
-            if (uniqueRadii[i] <= r && uniqueRadii[i + 1] >= r) {
-                const lowerRadiusData = data.filter(d => d.radius_cm === uniqueRadii[i]);
-                const upperRadiusData = data.filter(d => d.radius_cm === uniqueRadii[i + 1]);
-                
-                // Interpolate for each radius
-                const lowerValue = this.interpolateAngle(lowerRadiusData, theta);
-                const upperValue = this.interpolateAngle(upperRadiusData, theta);
-                
-                // Interpolate between radii
-                const ratio = (r - uniqueRadii[i]) / (uniqueRadii[i + 1] - uniqueRadii[i]);
-                return lowerValue + (upperValue - lowerValue) * ratio;
-            }
-        }
-        return 1.0; // Fallback
-    }
-
-    interpolateAngle(radiusData, theta) {
-        // Normalize theta to 0-360
-        theta = (theta + 360) % 360;
-        
-        // Sort by angle
-        const sortedData = [...radiusData].sort((a, b) => a.angle_deg - b.angle_deg);
-        
-        // Handle out of bounds
-        if (theta <= sortedData[0].angle_deg) return sortedData[0].F_r_theta;
-        if (theta >= sortedData[sortedData.length - 1].angle_deg) return sortedData[sortedData.length - 1].F_r_theta;
-        
-        // Find bracketing angles
-        for (let i = 0; i < sortedData.length - 1; i++) {
-            if (sortedData[i].angle_deg <= theta && sortedData[i + 1].angle_deg >= theta) {
-                const lower = sortedData[i];
-                const upper = sortedData[i + 1];
-                // Linear interpolation
-                const ratio = (theta - lower.angle_deg) / (upper.angle_deg - lower.angle_deg);
-                return lower.F_r_theta + (upper.F_r_theta - lower.F_r_theta) * ratio;
-            }
-        }
-        return 1.0; // Fallback
-    }
-    calculateGeometryFactor(r, theta) {
-    // Convert theta to radians for calculations
-    const thetaRad = theta * Math.PI / 180;
-    
-    const activeLength = this.sourceData[this.sourceType].activeLength; // in cm
-    const L = activeLength; // for clarity in formula
-    
-    if (L <= 0.1) { // For sources shorter than 1mm, use point source approximation
-        return 1 / (r * r);
-    } else {
-        // Line source geometry factor
-        if (Math.abs(Math.sin(thetaRad)) < 0.001) { // Special case: theta ≈ 0°
-            return (1/(r * r - L * L / 4));
-        } else {
-            // General case
-            const beta = Math.asin(
-                (L * Math.sin(
-                    Math.atan(
-                        (r * Math.sin(thetaRad)/(r * Math.cos(thetaRad) - L/2)) / 
-                        (Math.sqrt(
-                            (r * Math.sin(thetaRad))**2 + 
-                            (r * Math.cos(thetaRad) + L/2)**2
-                        ))
-                    )
-                ))
-            );
-            return Math.abs(beta / (L * r * Math.sin(thetaRad)));
-        }
-    }
-}
 
             setupCanvas() {
-                const container = this.canvas.parentElement;
-                this.canvas.width = container.clientWidth;
-                this.canvas.height = container.clientWidth;
-                this.scale = this.canvas.width / 400;
+                const rect = this.canvas.parentElement.getBoundingClientRect();
+                this.canvas.width = rect.width;
+                this.canvas.height = rect.height;
             }
 
             bindEvents() {
-                // Mouse events
-                this.canvas.addEventListener('mousedown', this.handlePointerDown.bind(this));
-                this.canvas.addEventListener('mousemove', this.handlePointerMove.bind(this));
-                this.canvas.addEventListener('mouseup', () => this.isDragging = false);
-                
-                // Touch events
-                this.canvas.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    this.handlePointerDown(e.touches[0]);
+                this.canvas.addEventListener('click', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.calcPoint.x = e.clientX - rect.left;
+                    this.calcPoint.y = e.clientY - rect.top;
+                    this.updateCalculation();
+                    this.draw();
                 });
-                
-                this.canvas.addEventListener('touchmove', (e) => {
-                    e.preventDefault();
-                    this.handlePointerMove(e.touches[0]);
-                });
-                
-                this.canvas.addEventListener('touchend', () => this.isDragging = false);
 
-                // Window resize
                 window.addEventListener('resize', () => {
                     this.setupCanvas();
                     this.draw();
                 });
             }
 
-            handlePointerDown(e) {
-                const rect = this.canvas.getBoundingClientRect();
-                const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-                const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
-                this.isDragging = true;
-                this.calcPoint = { x, y };
-                this.calculateDose();
+            updateSource() {
+                this.currentSource = document.getElementById('source-type').value;
+                const source = this.sourceData[this.currentSource];
+
+                document.getElementById('display-radionuclide').textContent = source.name;
+                document.getElementById('display-halflife').textContent = `${source.halfLife} days`;
+                document.getElementById('display-length').textContent = `${source.activeLength} cm`;
+                document.getElementById('display-lambda').textContent = `${source.lambda} cGy·h⁻¹·U⁻¹`;
+
+                this.updateCalculation();
                 this.draw();
             }
 
-            handlePointerMove(e) {
-                if (!this.isDragging) return;
-                const rect = this.canvas.getBoundingClientRect();
-                const x = (e.clientX - rect.left) * (this.canvas.width / rect.width);
-                const y = (e.clientY - rect.top) * (this.canvas.height / rect.height);
-                this.calcPoint = { x, y };
-                this.calculateDose();
-                this.draw();
-            }
-            calculateDose() {
-    const sourceCenter = { 
-        x: this.canvas.width / 2, 
-        y: this.canvas.height / 2 
-    };
-    
-    // Calculate r in cm (10 pixels = 1 cm)
-    const r = Math.sqrt(
-        Math.pow(this.calcPoint.x - sourceCenter.x, 2) +
-        Math.pow(this.calcPoint.y - sourceCenter.y, 2)
-    ) / (10 * this.scale);
+            // Calculate geometry function GL(r, theta) using TG-43U1 formalism
+            calculateGeometryFunction(r_cm, theta_deg) {
+                const source = this.sourceData[this.currentSource];
+                const L = source.activeLength; // Active length in cm
+                const theta_rad = theta_deg * Math.PI / 180;
 
-    // Calculate theta in degrees
-    let theta = Math.atan2(
-        this.calcPoint.y - sourceCenter.y,
-        this.calcPoint.x - sourceCenter.x
-    ) * (180 / Math.PI);
-    
-    // Normalize theta to 0-360 range
-    theta = (theta + 360) % 360;
+                // For very short sources, use point source approximation
+                if (L < 0.1) {
+                    return 1 / (r_cm * r_cm);
+                }
 
-    const activity = parseFloat(document.getElementById('activity').value);
-    const sourceData = this.sourceData[this.sourceType];
-    
-    if (!sourceData) return;
+                // Line source geometry function
+                // Special case: along the source axis (theta ≈ 0° or 180°)
+                if (Math.abs(Math.sin(theta_rad)) < 0.001) {
+                    // Along source axis
+                    const term = r_cm * r_cm - (L * L / 4);
+                    return term > 0 ? 1 / term : 0;
+                }
 
-    // TG-43 formula components
-    const Λ = sourceData.doseRateConstant;
-    const G = this.calculateGeometryFactor(r, theta);
-    const g = this.interpolateRadialDose(r);
-    const F = this.interpolateAnisotropy(r, theta);
-    
-    // Calculate dose rate
-    const doseRate = activity * Λ * G * g * F;
+                // General case: GL(r,θ) = β / (L · r · sin(θ))
+                // Calculate beta: angle subtended by source at point (r, θ)
 
-    // Also calculate reference geometry factor for normalization
-    const G0 = this.calculateGeometryFactor(1, 90); // at reference point (r=1cm, θ=90°)
+                // Endpoints of line source relative to center
+                const x1 = -L / 2;
+                const x2 = L / 2;
+                const y = 0; // Source along x-axis
 
-    document.getElementById('calculation-results').innerHTML = `
-        <strong>Distance (r):</strong> ${r.toFixed(2)} cm<br>
-        <strong>Angle (θ):</strong> ${theta.toFixed(1)}°<br>
-        <strong>Geometry Factor (G):</strong> ${G.toFixed(4)}<br>
-        <strong>Radial Dose Function (g):</strong> ${g.toFixed(4)}<br>
-        <strong>Anisotropy Function (F):</strong> ${F.toFixed(4)}<br>
-        <strong>G(r,θ)/G(r₀,θ₀):</strong> ${(G/G0).toFixed(4)}<br>
-        <strong>Dose Rate:</strong> ${doseRate.toFixed(3)} cGy/h<br>
-        <strong>Source:</strong> ${sourceData.radioactiveMaterial} (${sourceData.encapsulation})<br>
-        <strong>Active Length:</strong> ${sourceData.activeLength.toFixed(2)} cm<br>
-        <strong>Half-life:</strong> ${sourceData.halfLifeDays.toFixed(1)} days
-    `;
-}
-    drawSource() {
-    const centerX = this.canvas.width / 2;
-    const centerY = this.canvas.height / 2;
-    const scaleRatio = this.canvas.width / 400;
-    
-    // Make it thinner and more pill-like
-    const capsuleLength = 20 * scaleRatio;  // Length of the pill
-    const capsuleWidth = 4 * scaleRatio;   // Width of the pill - much thinner now
-    const endRadius = capsuleWidth;         // Radius for rounded ends
-    
-    this.ctx.save();
-    this.ctx.translate(centerX, centerY);
-    
-    // Draw the main body
-    this.ctx.fillStyle = '#D3D3D3';  // Light gray for metallic look
-    this.ctx.strokeStyle = '#A9A9A9'; // Darker gray for edge
-    this.ctx.lineWidth = 1;
-    
-    // Draw pill shape
-    this.ctx.beginPath();
-    
-    // Draw the rounded ends and straight sides
-    this.ctx.moveTo(-capsuleLength + endRadius, -capsuleWidth);  // Start at top-left
-    this.ctx.lineTo(capsuleLength - endRadius, -capsuleWidth);   // Top line
-    this.ctx.arc(capsuleLength - endRadius, 0, capsuleWidth, -Math.PI/2, Math.PI/2);  // Right round end
-    this.ctx.lineTo(-capsuleLength + endRadius, capsuleWidth);   // Bottom line
-    this.ctx.arc(-capsuleLength + endRadius, 0, capsuleWidth, Math.PI/2, -Math.PI/2); // Left round end
-    
-    this.ctx.closePath();
-    this.ctx.fill();
-    this.ctx.stroke();
-    
-    // Add inner radioactive core visualization
-    this.ctx.fillStyle = '#FFD700';  // Gold color for active core
-    const coreLength = capsuleLength * 0.7;  // Core is 70% of capsule length
-    const coreWidth = capsuleWidth * 0.5;    // Core is 50% of capsule width
-    
-    this.ctx.beginPath();
-    this.ctx.moveTo(-coreLength + endRadius, -coreWidth);
-    this.ctx.lineTo(coreLength - endRadius, -coreWidth);
-    this.ctx.arc(coreLength - endRadius, 0, coreWidth, -Math.PI/2, Math.PI/2);
-    this.ctx.lineTo(-coreLength + endRadius, coreWidth);
-    this.ctx.arc(-coreLength + endRadius, 0, coreWidth, Math.PI/2, -Math.PI/2);
-    this.ctx.closePath();
-    this.ctx.fill();
-    
-    // Optional: Add highlight for 3D effect
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    this.ctx.beginPath();
-    this.ctx.moveTo(-capsuleLength + endRadius, -capsuleWidth * 0.6);
-    this.ctx.lineTo(capsuleLength - endRadius, -capsuleWidth * 0.6);
-    this.ctx.stroke();
-    
-    this.ctx.restore();
-}
+                // Point in polar coordinates (r, θ)
+                const px = r_cm * Math.cos(theta_rad);
+                const py = r_cm * Math.sin(theta_rad);
 
-            drawCalcPoint() {
-                this.ctx.beginPath();
-                this.ctx.arc(this.calcPoint.x, this.calcPoint.y, 5, 0, Math.PI * 2);
-                this.ctx.fillStyle = '#ff5722';
-                this.ctx.fill();
-                this.ctx.strokeStyle = 'white';
-                this.ctx.stroke();
+                // Vectors from point to each endpoint
+                const v1x = x1 - px;
+                const v1y = y - py;
+                const v2x = x2 - px;
+                const v2y = y - py;
+
+                // Angle between vectors
+                const dot = v1x * v2x + v1y * v2y;
+                const mag1 = Math.sqrt(v1x * v1x + v1y * v1y);
+                const mag2 = Math.sqrt(v2x * v2x + v2y * v2y);
+
+                const beta = Math.acos(Math.max(-1, Math.min(1, dot / (mag1 * mag2))));
+
+                // Return GL
+                return beta / (L * r_cm * Math.sin(theta_rad));
             }
 
-            drawIsodoseLines() {
-    if (!this.showIsodose) return;
+            // Interpolate radial dose function g_L(r)
+            interpolateRadialDose(r_cm) {
+                const source = this.sourceData[this.currentSource];
+                const data = source.radialDose;
 
-    const centerX = this.canvas.width / 2;
-    const centerY = this.canvas.height / 2;
-    
-    const dosePercentages = [100, 50, 10, 1, 0.5, 0.1, 0.05, 0.025, 0.01, 0.003];
-    const colors = ['#ff0000', '#ff4400', '#ff8800', '#ffbb00', '#ffee00', '#ffffaa', '#ffee00', '#ffffaa'];
+                // Extrapolation for r < minimum
+                if (r_cm <= data[0].r) {
+                    return data[0].g;
+                }
 
-    const activity = parseFloat(document.getElementById('activity').value);
-    const sourceData = this.sourceData[this.sourceType];
-    if (!sourceData) return;
+                // Extrapolation for r > maximum
+                if (r_cm >= data[data.length - 1].r) {
+                    // Use inverse square falloff beyond last data point
+                    const last = data[data.length - 1];
+                    return last.g * (last.r / r_cm) * (last.r / r_cm);
+                }
 
-    const L = sourceData.activeLength;
-    const Λ = sourceData.doseRateConstant;
-
-    // Calculate reference dose at 1cm, θ=90°
-    const simpleG0 =this.calculateGeometryFactor(1,90); // r = 1 at reference
-    const g0 = this.interpolateRadialDose(1);
-    const F0 = this.interpolateAnisotropy(1, 90);
-    const referenceDose = activity * Λ * simpleG0 * g0 * F0;
-
-    dosePercentages.forEach((percentage, i) => {
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = colors[i];
-        this.ctx.lineWidth = 1;
-
-        for (let angle = 0; angle <= 360; angle += 2) {
-            // Convert angle to radians
-            const angleRad = angle * Math.PI / 180;
-            
-            // Binary search for radius
-            let rMin = 0.1;  // 1mm minimum
-            let rMax = 20;   // 20cm maximum
-            let r = 0;
-            const targetDose = (percentage / 100) * referenceDose;
-
-            for (let iter = 0; iter < 10; iter++) {
-                r = (rMin + rMax) / 2;
-
-                // Simple geometry factor
-                let G;
-                if (r < L/2) {
-                    // Inside active length, use point source approximation
-                    G = 1 / (r * r);
-                } else {
-                    // Outside active length
-                    G = 1 / (L * r);
-                    if (Math.abs(Math.sin(angleRad)) > 0.001) {
-                        G = G / Math.abs(Math.sin(angleRad));
+                // Linear interpolation
+                for (let i = 0; i < data.length - 1; i++) {
+                    if (r_cm >= data[i].r && r_cm <= data[i + 1].r) {
+                        const r1 = data[i].r;
+                        const r2 = data[i + 1].r;
+                        const g1 = data[i].g;
+                        const g2 = data[i + 1].g;
+                        const t = (r_cm - r1) / (r2 - r1);
+                        return g1 + t * (g2 - g1);
                     }
                 }
 
-                const g = this.interpolateRadialDose(r);
-                const F = this.interpolateAnisotropy(r, angle);
-                const currentDose = activity * Λ * G * g * F;
+                return 1.0;
+            }
 
-                if (Math.abs(currentDose - targetDose) < 0.01) break;
-                
-                if (currentDose > targetDose) {
-                    rMin = r;
-                } else {
-                    rMax = r;
+            // Interpolate 2D anisotropy function F(r, θ)
+            interpolateAnisotropy(r_cm, theta_deg) {
+                const source = this.sourceData[this.currentSource];
+                const data = source.anisotropy;
+
+                // Normalize theta to 0-90 range (symmetric)
+                let theta = Math.abs(theta_deg % 180);
+                if (theta > 90) theta = 180 - theta;
+
+                // Find surrounding data points
+                const rValues = [...new Set(data.map(d => d.r))].sort((a, b) => a - b);
+                const thetaValues = [...new Set(data.map(d => d.theta))].sort((a, b) => a - b);
+
+                // Clamp to available range
+                const r_clamped = Math.max(rValues[0], Math.min(rValues[rValues.length - 1], r_cm));
+                const theta_clamped = Math.max(thetaValues[0], Math.min(thetaValues[thetaValues.length - 1], theta));
+
+                // Find surrounding r values
+                let r1_idx = 0, r2_idx = 0;
+                for (let i = 0; i < rValues.length - 1; i++) {
+                    if (r_clamped >= rValues[i] && r_clamped <= rValues[i + 1]) {
+                        r1_idx = i;
+                        r2_idx = i + 1;
+                        break;
+                    }
                 }
+                if (r_clamped >= rValues[rValues.length - 1]) {
+                    r1_idx = r2_idx = rValues.length - 1;
+                }
+
+                // Find surrounding theta values
+                let t1_idx = 0, t2_idx = 0;
+                for (let i = 0; i < thetaValues.length - 1; i++) {
+                    if (theta_clamped >= thetaValues[i] && theta_clamped <= thetaValues[i + 1]) {
+                        t1_idx = i;
+                        t2_idx = i + 1;
+                        break;
+                    }
+                }
+                if (theta_clamped >= thetaValues[thetaValues.length - 1]) {
+                    t1_idx = t2_idx = thetaValues.length - 1;
+                }
+
+                // Get four corner values for bilinear interpolation
+                const r1 = rValues[r1_idx];
+                const r2 = rValues[r2_idx];
+                const t1 = thetaValues[t1_idx];
+                const t2 = thetaValues[t2_idx];
+
+                const F11 = data.find(d => d.r === r1 && d.theta === t1)?.F || 1.0;
+                const F12 = data.find(d => d.r === r1 && d.theta === t2)?.F || 1.0;
+                const F21 = data.find(d => d.r === r2 && d.theta === t1)?.F || 1.0;
+                const F22 = data.find(d => d.r === r2 && d.theta === t2)?.F || 1.0;
+
+                // Bilinear interpolation
+                if (r1 === r2 && t1 === t2) return F11;
+                if (r1 === r2) {
+                    const t = (theta_clamped - t1) / (t2 - t1 + 0.001);
+                    return F11 + t * (F12 - F11);
+                }
+                if (t1 === t2) {
+                    const t = (r_clamped - r1) / (r2 - r1 + 0.001);
+                    return F11 + t * (F21 - F11);
+                }
+
+                const tr = (r_clamped - r1) / (r2 - r1);
+                const tt = (theta_clamped - t1) / (t2 - t1);
+
+                return (1 - tr) * (1 - tt) * F11 +
+                       (1 - tr) * tt * F12 +
+                       tr * (1 - tt) * F21 +
+                       tr * tt * F22;
             }
 
-            // Convert cm to pixels (10 pixels = 1 cm)
-            const rPixels = r * 10 * this.scale;
-            const x = centerX + rPixels * Math.cos(angleRad);
-            const y = centerY + rPixels * Math.sin(angleRad);
+            updateCalculation() {
+                if (this.calcPoint.x === null) {
+                    // Default to reference point
+                    const centerX = this.canvas.width / 2;
+                    const centerY = this.canvas.height / 2;
+                    const scale = Math.min(this.canvas.width, this.canvas.height) / 12; // 1 cm in pixels
+                    this.calcPoint.x = centerX + scale; // 1 cm to the right
+                    this.calcPoint.y = centerY; // at 90 degrees
+                }
 
-            if (angle === 0) {
-                this.ctx.moveTo(x, y);
-            } else {
-                this.ctx.lineTo(x, y);
+                const source = this.sourceData[this.currentSource];
+                const Sk = parseFloat(document.getElementById('air-kerma').value);
+                const lambda = source.lambda;
+
+                // Convert pixel coordinates to cm and angle
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const scale = Math.min(this.canvas.width, this.canvas.height) / 12;
+
+                const dx = this.calcPoint.x - centerX;
+                const dy = -(this.calcPoint.y - centerY); // Flip y-axis
+
+                const r_cm = Math.sqrt(dx * dx + dy * dy) / scale;
+                let theta_deg = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                // Keep theta in 0-360 range
+                if (theta_deg < 0) theta_deg += 360;
+
+                // Calculate TG-43 parameters
+                const G = this.calculateGeometryFunction(r_cm, theta_deg);
+                const G0 = this.calculateGeometryFunction(1.0, 90.0); // Reference point
+                const g = this.interpolateRadialDose(r_cm);
+                const F = this.interpolateAnisotropy(r_cm, theta_deg);
+
+                // TG-43U1 dose rate formula
+                const doseRate = Sk * lambda * (G / G0) * g * F;
+
+                // Update display
+                document.getElementById('calc-r').textContent = r_cm.toFixed(2) + ' cm';
+                document.getElementById('calc-theta').textContent = theta_deg.toFixed(1) + '°';
+                document.getElementById('calc-G').textContent = G.toFixed(4);
+                document.getElementById('calc-G0').textContent = G0.toFixed(4);
+                document.getElementById('calc-g').textContent = g.toFixed(3);
+                document.getElementById('calc-F').textContent = F.toFixed(3);
+                document.getElementById('calc-dose').textContent = doseRate.toFixed(3) + ' cGy/h';
             }
-        }
 
-        this.ctx.closePath();
-        this.ctx.stroke();
-    });
-}
+            toggleIsodose() {
+                this.showIsodose = !this.showIsodose;
+                this.draw();
+            }
 
+            resetView() {
+                this.calcPoint = { x: null, y: null };
+                this.updateCalculation();
+                this.draw();
+            }
 
             draw() {
-                if (!this.ctx) return;
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                const ctx = this.ctx;
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+
+                // Clear
+                ctx.fillStyle = '#2d2d2d';
+                ctx.fillRect(0, 0, w, h);
+
+                const centerX = w / 2;
+                const centerY = h / 2;
+                const scale = Math.min(w, h) / 12; // Scale: 1 cm = scale pixels (showing ±6 cm)
+
+                // Draw grid
+                this.drawGrid(centerX, centerY, scale);
+
+                // Draw isodose lines
                 if (this.showIsodose) {
-                    this.drawIsodoseLines();
+                    this.drawIsodoseLines(centerX, centerY, scale);
                 }
-                this.drawSource();
-                this.drawCalcPoint();
+
+                // Draw reference point marker
+                this.drawReferencePoint(centerX, centerY, scale);
+
+                // Draw source
+                this.drawSource(centerX, centerY, scale);
+
+                // Draw calculation point
+                if (this.calcPoint.x !== null) {
+                    this.drawCalcPoint();
+                }
+            }
+
+            drawGrid(centerX, centerY, scale) {
+                const ctx = this.ctx;
+
+                // Grid lines every 1 cm
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+
+                for (let i = -6; i <= 6; i++) {
+                    // Vertical lines
+                    ctx.beginPath();
+                    ctx.moveTo(centerX + i * scale, 0);
+                    ctx.lineTo(centerX + i * scale, this.canvas.height);
+                    ctx.stroke();
+
+                    // Horizontal lines
+                    ctx.beginPath();
+                    ctx.moveTo(0, centerY + i * scale);
+                    ctx.lineTo(this.canvas.width, centerY + i * scale);
+                    ctx.stroke();
+                }
+
+                // Axes
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(centerX, 0);
+                ctx.lineTo(centerX, this.canvas.height);
+                ctx.moveTo(0, centerY);
+                ctx.lineTo(this.canvas.width, centerY);
+                ctx.stroke();
+
+                // Labels
+                ctx.fillStyle = '#b0b0b0';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                for (let i = -5; i <= 5; i += 1) {
+                    if (i !== 0) {
+                        ctx.fillText(`${i}cm`, centerX + i * scale, centerY + 15);
+                        ctx.fillText(`${-i}cm`, centerX - 20, centerY - i * scale);
+                    }
+                }
+            }
+
+            drawIsodoseLines(centerX, centerY, scale) {
+                const ctx = this.ctx;
+                const source = this.sourceData[this.currentSource];
+                const Sk = parseFloat(document.getElementById('air-kerma').value);
+                const lambda = source.lambda;
+                const G0 = this.calculateGeometryFunction(1.0, 90.0);
+
+                // Reference dose at (1 cm, 90°)
+                const g0 = this.interpolateRadialDose(1.0);
+                const F0 = this.interpolateAnisotropy(1.0, 90.0);
+                const refDose = Sk * lambda * (1.0) * g0 * F0;
+
+                // Isodose levels as percentage of reference
+                const levels = [
+                    { percent: 100, color: '#ff0000' },
+                    { percent: 50, color: '#ff8800' },
+                    { percent: 20, color: '#ffee00' },
+                    { percent: 10, color: '#88ff00' },
+                    { percent: 5, color: '#00ffff' },
+                    { percent: 2, color: '#0088ff' },
+                    { percent: 1, color: '#0044ff' }
+                ];
+
+                levels.forEach(level => {
+                    const targetDose = (level.percent / 100) * refDose;
+
+                    ctx.strokeStyle = level.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+
+                    let firstPoint = true;
+
+                    // Generate isodose contour
+                    for (let angle = 0; angle <= 360; angle += 2) {
+                        const theta = angle;
+
+                        // Binary search for radius at this angle
+                        let rMin = 0.05;
+                        let rMax = 10.0;
+                        let r = 1.0;
+
+                        for (let iter = 0; iter < 20; iter++) {
+                            r = (rMin + rMax) / 2;
+
+                            const G = this.calculateGeometryFunction(r, theta);
+                            const g = this.interpolateRadialDose(r);
+                            const F = this.interpolateAnisotropy(r, theta);
+                            const dose = Sk * lambda * (G / G0) * g * F;
+
+                            if (dose > targetDose) {
+                                rMin = r;
+                            } else {
+                                rMax = r;
+                            }
+                        }
+
+                        // Convert to canvas coordinates
+                        const theta_rad = theta * Math.PI / 180;
+                        const x = centerX + r * scale * Math.cos(theta_rad);
+                        const y = centerY - r * scale * Math.sin(theta_rad);
+
+                        if (firstPoint) {
+                            ctx.moveTo(x, y);
+                            firstPoint = false;
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+
+                    ctx.closePath();
+                    ctx.stroke();
+                });
+            }
+
+            drawSource(centerX, centerY, scale) {
+                const ctx = this.ctx;
+                const source = this.sourceData[this.currentSource];
+                const L = source.activeLength * scale; // Convert to pixels
+
+                // Draw seed capsule
+                ctx.fillStyle = '#silver';
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 2;
+
+                const capsuleWidth = Math.max(6, L * 0.2);
+                const capsuleLength = L + 10;
+
+                // Draw capsule body
+                ctx.beginPath();
+                ctx.rect(centerX - capsuleLength/2, centerY - capsuleWidth/2, capsuleLength, capsuleWidth);
+                ctx.fill();
+                ctx.stroke();
+
+                // Draw active core
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.rect(centerX - L/2, centerY - capsuleWidth/4, L, capsuleWidth/2);
+                ctx.fill();
+
+                // Draw source orientation arrows
+                ctx.strokeStyle = '#ff5722';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(centerX - L/2 - 15, centerY);
+                ctx.lineTo(centerX - L/2 - 5, centerY);
+                ctx.moveTo(centerX + L/2 + 5, centerY);
+                ctx.lineTo(centerX + L/2 + 15, centerY);
+                ctx.stroke();
+
+                // Arrow heads
+                ctx.beginPath();
+                ctx.moveTo(centerX - L/2 - 5, centerY);
+                ctx.lineTo(centerX - L/2 - 8, centerY - 3);
+                ctx.lineTo(centerX - L/2 - 8, centerY + 3);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(centerX + L/2 + 15, centerY);
+                ctx.lineTo(centerX + L/2 + 12, centerY - 3);
+                ctx.lineTo(centerX + L/2 + 12, centerY + 3);
+                ctx.closePath();
+                ctx.fill();
+
+                // Label
+                ctx.fillStyle = '#e0e0e0';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Source', centerX, centerY - capsuleWidth - 5);
+            }
+
+            drawReferencePoint(centerX, centerY, scale) {
+                const ctx = this.ctx;
+
+                // Reference point at (1 cm, 90°)
+                const refX = centerX + scale;
+                const refY = centerY;
+
+                ctx.strokeStyle = '#ff5722';
+                ctx.fillStyle = 'rgba(255, 87, 34, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(refX, refY, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Label
+                ctx.fillStyle = '#ff5722';
+                ctx.font = '11px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('r₀=1cm, θ₀=90°', refX + 10, refY - 5);
+            }
+
+            drawCalcPoint() {
+                const ctx = this.ctx;
+
+                ctx.strokeStyle = '#00ff00';
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(this.calcPoint.x, this.calcPoint.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Draw line from source to calc point
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+
+                ctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(this.calcPoint.x, this.calcPoint.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
             }
         }
 
-        // Initialize calculator when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            const canvas = document.getElementById('sourceCanvas');
-            const calculator = new TG43Calculator(canvas);
-            
-            document.getElementById('source-type').addEventListener('change', (e) => {
-                calculator.sourceType = e.target.value;
-                calculator.calculateDose();
-                calculator.draw();
-            });
-
-            document.getElementById('activity').addEventListener('input', () => {
-                calculator.calculateDose();
-                calculator.draw();
-            });
-
-            document.getElementById('toggle-isodose').addEventListener('click', () => {
-                calculator.showIsodose = !calculator.showIsodose;
-                calculator.draw();
-            });
+        // Initialize calculator
+        let calculator;
+        window.addEventListener('DOMContentLoaded', () => {
+            calculator = new BrachyCalculator();
         });
     </script>
-    <footer class="disclaimer-footer">
-      <div class="disclaimer-content">
-          <p class="disclaimer-text">
-              <span class="disclaimer-icon">⚠️</span>
-              <strong>Educational Purpose Only:</strong> 
-              This tool is designed for educational and training purposes only. It should not be used for clinical decision-making or patient treatment planning.
-              All calculations and visualizations are approximations and should be verified using commissioned clinical systems.
-          </p>
-          <p class="disclaimer-version">
-              Last Updated: October 2024 | Version 1.0
-          </p>
-      </div>
-  </footer>
-  
-  <style>
-      .disclaimer-footer {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: var(--bg-secondary);
-          border-top: 1px solid var(--border-color);
-          padding: 10px 20px;
-          z-index: 1000;
-      }
-  
-      .disclaimer-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          font-size: 0.9rem;
-          color: var(--text-secondary);
-          text-align: center;
-      }
-  
-      .disclaimer-text {
-          margin: 5px 0;
-          line-height: 1.4;
-      }
-  
-      .disclaimer-icon {
-          font-size: 1.2em;
-          margin-right: 8px;
-          vertical-align: middle;
-      }
-  
-      .disclaimer-version {
-          font-size: 0.8rem;
-          margin-top: 5px;
-          opacity: 0.7;
-      }
-  
-      /* Adjust main content to account for footer */
-      .container {
-          margin-bottom: 100px; /* Adjust based on footer height */
-      }
-  
-      @media (max-width: 768px) {
-          .disclaimer-footer {
-              padding: 8px 12px;
-          }
-          
-          .disclaimer-content {
-              font-size: 0.8rem;
-          }
-          
-          .disclaimer-version {
-              font-size: 0.7rem;
-          }
-      }
-  </style>
 </body>
 </html>
