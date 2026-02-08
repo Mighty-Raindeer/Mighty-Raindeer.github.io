@@ -98,7 +98,7 @@
         }
 
         .card.expanded .card-content {
-            max-height: 500px;
+            max-height: 2000px;
             padding: 1rem;
         }
 
@@ -203,6 +203,8 @@
 
     <nav class="sidebar">
         <ul class="nav-links">
+            <li><a href="index.html">← Back to Home</a></li>
+            <li><a href="#tools">General</a></li>
             <li><a href="#radiation-safety">Radiation Safety</a></li>
             <li><a href="#treatment-planning">Treatment Planning</a></li>
             <li><a href="#radiation-sources">Radiation Sources & Accelerators</a></li>
@@ -260,10 +262,11 @@
                     </ul>
                     <div class="tools-section">
                         <h3>Available Tools</h3>
-
-
-                        <a href="modules/tools/shield-calc.html" class="tool-link">🛡️ Shielding Calculator</a>
-                        <a href="#" class="tool-link">📋 Radiation Survey Form</a>
+                        <a href="modules/tools/shield-calc.html" class="tool-link">
+                            <i class="tool-icon">🛡️</i>
+                            Shielding Calculator
+                            <span class="tool-description">Calculate required shielding thickness</span>
+                        </a>
                     </div>
                 
                 </div>
@@ -283,9 +286,7 @@
                     </ul>
                     <div class="tools-section">
                         <h3>Available Tools</h3>
-
-                        <a href="#" class="tool-link">📏 Detector Efficiency Calculator</a>
-                        <a href="#" class="tool-link">📈 Calibration Tracker</a>
+                        <p style="color: var(--text-secondary); font-style: italic;">Coming soon...</p>
                     </div>
                   
 
@@ -307,8 +308,7 @@
                     </ul>
                     <div class="tools-section">
                         <h3>Available Tools</h3>
-                        <a href="#" class="tool-link">🚨 Emergency Response Checklist</a>
-                        <a href="#" class="tool-link">📝 Incident Report Template</a>
+                        <p style="color: var(--text-secondary); font-style: italic;">Coming soon...</p>
                     </div>
                     
                 </div>
@@ -332,11 +332,10 @@
                     </ul>
                     <div class="tools-section">
                         <h3>Available Tools</h3>
-                        <a href="#" class="tool-link">🎯 Isocenter Calculator</a>
                         <a href="modules/tools/ct-vis.html" class="tool-link">
                             <i class="tool-icon">📐</i>
-                            CT sim
-                            <span class="tool-description">Interactive visualization CT slices</span>
+                            CT Simulator
+                            <span class="tool-description">Interactive CT slice visualization</span>
                         </a>
                     </div>
                     
@@ -359,11 +358,36 @@
                     </ul>
                     <div class="tools-section">
                         <h3>Available Tools</h3>
-                        <a href="modules/tools/TG51.html" class="tool-link">📊 Dose Calculator</a>
-                        <a href="modules/tools/dose-calc.html" class="tool-link">🧮 MU Calculator</a>
-                        <a href="modules/tools/technique.html" class="tool-link">📊 Plan Technique Comparison Tool</a>
-                        <a href="modules/tools/FPB-AAA-AXB.html" class="tool-link">📊 Dose Calculation Comparison Tool</a>
-                        <a href="modules/tools/DVH.html" class="tool-link">📊 Dose Volume Histogram</a>
+                        <a href="modules/tools/TG51.html" class="tool-link">
+                            <i class="tool-icon">📊</i>
+                            TG-51 Calculator
+                            <span class="tool-description">Reference dosimetry calculator</span>
+                        </a>
+                        <a href="modules/tools/dose-calc.html" class="tool-link">
+                            <i class="tool-icon">🧮</i>
+                            MU Calculator
+                            <span class="tool-description">Monitor unit calculation tool</span>
+                        </a>
+                        <a href="modules/tools/technique.html" class="tool-link">
+                            <i class="tool-icon">⚡</i>
+                            Plan Technique Comparison
+                            <span class="tool-description">Compare static IMRT vs VMAT</span>
+                        </a>
+                        <a href="modules/tools/FPB-AAA-AXB.html" class="tool-link">
+                            <i class="tool-icon">🔬</i>
+                            Dose Algorithm Comparison
+                            <span class="tool-description">Compare pencil beam, AAA, and Acuros</span>
+                        </a>
+                        <a href="modules/tools/DVH.html" class="tool-link">
+                            <i class="tool-icon">📈</i>
+                            Dose Volume Histogram
+                            <span class="tool-description">Interactive DVH analysis tool</span>
+                        </a>
+                        <a href="modules/tools/radiobiology.html" class="tool-link">
+                            <i class="tool-icon">🧬</i>
+                            Radiobiology Calculator
+                            <span class="tool-description">BED, EQD2, and organ tolerance</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -386,8 +410,21 @@
                     </ul>
                     <div class="tools-section">
                         <h3>Available Tools</h3>
-                        <i href="modules/tools/WL.html"class="tool-link">🔧 Winston-Lutz Calculation</i>
-                        <i href="modules/tools/rf-vis.html" class="tool-link">📝 Linear Accelerator Types</i>
+                        <a href="modules/tools/WL.html" class="tool-link">
+                            <i class="tool-icon">🔧</i>
+                            Winston-Lutz Calculator
+                            <span class="tool-description">QA analysis for isocenter accuracy</span>
+                        </a>
+                        <a href="modules/tools/rf-vis.html" class="tool-link">
+                            <i class="tool-icon">📡</i>
+                            RF Generation Visualizer
+                            <span class="tool-description">Klystron vs Magnetron comparison</span>
+                        </a>
+                        <a href="modules/tools/linac-vis.html" class="tool-link">
+                            <i class="tool-icon">⚛️</i>
+                            Linear Accelerator Diagram
+                            <span class="tool-description">Interactive linac components</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -415,8 +452,11 @@
                             Profile Analysis
                             <span class="tool-description">Beam profile comparison and analysis tool</span>
                         </a>
-                        <i href="modules/tools/electron_ssd.html" class="tool-link">Virtual Source and Extended SSD</i>
-
+                        <a href="modules/tools/electron_ssd.html" class="tool-link">
+                            <i class="tool-icon">⚡</i>
+                            Electron Virtual Source
+                            <span class="tool-description">Virtual source and extended SSD calculator</span>
+                        </a>
                     </div>
                 </div>
             </div>
