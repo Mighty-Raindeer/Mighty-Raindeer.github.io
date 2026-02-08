@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiobiology Calculator | Medical Physics Study Guide</title>
+
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #242424;
+            --bg-card: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #ff5722;
+            --accent-hover: #f4511e;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .card h2 {
+            color: var(--accent-primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .input-with-unit {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            flex: 1;
+        }
+
+        .unit-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            min-width: 30px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px 16px;
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+        }
+
+        .results-section {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        .results-section h3 {
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .result-value {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+        }
+
+        .result-highlight {
+            background: rgba(255, 87, 34, 0.1);
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-primary);
+            margin-top: 10px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .comparison-card {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .comparison-card h4 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .comparison-value {
+            text-align: center;
+            font-size: 1.3rem;
+            color: var(--accent-primary);
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .comparison-label {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        table th,
+        table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table th {
+            background: var(--bg-card);
+            color: var(--accent-primary);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .info-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+
+        .info-section h3 {
+            color: var(--accent-primary);
+            margin-bottom: 10px;
+        }
+
+        .info-section ul {
+            margin-left: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .info-section li {
+            margin-bottom: 5px;
+        }
+
+        .formula-display {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            margin: 0;
+            width: auto;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tolerance-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-safe {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+        }
+
+        .status-warning {
+            background: rgba(255, 152, 0, 0.2);
+            color: var(--warning);
+        }
+
+        .status-danger {
+            background: rgba(244, 67, 54, 0.2);
+            color: var(--danger);
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Radiobiology Calculator</h1>
+
+        <div class="tab-container">
+            <button class="tab active" onclick="switchTab('bed-calculator')">BED/EQD2 Calculator</button>
+            <button class="tab" onclick="switchTab('comparison')">Fractionation Comparison</button>
+            <button class="tab" onclick="switchTab('alpha-beta')">α/β Reference</button>
+            <button class="tab" onclick="switchTab('tolerance')">Organ Tolerance</button>
+        </div>
+
+        <!-- BED/EQD2 Calculator Tab -->
+        <div id="bed-calculator" class="tab-content active">
+            <div class="main-grid">
+                <div class="card">
+                    <h2>Treatment Parameters</h2>
+
+                    <div class="form-group">
+                        <label>Tissue Type:</label>
+                        <select id="tissue-type" onchange="calculator.updateTissue()">
+                            <optgroup label="Tumors">
+                                <option value="tumor-standard">Standard Tumor (α/β = 10 Gy)</option>
+                                <option value="tumor-prostate">Prostate Cancer (α/β = 1.5 Gy)</option>
+                                <option value="tumor-breast">Breast Cancer (α/β = 4 Gy)</option>
+                                <option value="tumor-melanoma">Melanoma (α/β = 0.6 Gy)</option>
+                                <option value="tumor-headneck">Head & Neck (α/β = 10 Gy)</option>
+                                <option value="tumor-lung">Lung (NSCLC) (α/β = 10 Gy)</option>
+                            </optgroup>
+                            <optgroup label="Normal Tissues">
+                                <option value="normal-early">Early-Responding (α/β = 10 Gy)</option>
+                                <option value="normal-late">Late-Responding (α/β = 3 Gy)</option>
+                                <option value="normal-cns">CNS/Brain (α/β = 2 Gy)</option>
+                                <option value="normal-spinal">Spinal Cord (α/β = 2 Gy)</option>
+                                <option value="normal-lung">Lung (α/β = 3 Gy)</option>
+                                <option value="normal-kidney">Kidney (α/β = 3 Gy)</option>
+                                <option value="normal-rectum">Rectum (α/β = 3 Gy)</option>
+                            </optgroup>
+                            <option value="custom">Custom α/β ratio...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="custom-alphabeta-group" style="display: none;">
+                        <label>Custom α/β Ratio:</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="custom-alphabeta" value="3" step="0.1" min="0.1" onchange="calculator.calculate()">
+                            <span class="unit-label">Gy</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Number of Fractions:</label>
+                        <input type="number" id="num-fractions" value="30" min="1" onchange="calculator.calculate()">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dose per Fraction:</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="dose-per-fraction" value="2.0" step="0.1" min="0.1" onchange="calculator.calculate()">
+                            <span class="unit-label">Gy</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Total Dose (D):</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="total-dose" value="60" step="0.1" min="0.1" onchange="calculator.updateFromTotal()">
+                            <span class="unit-label">Gy</span>
+                        </div>
+                    </div>
+
+                    <button onclick="calculator.calculate()">Calculate</button>
+
+                    <div class="formula-display">
+                        <div style="margin-bottom: 10px;"><strong>Formulas:</strong></div>
+                        <div>BED = D × [1 + d/(α/β)]</div>
+                        <div>EQD2 = D × [(d + α/β)/(2 + α/β)]</div>
+                        <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary);">
+                            D = total dose, d = dose per fraction
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Results</h2>
+
+                    <div class="results-section">
+                        <h3>Treatment Summary</h3>
+                        <div class="result-row">
+                            <span class="result-label">Tissue:</span>
+                            <span class="result-value" id="result-tissue">Standard Tumor</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">α/β Ratio:</span>
+                            <span class="result-value" id="result-alphabeta">10.0 Gy</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Total Dose:</span>
+                            <span class="result-value" id="result-total">60.0 Gy</span>
+                        </div>
+                        <div class="result-row">
+                            <span class="result-label">Fractionation:</span>
+                            <span class="result-value" id="result-fractionation">30 × 2.0 Gy</span>
+                        </div>
+                    </div>
+
+                    <div class="results-section">
+                        <h3>Biological Effectiveness</h3>
+                        <div class="result-highlight">
+                            <div class="result-row" style="border: none;">
+                                <span class="result-label" style="font-size: 1rem; font-weight: bold;">BED:</span>
+                                <span class="result-value" id="result-bed" style="font-size: 1.3rem; color: var(--accent-primary);">72.0 Gy</span>
+                            </div>
+                        </div>
+                        <div class="result-highlight">
+                            <div class="result-row" style="border: none;">
+                                <span class="result-label" style="font-size: 1rem; font-weight: bold;">EQD2:</span>
+                                <span class="result-value" id="result-eqd2" style="font-size: 1.3rem; color: var(--accent-primary);">60.0 Gy</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results-section">
+                        <h3>Clinical Interpretation</h3>
+                        <div id="interpretation" style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                            <p>Standard fractionation (2 Gy/fx) for this tissue type.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fractionation Comparison Tab -->
+        <div id="comparison" class="tab-content">
+            <div class="card">
+                <h2>Compare Fractionation Schemes</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Compare the biological effectiveness of different fractionation schemes for the same tissue type.
+                </p>
+
+                <div class="form-group">
+                    <label>Select Tissue/Tumor Type:</label>
+                    <select id="comparison-tissue" onchange="calculator.updateComparison()">
+                        <option value="10">Standard Tumor (α/β = 10 Gy)</option>
+                        <option value="1.5">Prostate Cancer (α/β = 1.5 Gy)</option>
+                        <option value="4">Breast Cancer (α/β = 4 Gy)</option>
+                        <option value="3">Late-Responding Normal Tissue (α/β = 3 Gy)</option>
+                        <option value="2">CNS/Spinal Cord (α/β = 2 Gy)</option>
+                    </select>
+                </div>
+
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <h4>Standard Fractionation</h4>
+                        <div class="comparison-label">30 fractions × 2.0 Gy</div>
+                        <div class="comparison-value" id="comp-standard-total">60 Gy</div>
+                        <div class="comparison-label">BED: <span id="comp-standard-bed">72.0 Gy</span></div>
+                        <div class="comparison-label">EQD2: <span id="comp-standard-eqd2">60.0 Gy</span></div>
+                    </div>
+
+                    <div class="comparison-card">
+                        <h4>Hypofractionation</h4>
+                        <div class="comparison-label">20 fractions × 3.0 Gy</div>
+                        <div class="comparison-value" id="comp-hypo-total">60 Gy</div>
+                        <div class="comparison-label">BED: <span id="comp-hypo-bed">78.0 Gy</span></div>
+                        <div class="comparison-label">EQD2: <span id="comp-hypo-eqd2">65.0 Gy</span></div>
+                    </div>
+
+                    <div class="comparison-card">
+                        <h4>SBRT/SRS</h4>
+                        <div class="comparison-label">5 fractions × 12.0 Gy</div>
+                        <div class="comparison-value" id="comp-sbrt-total">60 Gy</div>
+                        <div class="comparison-label">BED: <span id="comp-sbrt-bed">132.0 Gy</span></div>
+                        <div class="comparison-label">EQD2: <span id="comp-sbrt-eqd2">110.0 Gy</span></div>
+                    </div>
+                </div>
+
+                <div class="info-section" style="margin-top: 20px;">
+                    <h3>Key Insights</h3>
+                    <ul>
+                        <li><strong>Standard fractionation (2 Gy/fx):</strong> Maximizes therapeutic ratio by sparing late-responding normal tissues</li>
+                        <li><strong>Hypofractionation:</strong> More effective for tumors with low α/β (prostate, breast) while sparing late effects</li>
+                        <li><strong>SBRT/SRS:</strong> Very high BED from large fractions - best for tumors with low α/β or when late effects are minimal</li>
+                        <li><strong>EQD2 comparison:</strong> Allows direct comparison of different schemes on a standardized 2 Gy/fx scale</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alpha/Beta Reference Tab -->
+        <div id="alpha-beta" class="tab-content">
+            <div class="card">
+                <h2>α/β Ratio Reference Values</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Reference values for alpha/beta ratios used in radiobiological calculations. Lower α/β indicates greater fractionation sensitivity.
+                </p>
+
+                <div class="table-container">
+                    <h3 style="color: var(--accent-primary); margin-top: 20px; margin-bottom: 10px;">Tumor Tissues</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tumor Type</th>
+                                <th>α/β Ratio (Gy)</th>
+                                <th>Fractionation Sensitivity</th>
+                                <th>Clinical Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Melanoma</td>
+                                <td>0.6 - 2</td>
+                                <td>Very High</td>
+                                <td>Benefits from hypofractionation</td>
+                            </tr>
+                            <tr>
+                                <td>Prostate Cancer</td>
+                                <td>1.5 - 2</td>
+                                <td>Very High</td>
+                                <td>Ideal for hypofractionation/SBRT</td>
+                            </tr>
+                            <tr>
+                                <td>Breast Cancer</td>
+                                <td>3.5 - 4</td>
+                                <td>High</td>
+                                <td>Moderate hypofractionation effective</td>
+                            </tr>
+                            <tr>
+                                <td>Sarcomas</td>
+                                <td>~4</td>
+                                <td>High</td>
+                                <td>Variable by subtype</td>
+                            </tr>
+                            <tr>
+                                <td>Cervix</td>
+                                <td>~10</td>
+                                <td>Low</td>
+                                <td>Standard fractionation preferred</td>
+                            </tr>
+                            <tr>
+                                <td>Head & Neck SCC</td>
+                                <td>10</td>
+                                <td>Low</td>
+                                <td>Conventional fractionation</td>
+                            </tr>
+                            <tr>
+                                <td>Lung (NSCLC)</td>
+                                <td>10</td>
+                                <td>Low</td>
+                                <td>Standard fractionation or SBRT for early stage</td>
+                            </tr>
+                            <tr>
+                                <td>Most Solid Tumors</td>
+                                <td>10 - 12</td>
+                                <td>Low</td>
+                                <td>Conventional fractionation standard</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 style="color: var(--accent-primary); margin-top: 30px; margin-bottom: 10px;">Normal Tissues</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tissue</th>
+                                <th>α/β Ratio (Gy)</th>
+                                <th>Response Type</th>
+                                <th>Clinical Importance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CNS/Brain</td>
+                                <td>2</td>
+                                <td>Late</td>
+                                <td>Critical - irreversible damage</td>
+                            </tr>
+                            <tr>
+                                <td>Spinal Cord</td>
+                                <td>2</td>
+                                <td>Late</td>
+                                <td>Critical - myelopathy risk</td>
+                            </tr>
+                            <tr>
+                                <td>Kidney</td>
+                                <td>3</td>
+                                <td>Late</td>
+                                <td>Nephritis, functional loss</td>
+                            </tr>
+                            <tr>
+                                <td>Lung</td>
+                                <td>3 - 4</td>
+                                <td>Late</td>
+                                <td>Pneumonitis, fibrosis</td>
+                            </tr>
+                            <tr>
+                                <td>Rectum</td>
+                                <td>3 - 5</td>
+                                <td>Late</td>
+                                <td>Proctitis, bleeding, stricture</td>
+                            </tr>
+                            <tr>
+                                <td>Bladder</td>
+                                <td>3 - 5</td>
+                                <td>Late</td>
+                                <td>Cystitis, contracture</td>
+                            </tr>
+                            <tr>
+                                <td>Liver</td>
+                                <td>2.5</td>
+                                <td>Late</td>
+                                <td>Hepatitis, failure</td>
+                            </tr>
+                            <tr>
+                                <td>Heart</td>
+                                <td>3</td>
+                                <td>Late</td>
+                                <td>Pericarditis, cardiomyopathy</td>
+                            </tr>
+                            <tr>
+                                <td>Skin/Mucosa</td>
+                                <td>>10</td>
+                                <td>Early</td>
+                                <td>Acute reactions, recoverable</td>
+                            </tr>
+                            <tr>
+                                <td>Bone Marrow</td>
+                                <td>~10</td>
+                                <td>Early</td>
+                                <td>Hematologic toxicity</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Organ Tolerance Tab -->
+        <div id="tolerance" class="tab-content">
+            <div class="card">
+                <h2>Organ Dose Tolerance Limits</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Reference tolerance doses for conventional fractionation (1.8-2 Gy/fx). TD5/5 = 5% complication risk at 5 years. TD50/5 = 50% complication risk at 5 years.
+                </p>
+
+                <div class="form-group">
+                    <label>Check Organ Dose:</label>
+                    <select id="organ-select" onchange="calculator.checkTolerance()">
+                        <option value="spinal-cord">Spinal Cord</option>
+                        <option value="brainstem">Brainstem</option>
+                        <option value="optic-nerve">Optic Nerve</option>
+                        <option value="lens">Lens</option>
+                        <option value="lung">Lung (Whole)</option>
+                        <option value="heart">Heart</option>
+                        <option value="kidney">Kidney</option>
+                        <option value="liver">Liver</option>
+                        <option value="rectum">Rectum</option>
+                        <option value="bladder">Bladder</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Delivered Dose:</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="organ-dose" value="45" step="0.1" min="0" onchange="calculator.checkTolerance()">
+                        <span class="unit-label">Gy</span>
+                    </div>
+                </div>
+
+                <div class="results-section">
+                    <h3>Tolerance Assessment</h3>
+                    <div class="result-row">
+                        <span class="result-label">Organ:</span>
+                        <span class="result-value" id="tolerance-organ">Spinal Cord</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Delivered Dose:</span>
+                        <span class="result-value" id="tolerance-dose">45.0 Gy</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">TD5/5:</span>
+                        <span class="result-value" id="tolerance-td5">50 Gy</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">TD50/5:</span>
+                        <span class="result-value" id="tolerance-td50">70 Gy</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Status:</span>
+                        <span class="result-value" id="tolerance-status">
+                            <span class="tolerance-status status-safe">SAFE</span>
+                        </span>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: var(--bg-secondary); border-radius: 4px;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary);" id="tolerance-notes">
+                            Dose is below TD5/5 - minimal risk of complications.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container" style="margin-top: 30px;">
+                    <h3 style="color: var(--accent-primary); margin-bottom: 10px;">Complete Tolerance Reference (Conventional Fractionation)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Organ</th>
+                                <th>Volume</th>
+                                <th>TD5/5 (Gy)</th>
+                                <th>TD50/5 (Gy)</th>
+                                <th>Endpoint</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Spinal Cord</strong></td>
+                                <td>5-10 cm</td>
+                                <td>50</td>
+                                <td>70</td>
+                                <td>Myelitis, necrosis</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Brainstem</strong></td>
+                                <td>Whole</td>
+                                <td>50</td>
+                                <td>65</td>
+                                <td>Necrosis, infarct</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Optic Nerve/Chiasm</strong></td>
+                                <td>Whole</td>
+                                <td>50</td>
+                                <td>65</td>
+                                <td>Blindness</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lens</strong></td>
+                                <td>Whole</td>
+                                <td>10</td>
+                                <td>18</td>
+                                <td>Cataract</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Retina</strong></td>
+                                <td>Whole</td>
+                                <td>45</td>
+                                <td>65</td>
+                                <td>Blindness</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Brain</strong></td>
+                                <td>Whole</td>
+                                <td>45</td>
+                                <td>60</td>
+                                <td>Necrosis, infarct</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Brain</strong></td>
+                                <td>1/3</td>
+                                <td>60</td>
+                                <td>75</td>
+                                <td>Necrosis</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lung</strong></td>
+                                <td>Whole</td>
+                                <td>17.5</td>
+                                <td>24.5</td>
+                                <td>Pneumonitis</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lung</strong></td>
+                                <td>1/3</td>
+                                <td>45</td>
+                                <td>65</td>
+                                <td>Pneumonitis</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Heart</strong></td>
+                                <td>Whole</td>
+                                <td>40</td>
+                                <td>50</td>
+                                <td>Pericarditis</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Heart</strong></td>
+                                <td>1/3</td>
+                                <td>60</td>
+                                <td>70</td>
+                                <td>Pericarditis</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Kidney</strong></td>
+                                <td>Whole</td>
+                                <td>23</td>
+                                <td>28</td>
+                                <td>Nephritis</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Kidney</strong></td>
+                                <td>1/3</td>
+                                <td>50</td>
+                                <td>N/A</td>
+                                <td>Nephritis</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Liver</strong></td>
+                                <td>Whole</td>
+                                <td>30</td>
+                                <td>40</td>
+                                <td>Hepatitis, liver failure</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Rectum</strong></td>
+                                <td>Whole</td>
+                                <td>60</td>
+                                <td>80</td>
+                                <td>Severe proctitis, necrosis, fistula</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Bladder</strong></td>
+                                <td>Whole</td>
+                                <td>65</td>
+                                <td>80</td>
+                                <td>Contracture, volume loss</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Small Intestine</strong></td>
+                                <td>Whole</td>
+                                <td>45</td>
+                                <td>55</td>
+                                <td>Obstruction, perforation, fistula</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Parotid Gland</strong></td>
+                                <td>Whole</td>
+                                <td>32</td>
+                                <td>46</td>
+                                <td>Xerostomia</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-section" style="margin-top: 20px;">
+                    <h3>Important Notes</h3>
+                    <ul>
+                        <li><strong>TD5/5:</strong> 5% probability of complication within 5 years</li>
+                        <li><strong>TD50/5:</strong> 50% probability of complication within 5 years</li>
+                        <li>These values apply to <strong>conventional fractionation</strong> (1.8-2 Gy per fraction)</li>
+                        <li>For hypofractionation or SBRT, use <strong>EQD2 conversion</strong> with appropriate α/β ratios</li>
+                        <li>Serial organs (spinal cord, optic nerve): Maximum point dose is critical</li>
+                        <li>Parallel organs (lung, kidney, liver): Mean dose and volume parameters matter</li>
+                        <li>Modern guidelines (QUANTEC, HyTEC) provide dose-volume constraints beyond simple TD values</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>Understanding Radiobiology</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 10px;">Linear-Quadratic Model</h4>
+                    <ul>
+                        <li>Cell killing occurs through two mechanisms: single-hit (α) and double-hit (β)</li>
+                        <li>α/β ratio represents the dose where single-hit and double-hit killing are equal</li>
+                        <li>Low α/β (1-5 Gy): High fractionation sensitivity - benefits from larger fractions</li>
+                        <li>High α/β (>10 Gy): Low fractionation sensitivity - conventional fractionation preferred</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 10px;">Clinical Applications</h4>
+                    <ul>
+                        <li><strong>BED:</strong> Quantifies biological effect accounting for fractionation</li>
+                        <li><strong>EQD2:</strong> Converts any schedule to equivalent 2 Gy/fx dose</li>
+                        <li><strong>Therapeutic ratio:</strong> Exploit differential α/β between tumor and normal tissue</li>
+                        <li><strong>Hypofractionation:</strong> Most effective when tumor α/β < normal tissue α/β</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Organ tolerance database
+        const organToleranceData = {
+            'spinal-cord': {
+                name: 'Spinal Cord',
+                td5: 50,
+                td50: 70,
+                notes: 'Maximum point dose critical. Myelopathy is a severe, irreversible complication.',
+                endpoint: 'Myelitis/Necrosis'
+            },
+            'brainstem': {
+                name: 'Brainstem',
+                td5: 50,
+                td50: 65,
+                notes: 'Critical structure. Necrosis can be fatal. Maximum point dose must be limited.',
+                endpoint: 'Necrosis/Infarction'
+            },
+            'optic-nerve': {
+                name: 'Optic Nerve/Chiasm',
+                td5: 50,
+                td50: 65,
+                notes: 'Optic neuropathy results in permanent vision loss. Maximum dose critical.',
+                endpoint: 'Blindness'
+            },
+            'lens': {
+                name: 'Lens',
+                td5: 10,
+                td50: 18,
+                notes: 'Very radiosensitive. Cataracts can develop even at low doses, but are treatable.',
+                endpoint: 'Cataract Formation'
+            },
+            'lung': {
+                name: 'Lung (Whole)',
+                td5: 17.5,
+                td50: 24.5,
+                notes: 'Radiation pneumonitis risk. Mean lung dose and V20 are important predictors.',
+                endpoint: 'Pneumonitis'
+            },
+            'heart': {
+                name: 'Heart (Whole)',
+                td5: 40,
+                td50: 50,
+                notes: 'Pericarditis and late cardiac events. Mean heart dose should be minimized.',
+                endpoint: 'Pericarditis'
+            },
+            'kidney': {
+                name: 'Kidney (Whole)',
+                td5: 23,
+                td50: 28,
+                notes: 'Radiation nephropathy. Mean dose <18 Gy (QUANTEC) for both kidneys.',
+                endpoint: 'Nephritis'
+            },
+            'liver': {
+                name: 'Liver (Whole)',
+                td5: 30,
+                td50: 40,
+                notes: 'Radiation-induced liver disease (RILD). Mean liver dose critical.',
+                endpoint: 'Hepatitis/Failure'
+            },
+            'rectum': {
+                name: 'Rectum (Whole)',
+                td5: 60,
+                td50: 80,
+                notes: 'Late rectal toxicity includes bleeding, urgency, incontinence. V50-V70 important.',
+                endpoint: 'Proctitis/Bleeding'
+            },
+            'bladder': {
+                name: 'Bladder (Whole)',
+                td5: 65,
+                td50: 80,
+                notes: 'Chronic cystitis, reduced capacity. Generally tolerates moderate doses well.',
+                endpoint: 'Contracture/Cystitis'
+            }
+        };
+
+        // Tissue database
+        const tissueData = {
+            'tumor-standard': { name: 'Standard Tumor', alphabeta: 10, type: 'tumor' },
+            'tumor-prostate': { name: 'Prostate Cancer', alphabeta: 1.5, type: 'tumor' },
+            'tumor-breast': { name: 'Breast Cancer', alphabeta: 4, type: 'tumor' },
+            'tumor-melanoma': { name: 'Melanoma', alphabeta: 0.6, type: 'tumor' },
+            'tumor-headneck': { name: 'Head & Neck', alphabeta: 10, type: 'tumor' },
+            'tumor-lung': { name: 'Lung (NSCLC)', alphabeta: 10, type: 'tumor' },
+            'normal-early': { name: 'Early-Responding Tissue', alphabeta: 10, type: 'normal' },
+            'normal-late': { name: 'Late-Responding Tissue', alphabeta: 3, type: 'normal' },
+            'normal-cns': { name: 'CNS/Brain', alphabeta: 2, type: 'normal' },
+            'normal-spinal': { name: 'Spinal Cord', alphabeta: 2, type: 'normal' },
+            'normal-lung': { name: 'Lung', alphabeta: 3, type: 'normal' },
+            'normal-kidney': { name: 'Kidney', alphabeta: 3, type: 'normal' },
+            'normal-rectum': { name: 'Rectum', alphabeta: 3, type: 'normal' }
+        };
+
+        class RadiobiologyCalculator {
+            constructor() {
+                this.currentTissue = 'tumor-standard';
+                this.updateTissue();
+            }
+
+            updateTissue() {
+                const tissueSelect = document.getElementById('tissue-type');
+                this.currentTissue = tissueSelect.value;
+
+                const customGroup = document.getElementById('custom-alphabeta-group');
+                if (this.currentTissue === 'custom') {
+                    customGroup.style.display = 'block';
+                } else {
+                    customGroup.style.display = 'none';
+                }
+
+                this.calculate();
+            }
+
+            getAlphaBeta() {
+                if (this.currentTissue === 'custom') {
+                    return parseFloat(document.getElementById('custom-alphabeta').value);
+                }
+                return tissueData[this.currentTissue].alphabeta;
+            }
+
+            getTissueName() {
+                if (this.currentTissue === 'custom') {
+                    const ab = this.getAlphaBeta();
+                    return `Custom (α/β = ${ab} Gy)`;
+                }
+                return tissueData[this.currentTissue].name;
+            }
+
+            updateFromTotal() {
+                const totalDose = parseFloat(document.getElementById('total-dose').value);
+                const numFractions = parseFloat(document.getElementById('num-fractions').value);
+                const dosePerFraction = totalDose / numFractions;
+                document.getElementById('dose-per-fraction').value = dosePerFraction.toFixed(2);
+                this.calculate();
+            }
+
+            calculate() {
+                // Get inputs
+                const numFractions = parseFloat(document.getElementById('num-fractions').value);
+                const dosePerFraction = parseFloat(document.getElementById('dose-per-fraction').value);
+                const totalDose = numFractions * dosePerFraction;
+                const alphabeta = this.getAlphaBeta();
+
+                // Update total dose display
+                document.getElementById('total-dose').value = totalDose.toFixed(1);
+
+                // Calculate BED and EQD2
+                const bed = totalDose * (1 + dosePerFraction / alphabeta);
+                const eqd2 = totalDose * ((dosePerFraction + alphabeta) / (2 + alphabeta));
+
+                // Update results
+                document.getElementById('result-tissue').textContent = this.getTissueName();
+                document.getElementById('result-alphabeta').textContent = alphabeta.toFixed(1) + ' Gy';
+                document.getElementById('result-total').textContent = totalDose.toFixed(1) + ' Gy';
+                document.getElementById('result-fractionation').textContent =
+                    `${numFractions} × ${dosePerFraction.toFixed(1)} Gy`;
+                document.getElementById('result-bed').textContent = bed.toFixed(1) + ' Gy';
+                document.getElementById('result-eqd2').textContent = eqd2.toFixed(1) + ' Gy';
+
+                // Generate interpretation
+                this.updateInterpretation(dosePerFraction, alphabeta, eqd2, totalDose);
+            }
+
+            updateInterpretation(dosePerFraction, alphabeta, eqd2, totalDose) {
+                let interpretation = '';
+
+                if (Math.abs(dosePerFraction - 2.0) < 0.2) {
+                    interpretation = '<p>✓ <strong>Standard fractionation</strong> (~2 Gy/fx) for this tissue type.</p>';
+                } else if (dosePerFraction > 2.5 && dosePerFraction < 6) {
+                    interpretation = '<p><strong>Moderate hypofractionation.</strong></p>';
+                    if (alphabeta < 5) {
+                        interpretation += '<p>✓ Good choice for this tissue (low α/β) - increased biological effect compared to standard fractionation.</p>';
+                    } else {
+                        interpretation += '<p>⚠ Moderate benefit for this tissue (high α/β). Consider normal tissue tolerance.</p>';
+                    }
+                } else if (dosePerFraction >= 6) {
+                    interpretation = '<p><strong>Extreme hypofractionation / SBRT.</strong></p>';
+                    if (alphabeta < 5) {
+                        interpretation += '<p>✓ Excellent biological effect for low α/β tissues. Substantially higher BED than conventional fractionation.</p>';
+                    } else {
+                        interpretation += '<p>⚠ High BED but limited advantage for high α/β tissues. Ensure normal tissue sparing.</p>';
+                    }
+                } else if (dosePerFraction < 1.8) {
+                    interpretation = '<p><strong>Hyperfractionation.</strong></p>';
+                    interpretation += '<p>Lower BED per Gy - spares late-responding normal tissues. Longer treatment time.</p>';
+                }
+
+                // Add EQD2 context
+                if (Math.abs(eqd2 - totalDose) > 5) {
+                    const diff = eqd2 - totalDose;
+                    if (diff > 0) {
+                        interpretation += `<p>EQD2 is ${diff.toFixed(1)} Gy <strong>higher</strong> than physical dose - increased biological effect from larger fractions.</p>`;
+                    } else {
+                        interpretation += `<p>EQD2 is ${Math.abs(diff).toFixed(1)} Gy <strong>lower</strong> than physical dose - reduced biological effect from smaller fractions.</p>`;
+                    }
+                }
+
+                document.getElementById('interpretation').innerHTML = interpretation;
+            }
+
+            updateComparison() {
+                const alphabeta = parseFloat(document.getElementById('comparison-tissue').value);
+
+                // Standard: 30 × 2.0 = 60 Gy
+                const std_d = 2.0, std_n = 30, std_D = 60;
+                const std_bed = std_D * (1 + std_d / alphabeta);
+                const std_eqd2 = std_D * ((std_d + alphabeta) / (2 + alphabeta));
+
+                // Hypo: 20 × 3.0 = 60 Gy
+                const hypo_d = 3.0, hypo_n = 20, hypo_D = 60;
+                const hypo_bed = hypo_D * (1 + hypo_d / alphabeta);
+                const hypo_eqd2 = hypo_D * ((hypo_d + alphabeta) / (2 + alphabeta));
+
+                // SBRT: 5 × 12 = 60 Gy
+                const sbrt_d = 12.0, sbrt_n = 5, sbrt_D = 60;
+                const sbrt_bed = sbrt_D * (1 + sbrt_d / alphabeta);
+                const sbrt_eqd2 = sbrt_D * ((sbrt_d + alphabeta) / (2 + alphabeta));
+
+                document.getElementById('comp-standard-bed').textContent = std_bed.toFixed(1) + ' Gy';
+                document.getElementById('comp-standard-eqd2').textContent = std_eqd2.toFixed(1) + ' Gy';
+
+                document.getElementById('comp-hypo-bed').textContent = hypo_bed.toFixed(1) + ' Gy';
+                document.getElementById('comp-hypo-eqd2').textContent = hypo_eqd2.toFixed(1) + ' Gy';
+
+                document.getElementById('comp-sbrt-bed').textContent = sbrt_bed.toFixed(1) + ' Gy';
+                document.getElementById('comp-sbrt-eqd2').textContent = sbrt_eqd2.toFixed(1) + ' Gy';
+            }
+
+            checkTolerance() {
+                const organ = document.getElementById('organ-select').value;
+                const dose = parseFloat(document.getElementById('organ-dose').value);
+                const data = organToleranceData[organ];
+
+                document.getElementById('tolerance-organ').textContent = data.name;
+                document.getElementById('tolerance-dose').textContent = dose.toFixed(1) + ' Gy';
+                document.getElementById('tolerance-td5').textContent = data.td5 + ' Gy';
+                document.getElementById('tolerance-td50').textContent = data.td50 + ' Gy';
+
+                let status, statusClass, notes;
+                if (dose < data.td5) {
+                    status = 'SAFE';
+                    statusClass = 'status-safe';
+                    notes = `Dose is below TD5/5 (${data.td5} Gy) - minimal risk (<5%) of ${data.endpoint.toLowerCase()}.`;
+                } else if (dose >= data.td5 && dose < data.td50) {
+                    status = 'WARNING';
+                    statusClass = 'status-warning';
+                    notes = `Dose is between TD5/5 and TD50/5 - moderate risk (5-50%) of ${data.endpoint.toLowerCase()}. ${data.notes}`;
+                } else {
+                    status = 'DANGER';
+                    statusClass = 'status-danger';
+                    notes = `Dose exceeds TD50/5 (${data.td50} Gy) - high risk (>50%) of ${data.endpoint.toLowerCase()}. ${data.notes}`;
+                }
+
+                document.getElementById('tolerance-status').innerHTML =
+                    `<span class="tolerance-status ${statusClass}">${status}</span>`;
+                document.getElementById('tolerance-notes').textContent = notes;
+            }
+        }
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // Deactivate all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Activate selected tab
+            event.target.classList.add('active');
+
+            // Update comparison if switching to that tab
+            if (tabName === 'comparison') {
+                calculator.updateComparison();
+            }
+        }
+
+        // Initialize calculator
+        let calculator;
+        window.addEventListener('DOMContentLoaded', () => {
+            calculator = new RadiobiologyCalculator();
+            calculator.calculate();
+            calculator.updateComparison();
+            calculator.checkTolerance();
+        });
+    </script>
+</body>
+</html>
