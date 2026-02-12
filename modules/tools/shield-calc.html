@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Radiation Shielding Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <style>
         :root {
             --bg-primary: #1a1a1a;
@@ -26,57 +27,45 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 400px 1fr;
             gap: 20px;
         }
 
-        .calculator-section, .diagram-section {
+        .calculator-section, .visualization-section {
             background: var(--bg-secondary);
             padding: 20px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
         }
 
+        h1 {
+            color: var(--accent-primary);
+            margin-top: 0;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
         h2 {
             color: var(--accent-primary);
             margin-top: 0;
+            font-size: 1.3em;
         }
 
-        .diagram-container {
-            width: 100%;
-            aspect-ratio: 1;
-            position: relative;
-            background: var(--bg-card);
-            border-radius: 4px;
-        }
-
-        .measurement-point {
-            cursor: pointer;
-            fill: var(--accent-primary);
-            stroke: white;
-            stroke-width: 1;
-            transition: fill 0.2s ease;
-        }
-
-        .measurement-point:hover {
-            fill: var(--accent-hover);
-        }
-
-        .measurement-point.active {
-            fill: var(--accent-hover);
-            stroke-width: 2;
-            filter: drop-shadow(0 0 4px var(--accent-primary));
+        h3 {
+            color: var(--accent-primary);
+            font-size: 1.1em;
+            margin-top: 20px;
         }
 
         .control-panel {
-            margin-top: 20px;
-            padding: 15px;
             background: var(--bg-card);
+            padding: 15px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            margin-bottom: 15px;
         }
 
         .form-group {
@@ -87,15 +76,18 @@
             display: block;
             margin-bottom: 5px;
             color: var(--text-primary);
+            font-size: 0.9em;
         }
 
         select, input {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
             border-radius: 4px;
+            font-size: 0.95em;
+            box-sizing: border-box;
         }
 
         select:focus, input:focus {
@@ -104,30 +96,79 @@
         }
 
         .results {
-            margin-top: 20px;
+            background: var(--bg-card);
             padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            margin: 8px 0;
+            padding: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+        }
+
+        .result-value {
+            color: var(--accent-primary);
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .diagram-container {
+            width: 100%;
+            height: 350px;
             background: var(--bg-card);
             border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 500px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .info-box {
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-primary);
+            margin-bottom: 15px;
+            font-size: 0.9em;
         }
 
         .equation-display {
-            margin-top: 20px;
-            padding: 15px;
             background: var(--bg-card);
+            padding: 15px;
             border-radius: 8px;
             font-family: 'Times New Roman', serif;
+            font-size: 0.95em;
+            margin-bottom: 15px;
         }
 
         .equation-display ul {
             list-style: none;
             padding-left: 0;
+            margin: 10px 0;
         }
 
         .equation-display li {
             margin: 5px 0;
+            padding-left: 10px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1200px) {
             .container {
                 grid-template-columns: 1fr;
             }
@@ -136,243 +177,499 @@
 </head>
 <body>
     <div class="container">
+        <h1 style="grid-column: 1 / -1;">Radiation Shielding Calculator</h1>
+
         <div class="calculator-section">
-            <h2>Shielding Calculator</h2>
-            
+            <h2>Shielding Parameters</h2>
+
             <div class="control-panel">
                 <div class="form-group">
                     <label for="source-type">Radiation Source:</label>
                     <select id="source-type">
-                        <option value="cobalt">Cobalt-60</option>
-                        <option value="linac">C-arm LINAC</option>
+                        <option value="ir192">Ir-192 (Brachytherapy, ~0.38 MeV)</option>
+                        <option value="co60">Co-60 (Teletherapy, 1.17-1.33 MeV)</option>
+                        <option value="6mv" selected>6 MV Photon (Linear Accelerator)</option>
+                        <option value="15mv">15 MV Photon (Linear Accelerator)</option>
+                        <option value="proton">Proton Beam (150 MeV)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="wall-material">Barrier Material:</label>
+                    <label for="wall-material">Shielding Material:</label>
                     <select id="wall-material">
-                        <option value="concrete">Concrete</option>
-                        <option value="lead">Lead</option>
-                        <option value="steel">Steel</option>
+                        <option value="concrete" selected>Concrete (ρ = 2.35 g/cm³)</option>
+                        <option value="borated-concrete">Borated Concrete (ρ = 2.5 g/cm³)</option>
+                        <option value="steel">Steel (ρ = 7.87 g/cm³)</option>
+                        <option value="lead">Lead (ρ = 11.4 g/cm³)</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="distance">Distance to Barrier (m):</label>
+                    <input type="number" id="distance" min="0.5" max="20" step="0.1" value="3.0">
                 </div>
 
                 <div class="form-group">
                     <label for="wall-thickness">Barrier Thickness (cm):</label>
-                    <input type="number" id="wall-thickness" min="0" step="0.1" value="20">
+                    <input type="number" id="wall-thickness" min="0" max="500" step="0.5" value="30">
                 </div>
 
                 <div class="form-group">
-                    <label for="distance">Distance to Source (m):</label>
-                    <input type="number" id="distance" min="0" step="0.1" value="3">
+                    <label for="initial-dose">Initial Dose Rate at 1m (mSv/hr):</label>
+                    <input type="number" id="initial-dose" min="1" max="100000" step="1" value="1000">
                 </div>
             </div>
 
             <div class="equation-display">
                 <h3>Shielding Equation:</h3>
-                <p>D = D₀ × (1/r²) × e^(-μx)</p>
-                <p>Where:</p>
-                <ul>
-                    <li>D = Dose rate at point of calculation</li>
-                    <li>D₀ = Initial dose rate at 1m</li>
-                    <li>r = Distance from source (m)</li>
-                    <li>μ = Linear attenuation coefficient</li>
-                    <li>x = Shield thickness (cm)</li>
+                <p><strong>I = I₀ × (d₀/d)² × e^(-μx) × 10^(-x/TVL)</strong></p>
+                <p style="font-size: 0.85em; margin-top: 10px;">Where:</p>
+                <ul style="font-size: 0.85em;">
+                    <li><strong>I</strong> = Transmitted intensity</li>
+                    <li><strong>I₀</strong> = Initial dose rate at 1m</li>
+                    <li><strong>d₀</strong> = Reference distance (1m)</li>
+                    <li><strong>d</strong> = Distance from source</li>
+                    <li><strong>μ</strong> = Linear attenuation coefficient</li>
+                    <li><strong>x</strong> = Shield thickness</li>
+                    <li><strong>TVL</strong> = Tenth Value Layer</li>
                 </ul>
             </div>
 
+            <div class="info-box">
+                <strong>Reference Standards:</strong><br>
+                • NCRP Report 151 (Megavoltage)<br>
+                • NCRP Report 147 (Brachytherapy)<br>
+                • AAPM Task Group Reports
+            </div>
+
             <div class="results">
-                <h3>Calculation Results:</h3>
-                <p id="calculation-results">Select a measurement point to calculate shielding requirements.</p>
+                <h3>Calculation Results</h3>
+                <div class="result-item">
+                    <div class="result-label">Dose Before Barrier:</div>
+                    <div class="result-value" id="dose-before">---</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Transmission Factor:</div>
+                    <div class="result-value" id="transmission">---</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Dose After Barrier:</div>
+                    <div class="result-value" id="dose-after">---</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Attenuation (TVLs):</div>
+                    <div class="result-value" id="tvl-count">---</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Material TVL:</div>
+                    <div class="result-value" id="tvl-value">---</div>
+                </div>
             </div>
         </div>
 
-        <div class="diagram-section">
-            <h2>Interactive Room Diagram</h2>
+        <div class="visualization-section">
+            <h2>Side View Diagram</h2>
             <div class="diagram-container">
-                <svg width="100%" height="100%" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
-                    <!-- Room outline -->
-                    <rect x="50" y="50" width="300" height="300" 
-                          fill="none" stroke="white" stroke-width="2"/>
-                    
-                    <!-- Measurement points -->
-                    <g id="measurement-points">
-                        <circle class="measurement-point" cx="200" cy="35" r="8" 
-                                data-location="Entry Door" data-distance="3"/>
-                        <circle class="measurement-point" cx="365" cy="200" r="8"
-                                data-location="Hallway" data-distance="5"/>
-                        <circle class="measurement-point" cx="35" cy="200" r="8"
-                                data-location="Adjacent Room" data-distance="4"/>
-                        <circle class="measurement-point" cx="200" cy="365" r="8"
-                                data-location="Console Area" data-distance="6"/>
+                <svg width="100%" height="100%" viewBox="0 0 800 350" preserveAspectRatio="xMidYMid meet">
+                    <!-- Ground reference line -->
+                    <line x1="0" y1="300" x2="800" y2="300" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="5,5"/>
+
+                    <!-- Source (radiation symbol) -->
+                    <g id="source">
+                        <circle cx="100" cy="175" r="25" fill="none" stroke="#FFD700" stroke-width="3"/>
+                        <circle cx="100" cy="175" r="15" fill="none" stroke="#FFD700" stroke-width="2"/>
+                        <circle cx="100" cy="175" r="5" fill="#FFD700"/>
+                        <!-- Radiation rays -->
+                        <line x1="100" y1="175" x2="120" y2="155" stroke="#FFD700" stroke-width="2"/>
+                        <line x1="100" y1="175" x2="120" y2="195" stroke="#FFD700" stroke-width="2"/>
+                        <line x1="100" y1="175" x2="125" y2="175" stroke="#FFD700" stroke-width="2"/>
                     </g>
-                    
-                    <!-- Source point -->
-                    <circle cx="200" cy="200" r="12" fill="yellow" stroke="orange" stroke-width="2"/>
-                    
+
+                    <!-- Distance indicator -->
+                    <g id="distance-indicator">
+                        <line x1="130" y1="320" x2="450" y2="320" stroke="var(--accent-primary)" stroke-width="2"/>
+                        <line x1="130" y1="315" x2="130" y2="325" stroke="var(--accent-primary)" stroke-width="2"/>
+                        <line x1="450" y1="315" x2="450" y2="325" stroke="var(--accent-primary)" stroke-width="2"/>
+                        <text id="distance-label" x="290" y="340" text-anchor="middle" fill="var(--accent-primary)" font-size="14">3.0 m</text>
+                    </g>
+
+                    <!-- Barrier/Wall -->
+                    <g id="barrier">
+                        <rect x="450" y="50" width="60" height="250" fill="rgba(100, 100, 100, 0.8)" stroke="white" stroke-width="2"/>
+                        <text id="thickness-label" x="480" y="35" text-anchor="middle" fill="white" font-size="12">30 cm</text>
+                        <!-- Hatching pattern for material -->
+                        <pattern id="material-pattern" patternUnits="userSpaceOnUse" width="10" height="10">
+                            <line x1="0" y1="0" x2="10" y2="10" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                        </pattern>
+                        <rect x="450" y="50" width="60" height="250" fill="url(#material-pattern)"/>
+                    </g>
+
+                    <!-- Measurement point -->
+                    <g id="measurement-point">
+                        <circle cx="700" cy="175" r="12" fill="var(--accent-primary)" stroke="white" stroke-width="2"/>
+                        <text x="700" y="210" text-anchor="middle" fill="white" font-size="14">Measurement</text>
+                        <text x="700" y="225" text-anchor="middle" fill="white" font-size="14">Point</text>
+                    </g>
+
+                    <!-- Radiation beam -->
+                    <defs>
+                        <linearGradient id="beam-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.6" />
+                            <stop offset="50%" style="stop-color:#FFD700;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#FFD700;stop-opacity:0.1" />
+                        </linearGradient>
+                    </defs>
+                    <polygon points="125,160 125,190 450,180 450,170" fill="url(#beam-gradient)" opacity="0.7"/>
+                    <polygon points="510,172 510,178 700,176 700,174" fill="url(#beam-gradient)" opacity="0.3"/>
+
                     <!-- Labels -->
-                    <text x="200" y="25" text-anchor="middle" fill="white" font-size="14">Entry Door</text>
-                    <text x="375" y="200" text-anchor="start" fill="white" font-size="14">Hallway</text>
-                    <text x="25" y="200" text-anchor="end" fill="white" font-size="14">Adjacent Room</text>
-                    <text x="200" y="385" text-anchor="middle" fill="white" font-size="14">Console Area</text>
+                    <text x="100" y="230" text-anchor="middle" fill="#FFD700" font-size="14" font-weight="bold">Source</text>
+                    <text x="480" y="180" text-anchor="middle" fill="white" font-size="12" id="material-label">Concrete</text>
                 </svg>
+            </div>
+
+            <h2>Exponential Attenuation Curve</h2>
+            <div class="chart-container">
+                <canvas id="attenuationChart"></canvas>
             </div>
         </div>
     </div>
 
     <script>
-        function getAttenuationCoefficient(material, sourceType) {
-            // Realistic attenuation coefficients (cm⁻¹)
-            const coefficients = {
-                concrete: {
-                    cobalt: 0.063,
-                    linac: 0.058
-                },
-                lead: {
-                    cobalt: 0.601,
-                    linac: 0.552
-                },
-                steel: {
-                    cobalt: 0.270,
-                    linac: 0.248
+        // Shielding data based on NCRP 151, NCRP 147, and AAPM reports
+        const shieldingData = {
+            ir192: {
+                name: 'Ir-192',
+                energy: '0.38 MeV',
+                tvl: {
+                    concrete: 11.0,    // cm - NCRP 147
+                    'borated-concrete': 10.0,
+                    steel: 4.0,        // cm - calculated from HVL
+                    lead: 0.6          // cm - NCRP 147
                 }
-            };
-            return coefficients[material][sourceType];
+            },
+            co60: {
+                name: 'Co-60',
+                energy: '1.17-1.33 MeV',
+                tvl: {
+                    concrete: 21.0,    // cm - NCRP 147
+                    'borated-concrete': 19.5,
+                    steel: 7.0,        // cm
+                    lead: 4.5          // cm - from literature
+                }
+            },
+            '6mv': {
+                name: '6 MV Photon',
+                energy: '6 MV',
+                tvl: {
+                    concrete: 35.0,    // cm - NCRP 151 primary barrier
+                    'borated-concrete': 34.0,
+                    steel: 9.9,        // cm - NCRP 151
+                    lead: 5.7          // cm - NCRP 151
+                }
+            },
+            '15mv': {
+                name: '15 MV Photon',
+                energy: '15 MV',
+                tvl: {
+                    concrete: 44.0,    // cm - NCRP 151 (interpolated)
+                    'borated-concrete': 42.0,
+                    steel: 11.0,       // cm - NCRP 151
+                    lead: 5.7          // cm - NCRP 151 (constant for MV)
+                }
+            },
+            proton: {
+                name: 'Proton',
+                energy: '150 MeV',
+                tvl: {
+                    concrete: 48.0,    // cm - effective TVL based on literature
+                    'borated-concrete': 45.0,  // Better for neutrons
+                    steel: 12.0,       // cm
+                    lead: 6.5          // cm
+                }
+            }
+        };
+
+        let attenuationChart = null;
+
+        function getTVL(sourceType, material) {
+            return shieldingData[sourceType].tvl[material];
         }
 
-        function calculateDoseRate(sourceType, distance, thickness, material) {
-            // Initial dose rates at 1m (mSv/hr)
-            const D0 = {
-                cobalt: 1000,
-                linac: 2000
-            };
-
-            const μ = getAttenuationCoefficient(material, sourceType);
-            const transmissionFactor = Math.exp(-μ * thickness);
+        function calculateAttenuation(I0, distance, thickness, tvl) {
+            // Inverse square law
             const distanceFactor = 1 / (distance * distance);
-            
-            return D0[sourceType] * distanceFactor * transmissionFactor;
+            const doseAtBarrier = I0 * distanceFactor;
+
+            // Exponential attenuation through barrier
+            const numTVLs = thickness / tvl;
+            const transmissionFactor = Math.pow(10, -numTVLs);
+            const doseAfterBarrier = doseAtBarrier * transmissionFactor;
+
+            return {
+                doseAtBarrier: doseAtBarrier,
+                transmissionFactor: transmissionFactor,
+                doseAfterBarrier: doseAfterBarrier,
+                numTVLs: numTVLs
+            };
         }
 
-        function updateCalculation(location, defaultDistance) {
+        function updateCalculations() {
             const sourceType = document.getElementById('source-type').value;
             const material = document.getElementById('wall-material').value;
+            const distance = parseFloat(document.getElementById('distance').value);
             const thickness = parseFloat(document.getElementById('wall-thickness').value);
-            const distance = parseFloat(document.getElementById('distance').value) || defaultDistance;
+            const I0 = parseFloat(document.getElementById('initial-dose').value);
 
-            const doseRate = calculateDoseRate(sourceType, distance, thickness, material);
-            const μ = getAttenuationCoefficient(material, sourceType);
-            const transmissionFactor = Math.exp(-μ * thickness);
+            const tvl = getTVL(sourceType, material);
+            const results = calculateAttenuation(I0, distance, thickness, tvl);
 
-            document.getElementById('calculation-results').innerHTML = `
-                <strong>Location:</strong> ${location}<br>
-                <strong>Distance:</strong> ${distance.toFixed(1)} m<br>
-                <strong>Material:</strong> ${material}<br>
-                <strong>Thickness:</strong> ${thickness.toFixed(1)} cm<br>
-                <strong>Transmission Factor:</strong> ${transmissionFactor.toExponential(3)}<br>
-                <strong>Dose Rate:</strong> ${doseRate.toExponential(3)} mSv/hr
-            `;
+            // Update results display
+            document.getElementById('dose-before').textContent =
+                results.doseAtBarrier.toExponential(3) + ' mSv/hr';
+            document.getElementById('transmission').textContent =
+                results.transmissionFactor.toExponential(3);
+            document.getElementById('dose-after').textContent =
+                results.doseAfterBarrier.toExponential(3) + ' mSv/hr';
+            document.getElementById('tvl-count').textContent =
+                results.numTVLs.toFixed(2) + ' TVLs';
+            document.getElementById('tvl-value').textContent =
+                tvl.toFixed(2) + ' cm';
+
+            // Update diagram labels
+            document.getElementById('distance-label').textContent = distance.toFixed(1) + ' m';
+            document.getElementById('thickness-label').textContent = thickness.toFixed(1) + ' cm';
+
+            const materialNames = {
+                'concrete': 'Concrete',
+                'borated-concrete': 'Borated Concrete',
+                'steel': 'Steel',
+                'lead': 'Lead'
+            };
+            document.getElementById('material-label').textContent = materialNames[material];
+
+            // Update barrier width in SVG (scale appropriately)
+            const barrierWidth = Math.min(120, Math.max(20, thickness * 1.5));
+            const barrier = document.querySelector('#barrier rect');
+            barrier.setAttribute('width', barrierWidth);
+
+            // Update distance indicator
+            const distanceX = 130 + (distance / 10) * 320;  // Scale distance
+            document.querySelector('#distance-indicator line').setAttribute('x2', distanceX);
+            document.querySelector('#distance-indicator line:nth-child(3)').setAttribute('x1', distanceX);
+            document.querySelector('#distance-indicator line:nth-child(3)').setAttribute('x2', distanceX);
+            document.querySelector('#distance-label').setAttribute('x', (130 + distanceX) / 2);
+
+            // Update barrier position
+            const barrierX = distanceX;
+            document.querySelectorAll('#barrier rect, #barrier rect + rect').forEach(rect => {
+                rect.setAttribute('x', barrierX);
+            });
+            document.getElementById('thickness-label').setAttribute('x', barrierX + barrierWidth/2);
+
+            // Update beam
+            const beamPoly1 = document.querySelector('polygon:first-of-type');
+            beamPoly1.setAttribute('points', `125,160 125,190 ${barrierX},180 ${barrierX},170`);
+            const beamPoly2 = document.querySelector('polygon:last-of-type');
+            beamPoly2.setAttribute('points', `${barrierX + barrierWidth},172 ${barrierX + barrierWidth},178 700,176 700,174`);
+
+            // Update chart
+            updateChart(I0, distance, thickness, tvl);
         }
 
-        // Add event listeners
-        document.querySelectorAll('.measurement-point').forEach(point => {
-            point.addEventListener('click', (e) => {
-                // Remove active class from all points
-                document.querySelectorAll('.measurement-point').forEach(p => {
-                    p.classList.remove('active');
-                });
-                
-                // Add active class to clicked point
-                e.target.classList.add('active');
-                
-                // Update distance input with point's default distance
-                const defaultDistance = parseFloat(e.target.dataset.distance);
-                document.getElementById('distance').value = defaultDistance;
-                
-                // Calculate for this point
-                updateCalculation(e.target.dataset.location, defaultDistance);
-            });
-        });
+        function updateChart(I0, distance, thickness, tvl) {
+            const ctx = document.getElementById('attenuationChart').getContext('2d');
 
-        // Add event listeners for input changes
-        ['source-type', 'wall-material', 'wall-thickness', 'distance'].forEach(id => {
-            document.getElementById(id).addEventListener('change', () => {
-                const activePoint = document.querySelector('.measurement-point.active');
-                if (activePoint) {
-                    updateCalculation(activePoint.dataset.location, parseFloat(activePoint.dataset.distance));
+            // Generate data points
+            const dataPoints = [];
+            const totalDistance = distance + (thickness / 100); // Convert cm to m
+            const steps = 200;
+
+            for (let i = 0; i <= steps; i++) {
+                const x = (totalDistance / steps) * i;
+                let intensity;
+
+                if (x < distance) {
+                    // Before barrier - only inverse square law
+                    const d = x === 0 ? 1 : x;
+                    intensity = I0 / (d * d);
+                } else {
+                    // At and after barrier - inverse square + attenuation
+                    const doseAtBarrier = I0 / (distance * distance);
+                    const thicknessTraversed = (x - distance) * 100; // m to cm
+                    const numTVLs = thicknessTraversed / tvl;
+                    const transmissionFactor = Math.pow(10, -numTVLs);
+                    intensity = doseAtBarrier * transmissionFactor;
+                }
+
+                dataPoints.push({x: x, y: intensity});
+            }
+
+            // Create or update chart
+            if (attenuationChart) {
+                attenuationChart.destroy();
+            }
+
+            attenuationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Dose Rate (mSv/hr)',
+                        data: dataPoints,
+                        borderColor: '#ff5722',
+                        backgroundColor: 'rgba(255, 87, 34, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1,
+                        pointRadius: 0
+                    }, {
+                        label: 'Barrier Location',
+                        data: [
+                            {x: distance, y: 0},
+                            {x: distance, y: I0}
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Distance from Source (m)',
+                                color: '#e0e0e0'
+                            },
+                            ticks: {
+                                color: '#b0b0b0'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: 'Dose Rate (mSv/hr) - Log Scale',
+                                color: '#e0e0e0'
+                            },
+                            ticks: {
+                                color: '#b0b0b0',
+                                callback: function(value) {
+                                    return value.toExponential(0);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e0e0e0'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 0) {
+                                        return 'Dose Rate: ' + context.parsed.y.toExponential(3) + ' mSv/hr';
+                                    }
+                                    return context.dataset.label;
+                                }
+                            }
+                        }
+                    }
                 }
             });
+        }
+
+        // Event listeners
+        ['source-type', 'wall-material', 'distance', 'wall-thickness', 'initial-dose'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateCalculations);
         });
+
+        // Initial calculation
+        updateCalculations();
     </script>
+
     <footer class="disclaimer-footer">
-      <div class="disclaimer-content">
-          <p class="disclaimer-text">
-              <span class="disclaimer-icon">⚠️</span>
-              <strong>Educational Purpose Only:</strong> 
-              This tool is designed for educational and training purposes only. It should not be used for clinical decision-making or patient treatment planning.
-              All calculations and visualizations are approximations and should be verified using commissioned clinical systems.
-          </p>
-          <p class="disclaimer-version">
-              Last Updated: October 2024 | Version 1.0
-          </p>
-      </div>
-  </footer>
-  
-  <style>
-      .disclaimer-footer {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: var(--bg-secondary);
-          border-top: 1px solid var(--border-color);
-          padding: 10px 20px;
-          z-index: 1000;
-      }
-  
-      .disclaimer-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          font-size: 0.9rem;
-          color: var(--text-secondary);
-          text-align: center;
-      }
-  
-      .disclaimer-text {
-          margin: 5px 0;
-          line-height: 1.4;
-      }
-  
-      .disclaimer-icon {
-          font-size: 1.2em;
-          margin-right: 8px;
-          vertical-align: middle;
-      }
-  
-      .disclaimer-version {
-          font-size: 0.8rem;
-          margin-top: 5px;
-          opacity: 0.7;
-      }
-  
-      /* Adjust main content to account for footer */
-      .container {
-          margin-bottom: 100px; /* Adjust based on footer height */
-      }
-  
-      @media (max-width: 768px) {
-          .disclaimer-footer {
-              padding: 8px 12px;
-          }
-          
-          .disclaimer-content {
-              font-size: 0.8rem;
-          }
-          
-          .disclaimer-version {
-              font-size: 0.7rem;
-          }
-      }
-  </style>
+        <div class="disclaimer-content">
+            <p class="disclaimer-text">
+                <span class="disclaimer-icon">⚠️</span>
+                <strong>Educational Purpose Only:</strong>
+                This tool is designed for educational and training purposes only based on NCRP Reports 151, 147, and AAPM guidelines.
+                It should not be used for actual shielding design or regulatory compliance.
+                Always consult qualified radiation safety personnel and use appropriate detailed methodologies for real shielding design.
+            </p>
+            <p class="disclaimer-version">
+                Last Updated: February 2026 | Version 2.0 | Based on NCRP 151, NCRP 147, AAPM Standards
+            </p>
+        </div>
+    </footer>
+
+    <style>
+        .disclaimer-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 20px;
+            z-index: 1000;
+        }
+
+        .disclaimer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .disclaimer-text {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+
+        .disclaimer-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .disclaimer-version {
+            font-size: 0.75rem;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        .container {
+            margin-bottom: 120px;
+        }
+
+        @media (max-width: 1200px) {
+            .disclaimer-footer {
+                padding: 8px 12px;
+            }
+
+            .disclaimer-content {
+                font-size: 0.8rem;
+            }
+
+            .disclaimer-version {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
 </body>
 </html>
