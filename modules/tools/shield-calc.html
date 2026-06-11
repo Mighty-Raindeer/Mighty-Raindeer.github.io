@@ -222,17 +222,22 @@
 
             <div class="equation-display">
                 <h3>Shielding Equation:</h3>
-                <p><strong>I = I₀ × (d₀/d)² × e^(-μx) × 10^(-x/TVL)</strong></p>
+                <p><strong>I = I₀ × (d₀/d)² × 10^(−x/TVL)</strong></p>
                 <p style="font-size: 0.85em; margin-top: 10px;">Where:</p>
                 <ul style="font-size: 0.85em;">
-                    <li><strong>I</strong> = Transmitted intensity</li>
-                    <li><strong>I₀</strong> = Initial dose rate at 1m</li>
-                    <li><strong>d₀</strong> = Reference distance (1m)</li>
+                    <li><strong>I</strong> = Transmitted dose rate</li>
+                    <li><strong>I₀</strong> = Dose rate at reference distance d₀</li>
+                    <li><strong>d₀</strong> = Reference distance (1 m)</li>
                     <li><strong>d</strong> = Distance from source</li>
-                    <li><strong>μ</strong> = Linear attenuation coefficient</li>
                     <li><strong>x</strong> = Shield thickness</li>
-                    <li><strong>TVL</strong> = Tenth Value Layer</li>
+                    <li><strong>TVL</strong> = Tenth-Value Layer (broad-beam, NCRP 151)</li>
                 </ul>
+                <p style="font-size: 0.8em; margin-top: 10px; color: var(--text-secondary);">
+                    Note: TVL-based (10<sup>−x/TVL</sup>) and exponential (e<sup>−μx</sup>) forms are
+                    equivalent, related by TVL = ln(10)/μ ≈ 2.303/μ. They are alternatives — not multiplied
+                    together. Broad-beam TVLs already incorporate the build-up factor, so no separate
+                    build-up term is applied here.
+                </p>
             </div>
 
             <div class="info-box">

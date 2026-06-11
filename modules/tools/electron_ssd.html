@@ -428,7 +428,14 @@
 
             <div class="formula-box">
                 <h3>Virtual Source Position from Measurements:</h3>
-                <code>d_vs = (SSD₂² - SSD₁² × (OF₂/OF₁)) / (2 × (SSD₁ - SSD₂))</code>
+                <code>Least-squares fit (Khan): 1/√O − 1 = (SSD − SSD₀) / (SSD₀ + d_vs)</code>
+                <div style="margin-top: 10px;">
+                    <code id="fit-quality" style="color: var(--success-color);">Fit pending…</code>
+                </div>
+                <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-secondary);">
+                    d<sub>vs</sub> is fit to every measured output above (slope = Σxy/Σx²), not to a single
+                    pair. A small RMS residual means the inverse-square model fits the data well.
+                </div>
             </div>
         </div>
 
@@ -531,59 +538,55 @@
 
         function calculateVirtualSource() {
             normalizeOutputs();
-            
-            // Get relative outputs
-            const outputs = {
-                100: 1.000,
-                105: parseFloat(document.getElementById('rel-105').textContent),
-                110: parseFloat(document.getElementById('rel-110').textContent),
-                115: parseFloat(document.getElementById('rel-115').textContent),
-                120: parseFloat(document.getElementById('rel-120').textContent)
-            };
-            
-            // Use least squares fit to determine virtual source position
-            let sumX = 0, sumY = 0, sumXX = 0, sumXY = 0, n = 0;
-            
+
             const ssds = [100, 105, 110, 115, 120];
-            ssds.forEach(ssd => {
-                const x = 1 / (ssd * ssd);
-                const y = outputs[ssd];
-                sumX += x;
-                sumY += y;
-                sumXX += x * x;
-                sumXY += x * y;
-                n++;
+            const s0 = 100; // reference (calibration) SSD
+
+            // Determine the virtual source distance d_vs by a least-squares fit over ALL
+            // measured points, using Khan's effective-SSD linearization of the inverse-square law:
+            //
+            //   O(s) = [(s0 + d_vs) / (s + d_vs)]^2     (O normalized so O(s0) = 1)
+            //   =>  1/sqrt(O) - 1 = (s - s0) / (s0 + d_vs) = m * (s - s0)
+            //
+            // A regression of y = 1/sqrt(O) - 1 against x = (s - s0) through the origin gives
+            // slope m = Σ(x·y) / Σ(x²), and then d_vs = 1/m - s0.
+            let sxy = 0, sxx = 0;
+            ssds.forEach(s => {
+                const O = parseFloat(document.getElementById(`rel-${s}`).textContent);
+                if (!O || O <= 0) return;
+                const x = s - s0;
+                const y = 1 / Math.sqrt(O) - 1;
+                sxy += x * y;
+                sxx += x * x;
             });
-            
-            // Calculate virtual source distance using inverse square law fitting
-            // Simplified calculation - in practice would use more sophisticated fitting
-            const energy = parseFloat(document.getElementById('energy').value);
-            const coneSize = document.getElementById('cone-size').value;
-            
-            // Use typical values based on energy and cone size
-            let virtualSourceDistance = 100 - (energy * 1.5 + 10); // Simplified formula
-            
-            // Adjust for cone size
-            if (coneSize.includes('15')) virtualSourceDistance -= 2;
-            if (coneSize.includes('20')) virtualSourceDistance -= 4;
-            if (coneSize.includes('25')) virtualSourceDistance -= 6;
-            
-            // Better approximation using measured data
-            const ratio105_100 = outputs[105];
-            const expectedRatio = Math.pow((100 + virtualSourceDistance) / (105 + virtualSourceDistance), 2);
-            
-            // Adjust virtual source distance to match measured data
-            if (Math.abs(ratio105_100 - expectedRatio) > 0.01) {
-                // Newton's method to find better virtual source distance
-                for (let i = 0; i < 10; i++) {
-                    const f = Math.pow((100 + virtualSourceDistance) / (105 + virtualSourceDistance), 2) - ratio105_100;
-                    const df = -2 * 5 * Math.pow(100 + virtualSourceDistance, 2) / Math.pow(105 + virtualSourceDistance, 3);
-                    virtualSourceDistance -= f / df;
-                }
+
+            const slope = sxx > 0 ? sxy / sxx : 0;
+            let virtualSourceDistance;
+            if (slope > 1e-6 && isFinite(slope)) {
+                virtualSourceDistance = 1 / slope - s0;
+            } else {
+                // Fall back to a typical literature estimate if outputs are flat/inconsistent
+                const energy = parseFloat(document.getElementById('energy').value);
+                virtualSourceDistance = Math.max(40, 100 - (energy * 1.5 + 10));
             }
-            
+
+            // Goodness of fit: RMS residual between measured and modeled relative output
+            let ssRes = 0, m = 0;
+            ssds.forEach(s => {
+                const O = parseFloat(document.getElementById(`rel-${s}`).textContent);
+                if (!O || O <= 0) return;
+                const pred = Math.pow((s0 + virtualSourceDistance) / (s + virtualSourceDistance), 2);
+                ssRes += (O - pred) * (O - pred);
+                m++;
+            });
+            const rms = m > 0 ? Math.sqrt(ssRes / m) : 0;
+
             document.getElementById('vs-distance').textContent = virtualSourceDistance.toFixed(1);
-            
+            const fitEl = document.getElementById('fit-quality');
+            if (fitEl) {
+                fitEl.textContent = `Fit over ${m} points → d_vs = ${virtualSourceDistance.toFixed(1)} cm, RMS residual = ${rms.toFixed(4)}`;
+            }
+
             calculateOutput();
             drawVisualization(virtualSourceDistance);
         }
