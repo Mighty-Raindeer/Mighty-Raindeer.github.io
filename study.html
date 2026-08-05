@@ -6,203 +6,376 @@
     <title>Medical Physics Study Guide</title>
     <style>
         :root {
-            --bg-primary: #1a1a1a;    
-            --bg-secondary: #242424;   
-            --bg-card: #2d2d2d;       
-            --text-primary: #e0e0e0;   
-            --text-secondary: #b0b0b0; 
-            --accent-primary: #ff5722;  
-            --accent-hover: #f4511e;   
-            --border-color: rgba(255, 255, 255, 0.1);
-            --link-color: #64B5F6;     /* Added for tool links */
+            --bg-primary: #07111f;
+            --bg-secondary: #0d1d31;
+            --bg-card: #112a44;
+            --text-primary: #edf8ff;
+            --text-secondary: #9bb8cd;
+            --accent-primary: #5dd6ff;
+            --accent-hover: #9ae8ff;
+            --border-color: rgba(142, 213, 255, 0.2);
+            --link-color: #81deff;
         }
 
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
+            margin: 0;
+            background:
+                radial-gradient(circle at 100% 0, rgba(45, 124, 255, 0.13), transparent 32rem),
+                var(--bg-primary);
+            color: var(--text-primary);
+            font-family: Avenir, "Avenir Next", "Segoe UI", sans-serif;
+            display: grid;
+            grid-template-columns: minmax(15rem, 18.5rem) minmax(0, 1fr);
         }
 
         #menuBtn {
             position: fixed;
-            left: 1rem;
             top: 1rem;
+            left: 1rem;
             z-index: 1000;
-            background: var(--accent-primary);
-            border: none;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
             display: none;
+            border: 1px solid var(--border-color);
+            border-radius: 0.6rem;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            padding: 0.65rem 0.85rem;
+            font: inherit;
+            font-size: 0.86rem;
+            font-weight: 700;
+            cursor: pointer;
         }
 
         .sidebar {
-            position: fixed;
-            left: 0;
+            position: sticky;
             top: 0;
-            width: 250px;
             height: 100vh;
-            background: var(--bg-secondary);
-            padding: 2rem 1rem;
+            padding: 2.5rem 1.25rem;
             overflow-y: auto;
-            transition: transform 0.3s ease;
+            border-right: 1px solid var(--border-color);
+            background: rgba(8, 25, 44, 0.88);
+        }
+
+        .site-mark {
+            display: block;
+            margin: 0 0 3.25rem;
+            color: var(--text-primary);
+            font-size: 1.05rem;
+            font-weight: 750;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            text-decoration: none;
+        }
+
+        .site-mark span {
+            display: block;
+            margin-top: 0.6rem;
+            color: var(--accent-primary);
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-label {
+            margin: 0 0 0.8rem 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.66rem;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: grid;
+            gap: 0.2rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .nav-links a {
+            display: block;
+            padding: 0.75rem;
+            border: 1px solid transparent;
+            border-radius: 0.65rem;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 650;
+            line-height: 1.25;
+            text-decoration: none;
+            transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a:focus-visible {
+            border-color: var(--border-color);
+            background: rgba(83, 188, 255, 0.1);
+            color: var(--text-primary);
+            outline: none;
+            transform: translateX(0.2rem);
         }
 
         .main-content {
-            margin-left: 250px;
-            padding: 2rem;
-            transition: margin 0.3s ease;
+            width: min(100%, 75rem);
+            margin: 0 auto;
+            padding: clamp(2rem, 5vw, 4.5rem) clamp(1.5rem, 5vw, 5rem) 4rem;
+        }
+
+        .study-hero {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: clamp(3rem, 6vw, 5rem);
+            padding: clamp(1.8rem, 4vw, 3.25rem);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            background: linear-gradient(120deg, rgba(17, 42, 68, 0.96), rgba(10, 34, 58, 0.78));
+            box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.12);
+        }
+
+        .study-hero::after {
+            position: absolute;
+            top: 0;
+            right: 8%;
+            width: 30%;
+            height: 3px;
+            content: "";
+            border-radius: 99px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary));
+        }
+
+        .eyebrow {
+            margin: 0 0 0.8rem;
+            color: var(--accent-primary);
+            font-size: 0.7rem;
+            font-weight: 850;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .study-hero h1 {
+            max-width: 14ch;
+            margin: 0;
+            font-size: clamp(2.35rem, 5vw, 4.25rem);
+            font-weight: 720;
+            letter-spacing: -0.065em;
+            line-height: 0.95;
+        }
+
+        .study-hero > p:last-child {
+            max-width: 39rem;
+            margin: 1.2rem 0 0;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.65;
         }
 
         .section {
-            margin-bottom: 2rem;
+            margin-bottom: clamp(3.5rem, 7vw, 6rem);
+            scroll-margin-top: 1.5rem;
         }
 
         .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            margin: 0 0 1.35rem;
+            color: var(--text-primary);
+            font-size: clamp(1.5rem, 3vw, 2.1rem);
+            font-weight: 700;
+            letter-spacing: -0.045em;
+        }
+
+        .section-title::before {
+            content: attr(data-index);
             color: var(--accent-primary);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
+            font-size: 0.67rem;
+            font-weight: 850;
+            letter-spacing: 0.12em;
         }
 
         .card {
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            margin-bottom: 1rem;
+            margin-bottom: 0.85rem;
             overflow: hidden;
+            border: 1px solid var(--border-color);
+            border-radius: 0.95rem;
+            background: rgba(13, 29, 49, 0.86);
+            box-shadow: 0 0.65rem 1.5rem rgba(0, 0, 0, 0.07);
+            transition: border-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .card:hover { border-color: rgba(142, 213, 255, 0.36); }
+
+        .card.expanded {
+            border-color: rgba(93, 214, 255, 0.46);
+            box-shadow: 0 1.25rem 2.75rem rgba(0, 0, 0, 0.15);
         }
 
         .card-header {
-            padding: 1rem;
-            background: var(--bg-card);
-            cursor: pointer;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1.15rem 1.25rem;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .card-header:focus-visible {
+            outline: 3px solid var(--accent-hover);
+            outline-offset: -3px;
         }
 
         .card-header h2 {
             margin: 0;
+            color: var(--text-primary);
+            font-size: 1.02rem;
+            font-weight: 700;
+            letter-spacing: -0.018em;
+        }
+
+        .toggle {
+            display: grid;
+            flex: 0 0 auto;
+            width: 1.75rem;
+            height: 1.75rem;
+            place-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
             color: var(--accent-primary);
-            font-size: 1.2rem;
+            font-size: 1.15rem;
+            font-weight: 400;
+            line-height: 1;
         }
 
         .card-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease-out;
-            padding: 0 1rem;
+            padding: 0 1.25rem;
+            transition: max-height 360ms ease, padding 260ms ease;
         }
 
         .card.expanded .card-content {
-            max-height: 500px;
-            padding: 1rem;
-        }
-
-        .nav-links {
-            list-style: none;
-            padding: 0;
-        }
-
-        .nav-links li {
-            margin-bottom: 1rem;
-        }
-
-        .nav-links a {
-            color: var(--text-primary);
-            text-decoration: none;
-            display: block;
-            padding: 0.5rem;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
-        .nav-links a:hover {
-            background-color: var(--accent-primary);
+            max-height: 1200px;
+            padding: 0 1.25rem 1.25rem;
         }
 
         .content-list {
-            list-style-type: disc;
-            padding-left: 1.5rem;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
+        .content-list li {
+            padding: 0.42rem 0.6rem;
+            border-radius: 0.4rem;
+            background: rgba(137, 208, 255, 0.07);
+            color: var(--text-secondary);
+            font-size: 0.81rem;
+            line-height: 1.3;
+        }
 
+        .tools-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+            gap: 0.6rem;
+            margin-top: 1.25rem;
+        }
+
+        .tools-section h3 {
+            grid-column: 1 / -1;
+            margin: 0 0 0.1rem;
+            color: var(--text-secondary);
+            font-size: 0.67rem;
+            font-weight: 850;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
 
         .tool-link {
-        display: flex;
-        align-items: center;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        background: var(--bg-card);
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        color: var(--text-primary);
-        text-decoration: none;
-        transition: all 0.2s ease;
-    }
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 0.2rem 0.65rem;
+            align-items: center;
+            min-height: 4.1rem;
+            padding: 0.8rem;
+            border: 1px solid rgba(142, 213, 255, 0.13);
+            border-radius: 0.7rem;
+            background: rgba(17, 42, 68, 0.72);
+            color: var(--text-primary);
+            font-size: 0.86rem;
+            font-weight: 650;
+            line-height: 1.25;
+            text-decoration: none;
+            transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+        }
 
-    .tool-link:hover {
-        transform: translateY(-2px);
-        border-color: var(--accent-primary);
-        background: var(--bg-secondary);
-    }
+        .tool-link:hover,
+        .tool-link:focus-visible {
+            border-color: var(--accent-primary);
+            background: rgba(32, 76, 116, 0.72);
+            outline: none;
+            transform: translateY(-0.15rem);
+        }
 
-    .tool-icon {
-        font-size: 1.5rem;
-        margin-right: 1rem;
-    }
+        .tool-icon {
+            grid-row: span 2;
+            margin: 0;
+            font-size: 1.2rem;
+            font-style: normal;
+        }
 
-    .tool-description {
-        margin-left: auto;
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-    }
+        .tool-description {
+            grid-column: 2;
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+            font-weight: 500;
+        }
 
-    .tools-section {
-        margin-top: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .tools-section h3 {
-        color: var(--accent-primary);
-        margin-bottom: 0.5rem;
-    }
         @media (max-width: 768px) {
-            #menuBtn {
-                display: block;
-            }
+            body { display: block; }
+
+            #menuBtn { display: block; }
 
             .sidebar {
-                transform: translateX(-100%);
+                position: fixed;
                 z-index: 100;
+                width: min(18rem, 84vw);
+                transform: translateX(-102%);
+                transition: transform 240ms ease;
+                box-shadow: 1rem 0 2.5rem rgba(0, 0, 0, 0.25);
             }
 
-            .sidebar.active {
-                transform: translateX(0);
-            }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { padding-top: 5rem; }
+            .study-hero { margin-bottom: 3rem; }
+        }
 
-            .main-content {
-                margin-left: 0;
-                padding: 1rem;
-                padding-top: 4rem;
-            }
+        @media (max-width: 480px) {
+            .main-content { padding-inline: 1rem; }
+            .study-hero { padding: 1.5rem; border-radius: 1rem; }
+            .card-header { padding: 1rem; }
+            .card.expanded .card-content { padding: 0 1rem 1rem; }
+            .tools-section { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <button id="menuBtn">Menu</button>
+    <button id="menuBtn" type="button" aria-expanded="false" aria-controls="study-nav">Menu</button>
 
-    <nav class="sidebar">
+    <nav class="sidebar" id="study-nav" aria-label="Study guide sections">
+        <a class="site-mark" href="index.html">Rainor Connor<span>MedPhys Study Guide</span></a>
+        <p class="sidebar-label">Study areas</p>
         <ul class="nav-links">
+            <li><a href="#tools">General resources</a></li>
             <li><a href="#radiation-safety">Radiation Safety</a></li>
             <li><a href="#treatment-planning">Treatment Planning</a></li>
             <li><a href="#radiation-sources">Radiation Sources & Accelerators</a></li>
@@ -210,9 +383,14 @@
     </nav>
 
     <main class="main-content">
+        <header class="study-hero">
+            <p class="eyebrow">Study library</p>
+            <h1>Medical Physics Study Guide</h1>
+            <p>Focused topics and interactive tools for building practical intuition across radiation oncology physics.</p>
+        </header>
 
         <div class="section" id="tools">
-            <h1 class="section-title">General</h1>
+            <h2 class="section-title" data-index="01">General resources</h2>
             
   
         
@@ -244,7 +422,7 @@
             </div>
         </div>
         <div class="section" id="radiation-safety">
-            <h1 class="section-title">Radiation Safety</h1>
+            <h2 class="section-title" data-index="02">Radiation Safety</h2>
             
             <div class="card" id="radiation-protection">
                 <div class="card-header">
@@ -316,7 +494,7 @@
         </div>
 
         <div class="section" id="treatment-planning">
-            <h1 class="section-title">Treatment Planning</h1>
+            <h2 class="section-title" data-index="03">Treatment Planning</h2>
             
             <div class="card" id="imaging-simulation">
                 <div class="card-header">
@@ -370,7 +548,7 @@
         </div>
 
         <div class="section" id="radiation-sources">
-            <h1 class="section-title">Radiation Sources & Accelerators</h1>
+            <h2 class="section-title" data-index="04">Radiation Sources & Accelerators</h2>
             
             <div class="card" id="linear-accelerators">
                 <div class="card-header">
@@ -386,8 +564,8 @@
                     </ul>
                     <div class="tools-section">
                         <h3>Available Tools</h3>
-                        <i href="modules/tools/WL.html"class="tool-link">🔧 Winston-Lutz Calculation</i>
-                        <i href="modules/tools/rf-vis.html" class="tool-link">📝 Linear Accelerator Types</i>
+                        <a href="modules/tools/WL.html" class="tool-link">🔧 Winston-Lutz Calculation</a>
+                        <a href="modules/tools/rf-vis.html" class="tool-link">📝 Linear Accelerator Types</a>
                     </div>
                 </div>
             </div>
@@ -415,7 +593,7 @@
                             Profile Analysis
                             <span class="tool-description">Beam profile comparison and analysis tool</span>
                         </a>
-                        <i href="modules/tools/electron_ssd.html" class="tool-link">Virtual Source and Extended SSD</i>
+                        <a href="modules/tools/electron_ssd.html" class="tool-link">Virtual Source and Extended SSD</a>
 
                     </div>
                 </div>
@@ -452,8 +630,13 @@
         const menuBtn = document.getElementById('menuBtn');
         const sidebar = document.querySelector('.sidebar');
 
+        function setMenuState(isOpen) {
+            sidebar.classList.toggle('active', isOpen);
+            menuBtn.setAttribute('aria-expanded', String(isOpen));
+        }
+
         menuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
+            setMenuState(!sidebar.classList.contains('active'));
         });
 
         // Close sidebar when clicking a link on mobile
@@ -461,20 +644,37 @@
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
+                    setMenuState(false);
                 }
             });
         });
 
         // Card Toggle
         const cards = document.querySelectorAll('.card');
-        cards.forEach(card => {
+        cards.forEach((card, index) => {
             const header = card.querySelector('.card-header');
             const toggle = card.querySelector('.toggle');
-            
-            header.addEventListener('click', () => {
-                card.classList.toggle('expanded');
-                toggle.textContent = card.classList.contains('expanded') ? '-' : '+';
+            const content = card.querySelector('.card-content');
+            const contentId = `study-card-content-${index + 1}`;
+
+            content.id = contentId;
+            header.setAttribute('role', 'button');
+            header.setAttribute('tabindex', '0');
+            header.setAttribute('aria-controls', contentId);
+            header.setAttribute('aria-expanded', 'false');
+
+            function toggleCard() {
+                const isExpanded = card.classList.toggle('expanded');
+                toggle.textContent = isExpanded ? '−' : '+';
+                header.setAttribute('aria-expanded', String(isExpanded));
+            }
+
+            header.addEventListener('click', toggleCard);
+            header.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    toggleCard();
+                }
             });
         });
 
