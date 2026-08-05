@@ -101,6 +101,12 @@
             border-color: var(--accent-primary);
         }
 
+        .xy-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
         button {
             padding: 10px 20px;
             background: var(--accent-primary);
@@ -254,38 +260,67 @@
             <div class="section">
                 <h2>Input Measurements</h2>
                 <form id="wl-form">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                        For each image, enter the displacement of the field (radiation) center relative
+                        to the BB in the imager plane: <strong>lateral</strong> (cross-plane, left–right)
+                        and <strong>longitudinal</strong> (in-plane, sup–inf), in mm.
+                    </p>
                     <div class="input-grid">
                         <div class="input-group">
-                            <label for="g0">Gantry 0° Offset (mm):</label>
-                            <input type="number" id="g0" step="0.01" value="0.3" required>
+                            <label>Gantry 0°  (lat, long):</label>
+                            <div class="xy-pair">
+                                <input type="number" id="g0x" step="0.01" value="0.2" placeholder="lat" required>
+                                <input type="number" id="g0y" step="0.01" value="0.1" placeholder="long" required>
+                            </div>
                         </div>
                         <div class="input-group">
-                            <label for="g90">Gantry 90° Offset (mm):</label>
-                            <input type="number" id="g90" step="0.01" value="0.2" required>
+                            <label>Gantry 90°  (lat, long):</label>
+                            <div class="xy-pair">
+                                <input type="number" id="g90x" step="0.01" value="0.15" placeholder="lat" required>
+                                <input type="number" id="g90y" step="0.01" value="-0.10" placeholder="long" required>
+                            </div>
                         </div>
                         <div class="input-group">
-                            <label for="g180">Gantry 180° Offset (mm):</label>
-                            <input type="number" id="g180" step="0.01" value="0.4" required>
+                            <label>Gantry 180°  (lat, long):</label>
+                            <div class="xy-pair">
+                                <input type="number" id="g180x" step="0.01" value="-0.20" placeholder="lat" required>
+                                <input type="number" id="g180y" step="0.01" value="0.15" placeholder="long" required>
+                            </div>
                         </div>
                         <div class="input-group">
-                            <label for="g270">Gantry 270° Offset (mm):</label>
-                            <input type="number" id="g270" step="0.01" value="0.3" required>
+                            <label>Gantry 270°  (lat, long):</label>
+                            <div class="xy-pair">
+                                <input type="number" id="g270x" step="0.01" value="-0.10" placeholder="lat" required>
+                                <input type="number" id="g270y" step="0.01" value="-0.05" placeholder="long" required>
+                            </div>
                         </div>
                         <div class="input-group">
-                            <label for="c90">Collimator 90° Offset (mm):</label>
-                            <input type="number" id="c90" step="0.01" value="0.2" required>
+                            <label>Collimator 90°  (lat, long):</label>
+                            <div class="xy-pair">
+                                <input type="number" id="c90x" step="0.01" value="0.10" placeholder="lat" required>
+                                <input type="number" id="c90y" step="0.01" value="0.05" placeholder="long" required>
+                            </div>
                         </div>
                         <div class="input-group">
-                            <label for="c270">Collimator 270° Offset (mm):</label>
-                            <input type="number" id="c270" step="0.01" value="0.3" required>
+                            <label>Collimator 270°  (lat, long):</label>
+                            <div class="xy-pair">
+                                <input type="number" id="c270x" step="0.01" value="-0.10" placeholder="lat" required>
+                                <input type="number" id="c270y" step="0.01" value="0.10" placeholder="long" required>
+                            </div>
                         </div>
                         <div class="input-group">
-                            <label for="t90">Table 90° Offset (mm):</label>
-                            <input type="number" id="t90" step="0.01" value="0.1" required>
+                            <label>Couch 90°  (lat, long):</label>
+                            <div class="xy-pair">
+                                <input type="number" id="t90x" step="0.01" value="0.05" placeholder="lat" required>
+                                <input type="number" id="t90y" step="0.01" value="0.10" placeholder="long" required>
+                            </div>
                         </div>
                         <div class="input-group">
-                            <label for="t270">Table 270° Offset (mm):</label>
-                            <input type="number" id="t270" step="0.01" value="0.2" required>
+                            <label>Couch 270°  (lat, long):</label>
+                            <div class="xy-pair">
+                                <input type="number" id="t270x" step="0.01" value="0.10" placeholder="lat" required>
+                                <input type="number" id="t270y" step="0.01" value="-0.05" placeholder="long" required>
+                            </div>
                         </div>
                     </div>
                     <button type="submit">Calculate Isocenter</button>
@@ -304,28 +339,28 @@
             <h2>Analysis Results</h2>
             <div id="results">
                 <div class="result-item">
-                    <span class="result-label">Maximum 2D Deviation:</span>
+                    <span class="result-label">Maximum 2D Deviation (any image):</span>
                     <span class="result-value" id="max-2d">-- mm</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Mean Radial Error:</span>
+                    <span class="result-label">Mean 2D Deviation:</span>
                     <span class="result-value" id="mean-error">-- mm</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Gantry Isocenter Size:</span>
+                    <span class="result-label">Gantry Isocenter Size (Ø):</span>
                     <span class="result-value" id="gantry-size">-- mm</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Collimator Isocenter Size:</span>
+                    <span class="result-label">Collimator Isocenter Size (Ø):</span>
                     <span class="result-value" id="coll-size">-- mm</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Couch Isocenter Size:</span>
+                    <span class="result-label">Couch Isocenter Size (Ø):</span>
                     <span class="result-value" id="couch-size">-- mm</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">3D Isocenter Sphere Diameter:</span>
-                    <span class="result-value" id="sphere-diameter">-- mm</span>
+                    <span class="result-label">Radiation Isocenter Diameter (min. enclosing circle):</span>
+                    <span class="result-value" id="iso-diameter">-- mm</span>
                 </div>
             </div>
         </div>
@@ -336,10 +371,14 @@
             
             <h4>Key Metrics:</h4>
             <ul>
-                <li><strong>2D Deviation:</strong> Distance between radiation field center and sphere center in the imaging plane</li>
-                <li><strong>Isocenter Size:</strong> Diameter of the smallest sphere containing all measured positions</li>
-                <li><strong>3D Sphere:</strong> The minimum sphere containing all beam axes in 3D space</li>
+                <li><strong>2D Deviation:</strong> Radial distance √(lat² + long²) between the radiation field center and the BB in each imaging plane</li>
+                <li><strong>Per-axis Isocenter Size:</strong> Diameter of the smallest circle enclosing the displacement points for that subsystem (gantry, collimator, or couch)</li>
+                <li><strong>Radiation Isocenter Diameter:</strong> Diameter of the minimum enclosing circle of all displacement points — the headline radiation-isocenter metric</li>
             </ul>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                Note: this analysis works in the 2D imager plane. A full 3D isocenter requires combining
+                lateral offsets across gantry angles to reconstruct the BB position in room coordinates.
+            </p>
 
             <table class="tolerance-table">
                 <thead>
@@ -376,6 +415,7 @@
                 this.canvas = document.getElementById('wl-canvas');
                 this.ctx = this.canvas.getContext('2d');
                 this.form = document.getElementById('wl-form');
+                this.groupColors = { gantry: '#2196f3', coll: '#ffc107', couch: '#e040fb' };
                 this.setupCanvas();
                 this.bindEvents();
                 this.calculate(); // Initial calculation
@@ -392,155 +432,210 @@
                     e.preventDefault();
                     this.calculate();
                 });
+                // Live update as values are edited
+                this.form.addEventListener('input', () => this.calculate());
 
                 window.addEventListener('resize', () => {
                     this.setupCanvas();
-                    this.draw();
+                    this.calculate();
                 });
+            }
+
+            readPoint(id) {
+                const x = parseFloat(document.getElementById(id + 'x').value) || 0;
+                const y = parseFloat(document.getElementById(id + 'y').value) || 0;
+                return { x, y };
+            }
+
+            getPoints() {
+                const defs = [
+                    ['g0', 'G0°', 'gantry'], ['g90', 'G90°', 'gantry'],
+                    ['g180', 'G180°', 'gantry'], ['g270', 'G270°', 'gantry'],
+                    ['c90', 'C90°', 'coll'], ['c270', 'C270°', 'coll'],
+                    ['t90', 'T90°', 'couch'], ['t270', 'T270°', 'couch']
+                ];
+                return defs.map(([id, label, group]) => {
+                    const p = this.readPoint(id);
+                    return { x: p.x, y: p.y, label, group, r: Math.hypot(p.x, p.y) };
+                });
+            }
+
+            // Circumcircle of three points (null if collinear)
+            circumcircle(a, b, c) {
+                const d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
+                if (Math.abs(d) < 1e-9) return null;
+                const a2 = a.x * a.x + a.y * a.y;
+                const b2 = b.x * b.x + b.y * b.y;
+                const c2 = c.x * c.x + c.y * c.y;
+                const ux = (a2 * (b.y - c.y) + b2 * (c.y - a.y) + c2 * (a.y - b.y)) / d;
+                const uy = (a2 * (c.x - b.x) + b2 * (a.x - c.x) + c2 * (b.x - a.x)) / d;
+                return { x: ux, y: uy, r: Math.hypot(a.x - ux, a.y - uy) };
+            }
+
+            // Smallest enclosing circle (brute force; exact and fast for <= 8 points)
+            minEnclosingCircle(pts) {
+                if (pts.length === 0) return { x: 0, y: 0, r: 0 };
+                if (pts.length === 1) return { x: pts[0].x, y: pts[0].y, r: 0 };
+                const inside = (c, p) => Math.hypot(p.x - c.x, p.y - c.y) <= c.r + 1e-7;
+                let best = null;
+                // Circles defined by a pair (the pair as diameter)
+                for (let i = 0; i < pts.length; i++) {
+                    for (let j = i + 1; j < pts.length; j++) {
+                        const cx = (pts[i].x + pts[j].x) / 2;
+                        const cy = (pts[i].y + pts[j].y) / 2;
+                        const c = { x: cx, y: cy, r: Math.hypot(pts[i].x - cx, pts[i].y - cy) };
+                        if (pts.every(p => inside(c, p)) && (!best || c.r < best.r)) best = c;
+                    }
+                }
+                // Circles defined by a triple (circumcircle)
+                for (let i = 0; i < pts.length; i++) {
+                    for (let j = i + 1; j < pts.length; j++) {
+                        for (let k = j + 1; k < pts.length; k++) {
+                            const c = this.circumcircle(pts[i], pts[j], pts[k]);
+                            if (c && pts.every(p => inside(c, p)) && (!best || c.r < best.r)) best = c;
+                        }
+                    }
+                }
+                if (!best) { // all collinear -> centroid fallback
+                    const cx = pts.reduce((s, p) => s + p.x, 0) / pts.length;
+                    const cy = pts.reduce((s, p) => s + p.y, 0) / pts.length;
+                    const r = Math.max(...pts.map(p => Math.hypot(p.x - cx, p.y - cy)));
+                    best = { x: cx, y: cy, r };
+                }
+                return best;
             }
 
             calculate() {
-                // Get all measurements
-                const measurements = {
-                    gantry: [
-                        parseFloat(document.getElementById('g0').value) || 0,
-                        parseFloat(document.getElementById('g90').value) || 0,
-                        parseFloat(document.getElementById('g180').value) || 0,
-                        parseFloat(document.getElementById('g270').value) || 0
-                    ],
-                    collimator: [
-                        parseFloat(document.getElementById('c90').value) || 0,
-                        parseFloat(document.getElementById('c270').value) || 0
-                    ],
-                    table: [
-                        parseFloat(document.getElementById('t90').value) || 0,
-                        parseFloat(document.getElementById('t270').value) || 0
-                    ]
+                const points = this.getPoints();
+                const radii = points.map(p => p.r);
+
+                const max2D = Math.max(...radii);
+                const mean = radii.reduce((s, v) => s + v, 0) / radii.length;
+
+                const groupDiameter = (g) => {
+                    const sub = points.filter(p => p.group === g);
+                    return sub.length ? this.minEnclosingCircle(sub).r * 2 : 0;
                 };
+                const gantrySize = groupDiameter('gantry');
+                const collSize = groupDiameter('coll');
+                const couchSize = groupDiameter('couch');
 
-                // Calculate statistics
-                const allMeasurements = [
-                    ...measurements.gantry,
-                    ...measurements.collimator,
-                    ...measurements.table
-                ];
+                const isoCircle = this.minEnclosingCircle(points);
+                const isoDiameter = isoCircle.r * 2;
 
-                const max2D = Math.max(...allMeasurements);
-                const meanError = allMeasurements.reduce((a, b) => a + b, 0) / allMeasurements.length;
-                
-                // Calculate isocenter sizes (simplified - using range)
-                const gantrySize = Math.max(...measurements.gantry) - Math.min(...measurements.gantry);
-                const collSize = Math.max(...measurements.collimator) - Math.min(...measurements.collimator);
-                const couchSize = Math.max(...measurements.table) - Math.min(...measurements.table);
-                
-                // 3D sphere diameter (simplified calculation)
-                const sphereDiameter = Math.sqrt(
-                    Math.pow(Math.max(...measurements.gantry), 2) +
-                    Math.pow(Math.max(...measurements.collimator), 2) +
-                    Math.pow(Math.max(...measurements.table), 2)
-                ) * 2;
-
-                // Update display
-                this.updateResults(max2D, meanError, gantrySize, collSize, couchSize, sphereDiameter);
-                this.draw(measurements);
+                this.updateResults(max2D, mean, gantrySize, collSize, couchSize, isoDiameter);
+                this.draw(points, isoCircle);
             }
 
-            updateResults(max2D, meanError, gantrySize, collSize, couchSize, sphereDiameter) {
-                document.getElementById('max-2d').textContent = max2D.toFixed(2) + ' mm';
-                document.getElementById('mean-error').textContent = meanError.toFixed(2) + ' mm';
-                document.getElementById('gantry-size').textContent = gantrySize.toFixed(2) + ' mm';
-                document.getElementById('coll-size').textContent = collSize.toFixed(2) + ' mm';
-                document.getElementById('couch-size').textContent = couchSize.toFixed(2) + ' mm';
-                document.getElementById('sphere-diameter').textContent = sphereDiameter.toFixed(2) + ' mm';
+            updateResults(max2D, mean, gantrySize, collSize, couchSize, isoDiameter) {
+                const set = (id, v) => document.getElementById(id).textContent = v.toFixed(2) + ' mm';
+                set('max-2d', max2D);
+                set('mean-error', mean);
+                set('gantry-size', gantrySize);
+                set('coll-size', collSize);
+                set('couch-size', couchSize);
+                set('iso-diameter', isoDiameter);
 
-                // Update result colors based on tolerances
-                const resultItems = document.querySelectorAll('.result-item');
-                resultItems.forEach(item => {
+                // Color-code each result against SRS-level tolerances
+                document.querySelectorAll('.result-item').forEach(item => {
                     const value = parseFloat(item.querySelector('.result-value').textContent);
                     item.classList.remove('pass', 'warning', 'fail');
-                    
-                    if (value <= 0.5) {
-                        item.classList.add('pass');
-                    } else if (value <= 1.0) {
-                        item.classList.add('warning');
-                    } else {
-                        item.classList.add('fail');
-                    }
+                    if (value <= 0.5) item.classList.add('pass');
+                    else if (value <= 1.0) item.classList.add('warning');
+                    else item.classList.add('fail');
                 });
             }
 
-            draw(measurements) {
+            draw(points, isoCircle) {
                 const ctx = this.ctx;
-                const width = this.canvas.width;
-                const height = this.canvas.height;
-                const centerX = width / 2;
-                const centerY = height / 2;
-                const scale = 100; // pixels per mm
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+                const cx = w / 2;
+                const cy = h / 2;
 
-                // Clear canvas
-                ctx.clearRect(0, 0, width, height);
+                ctx.clearRect(0, 0, w, h);
 
-                // Draw grid
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                // Auto-scale so all points and the isocenter circle fit, with a sensible floor
+                const isoReach = isoCircle.r + Math.hypot(isoCircle.x, isoCircle.y);
+                const maxExtent = Math.max(1.0, isoReach, ...points.map(p => p.r)) * 1.25;
+                const margin = 30;
+                const scale = (Math.min(w, h) / 2 - margin) / maxExtent; // px per mm
+
+                // Grid every 0.5 mm
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
                 ctx.lineWidth = 1;
-                for (let i = -5; i <= 5; i++) {
-                    ctx.beginPath();
-                    ctx.moveTo(centerX + i * scale / 2, 0);
-                    ctx.lineTo(centerX + i * scale / 2, height);
-                    ctx.stroke();
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(0, centerY + i * scale / 2);
-                    ctx.lineTo(width, centerY + i * scale / 2);
-                    ctx.stroke();
+                const step = 0.5 * scale;
+                for (let gx = cx % step; gx < w; gx += step) {
+                    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke();
+                }
+                for (let gy = cy % step; gy < h; gy += step) {
+                    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
                 }
 
-                // Draw axes
+                // Axes
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(centerX, 0);
-                ctx.lineTo(centerX, height);
-                ctx.moveTo(0, centerY);
-                ctx.lineTo(width, centerY);
+                ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
+                ctx.moveTo(0, cy); ctx.lineTo(w, cy);
                 ctx.stroke();
 
-                // Draw nominal isocenter
-                ctx.fillStyle = '#4caf50';
+                // Minimum enclosing circle (radiation isocenter)
+                ctx.strokeStyle = 'rgba(255, 87, 34, 0.9)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 4]);
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+                ctx.arc(cx + isoCircle.x * scale, cy - isoCircle.y * scale, isoCircle.r * scale, 0, 2 * Math.PI);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Radiation isocenter center
+                ctx.fillStyle = '#ff5722';
+                ctx.beginPath();
+                ctx.arc(cx + isoCircle.x * scale, cy - isoCircle.y * scale, 3, 0, 2 * Math.PI);
                 ctx.fill();
 
-                // Draw gantry measurements
-                const gantryAngles = [0, 90, 180, 270];
-                ctx.fillStyle = '#ff5722';
-                measurements.gantry.forEach((offset, i) => {
-                    const angle = gantryAngles[i] * Math.PI / 180;
-                    const x = centerX + offset * scale * Math.cos(angle);
-                    const y = centerY + offset * scale * Math.sin(angle);
-                    
+                // Nominal mechanical isocenter (origin)
+                ctx.fillStyle = '#4caf50';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 4, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // Displacement points, colored by subsystem
+                points.forEach(p => {
+                    const px = cx + p.x * scale;
+                    const py = cy - p.y * scale;
+                    ctx.fillStyle = this.groupColors[p.group] || '#ffffff';
                     ctx.beginPath();
-                    ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                    ctx.arc(px, py, 4, 0, 2 * Math.PI);
                     ctx.fill();
-                    
-                    // Label
-                    ctx.fillStyle = 'white';
-                    ctx.font = '12px Arial';
-                    ctx.fillText(`G${gantryAngles[i]}°`, x + 10, y - 5);
-                    ctx.fillStyle = '#ff5722';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                    ctx.font = '10px Arial';
+                    ctx.fillText(p.label, px + 6, py - 4);
                 });
 
-                // Draw scale
-                ctx.fillStyle = 'white';
-                ctx.font = '12px Arial';
-                ctx.fillText('1mm', centerX + scale + 5, centerY - 5);
-                
+                // 1 mm scale bar
                 ctx.strokeStyle = 'white';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(centerX, centerY - 10);
-                ctx.lineTo(centerX + scale, centerY - 10);
+                ctx.moveTo(20, h - 22);
+                ctx.lineTo(20 + scale, h - 22);
                 ctx.stroke();
+                ctx.fillStyle = 'white';
+                ctx.font = '11px Arial';
+                ctx.fillText('1 mm', 20, h - 28);
+
+                // Legend
+                let ly = 12;
+                [['Gantry', this.groupColors.gantry], ['Collimator', this.groupColors.coll], ['Couch', this.groupColors.couch]]
+                    .forEach(([k, c]) => {
+                        ctx.fillStyle = c;
+                        ctx.fillRect(w - 110, ly, 10, 10);
+                        ctx.fillStyle = '#e0e0e0';
+                        ctx.font = '11px Arial';
+                        ctx.fillText(k, w - 95, ly + 9);
+                        ly += 16;
+                    });
             }
         }
 

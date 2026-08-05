@@ -388,6 +388,35 @@
 
     .publication-list a:hover { color: var(--accent-hover); }
 
+    .github-card > p {
+      margin: 0.85rem 0 0;
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+    }
+
+    .github-card > p a {
+      color: var(--text-primary);
+      font-weight: 700;
+      text-decoration-color: rgba(93, 214, 255, 0.48);
+      text-underline-offset: 0.18em;
+    }
+
+    .github-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .github-grid img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--line-subtle);
+      border-radius: 0.65rem;
+      background: var(--bg-card);
+    }
+
     .interest-list { display: grid; gap: 0.55rem; }
 
     .interest-list ul {
@@ -416,6 +445,7 @@
       .date { text-align: left; white-space: normal; }
       .details-grid { grid-template-columns: 1fr; }
       .detail-card--wide { grid-column: auto; }
+      .github-grid { grid-template-columns: 1fr; }
       .hero-orbit { top: -7rem; right: -8.5rem; }
     }
 
@@ -430,7 +460,7 @@
     @media print {
       @page { margin: 0.5in; }
       body { background: #fff; color: #111827; font-family: "Segoe UI", Arial, sans-serif; font-size: 10pt; }
-      .skip-link, .cv-nav, .cv-footer, .hero-orbit { display: none; }
+      .skip-link, .cv-nav, .cv-footer, .hero-orbit, .github-card { display: none; }
       .cv-shell { width: 100%; padding: 0; }
       .cv-hero, .summary-card, .experience-group, .detail-card { box-shadow: none; break-inside: avoid; }
       .cv-hero { padding: 0 0 1.2rem; border: 0; border-bottom: 2px solid #0f4c81; border-radius: 0; background: none; }
@@ -465,6 +495,13 @@
         <li>MATLAB</li>
         <li>Matplotlib</li>
         <li>Visual Studio Code</li>
+        <li>Eclipse / Acuros XB</li>
+        <li>Brachytherapy (HDR / LDR)</li>
+        <li>SRS / SBRT</li>
+        <li>CyberKnife</li>
+        <li>Gamma Knife</li>
+        <li>Radformation</li>
+        <li>TG-51 / QA Automation</li>
       </ul>
     </header>
 
@@ -495,7 +532,7 @@
               <p class="date">October 2024 – Present</p>
             </div>
             <ul class="achievement-list">
-              <li>SRS treatment planning.</li>
+              <li>STX SRS treatment planning.</li>
               <li>Radash — Radiation Oncology Dashboard, an internal tool for organizing work.</li>
               <li>Chair, Internal Software Committee.</li>
               <li>Plan Pilot — an Eclipse-informed auto planner with iterative optimization improvement.</li>
@@ -628,6 +665,15 @@
             <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10584082/" target="_blank" rel="noopener">Novel combination of GammaTile cesium-131 brachytherapy with 5-aminolevulinic acid fluorescence-guided resection in the re-irradiation of pediatric recurrent high-grade glioma: illustrative case</a></li>
             <li><a href="https://open.spotify.com/episode/28pjxRur2aa1sUt6AVujkP?si=81d2b06a40834efa" target="_blank" rel="noopener">Out of the Grey, Standard Imaging Podcast (August 2022)</a></li>
           </ul>
+        </article>
+
+        <article class="detail-card detail-card--wide github-card">
+          <h3>Open-source work</h3>
+          <p>Projects include Radash, Plan Pilot, and the interactive medical physics tools on <a href="https://github.com/Mighty-Raindeer" target="_blank" rel="noopener">github.com/Mighty-Raindeer</a>.</p>
+          <div class="github-grid">
+            <img loading="lazy" alt="Top languages used by Mighty-Raindeer on GitHub" onerror="this.style.display='none'" src="https://github-readme-stats.vercel.app/api/top-langs/?username=Mighty-Raindeer&amp;layout=compact&amp;hide_border=true&amp;bg_color=0d1d31&amp;title_color=5dd6ff&amp;text_color=9bb8cd">
+            <img loading="lazy" alt="GitHub contribution graph for Mighty-Raindeer" onerror="this.style.display='none'" src="https://ghchart.rshah.org/5dd6ff/Mighty-Raindeer">
+          </div>
         </article>
       </div>
     </section>

@@ -88,8 +88,15 @@
 
         .visualization-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 1fr;
             gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
             margin-bottom: 20px;
         }
 
@@ -108,7 +115,7 @@
 
         .chart-container {
             width: 100%;
-            height: 400px;
+            height: 500px;
             background: var(--bg-card);
             border-radius: 4px;
             position: relative;
@@ -133,7 +140,6 @@
         }
 
         .structure-stats {
-            margin-bottom: 20px;
             padding: 15px;
             background: var(--bg-card);
             border-radius: 4px;
@@ -296,51 +302,20 @@
         <div class="controls-panel">
             <div class="control-row">
                 <div class="control-group">
-                    <label>Plan:</label>
-                    <select id="plan-select">
-                        <option value="prostate">Prostate IMRT</option>
-                        <option value="lung">Lung SBRT</option>
-                        <option value="breast">Breast 3D-CRT</option>
-                        <option value="hn">Head & Neck VMAT</option>
-                    </select>
-                </div>
-                
-                <div class="control-group">
-                    <label>DVH Type:</label>
-                    <div class="toggle-group">
-                        <button class="toggle-button active" onclick="setDVHType('cumulative')">Cumulative</button>
-                        <button class="toggle-button" onclick="setDVHType('differential')">Differential</button>
-                    </div>
-                </div>
-                
-                <div class="control-group">
                     <label>Y-Axis:</label>
                     <div class="toggle-group">
                         <button class="toggle-button active" onclick="setVolumeType('relative')">Relative (%)</button>
                         <button class="toggle-button" onclick="setVolumeType('absolute')">Absolute (cc)</button>
                     </div>
                 </div>
-                
-                <div class="control-group">
-                    <label>Dose Units:</label>
-                    <select id="dose-units">
-                        <option value="gy">Gy</option>
-                        <option value="cgy">cGy</option>
-                        <option value="percent">% of Rx</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="control-row">
-                <button onclick="addComparison()">Add Comparison Plan</button>
+
                 <button onclick="exportDVH()">Export Data</button>
-                <button onclick="calculateMetrics()">Calculate Metrics</button>
             </div>
         </div>
 
         <div class="visualization-grid">
             <div class="chart-section">
-                <h2>DVH Curves</h2>
+                <h2>Cumulative DVH Curves</h2>
                 <div class="chart-container">
                     <canvas id="dvh-canvas"></canvas>
                 </div>
@@ -348,30 +323,31 @@
                     <!-- Legend items will be added dynamically -->
                 </div>
             </div>
+        </div>
 
-            <div class="statistics-panel">
-                <h2>Structure Statistics</h2>
-                
-                <div id="structure-stats-container">
-                    <!-- Statistics will be populated dynamically -->
-                </div>
-                
-                <h3 style="margin-top: 20px; color: var(--accent-primary);">Dose Constraints</h3>
-                <table class="constraint-table">
-                    <thead>
-                        <tr>
-                            <th>Structure</th>
-                            <th>Constraint</th>
-                            <th>Goal</th>
-                            <th>Actual</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="constraints-tbody">
-                        <!-- Constraints will be populated dynamically -->
-                    </tbody>
-                </table>
+        <div class="chart-section">
+            <h2>Structure Statistics</h2>
+            <div class="stats-grid" id="structure-stats-container">
+                <!-- Statistics will be populated dynamically -->
             </div>
+        </div>
+
+        <div class="chart-section">
+            <h2>Dose Constraints</h2>
+            <table class="constraint-table">
+                <thead>
+                    <tr>
+                        <th>Structure</th>
+                        <th>Constraint</th>
+                        <th>Goal</th>
+                        <th>Actual</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="constraints-tbody">
+                    <!-- Constraints will be populated dynamically -->
+                </tbody>
+            </table>
         </div>
 
         <div class="chart-section">
@@ -403,15 +379,24 @@
         </div>
 
         <div class="info-box">
+            <h3>Understanding Cumulative DVH</h3>
+            <p><strong>Cumulative DVH</strong> shows the <em>percentage of volume receiving AT LEAST a given dose</em>.</p>
+            <ul>
+                <li>The curve starts at 100% at dose = 0 (entire structure receives at least 0 Gy)</li>
+                <li>The curve decreases monotonically as dose increases</li>
+                <li>For targets: Ideally steep falloff near prescription dose (good coverage)</li>
+                <li>For OARs: Ideally rapid falloff (most volume receives low dose)</li>
+            </ul>
+
             <h3>DVH Analysis Metrics</h3>
             <p><strong>Common DVH Parameters:</strong></p>
             <ul>
                 <li><strong>D95, D98:</strong> Minimum dose received by 95% or 98% of the volume (coverage metric)</li>
                 <li><strong>D2, D0.03cc:</strong> Near-maximum dose (hot spot evaluation)</li>
-                <li><strong>V20, V5:</strong> Volume receiving at least 20 Gy or 5 Gy (low dose spread)</li>
-                <li><strong>Mean Dose:</strong> Average dose to the structure</li>
+                <li><strong>V20, V5:</strong> Volume (%) receiving at least 20 Gy or 5 Gy (low dose spread)</li>
+                <li><strong>Mean Dose:</strong> Average dose to the structure (calculated as integral of DVH)</li>
                 <li><strong>Conformity Index (CI):</strong> Ratio of prescription isodose volume to target volume</li>
-                <li><strong>Homogeneity Index (HI):</strong> (D2 - D98) / D50</li>
+                <li><strong>Homogeneity Index (HI):</strong> (D2 - D98) / D50 (lower is more homogeneous)</li>
             </ul>
         </div>
     </div>
@@ -423,7 +408,6 @@
                 this.ctx = this.canvas.getContext('2d');
                 this.dvhType = 'cumulative';
                 this.volumeType = 'relative';
-                this.currentPlan = 'prostate';
                 this.structures = this.getStructures();
                 
                 this.setupCanvas();
@@ -440,18 +424,6 @@
             }
 
             bindEvents() {
-                document.getElementById('plan-select').addEventListener('change', (e) => {
-                    this.currentPlan = e.target.value;
-                    this.structures = this.getStructures();
-                    this.drawDVH();
-                    this.updateStatistics();
-                    this.updateConstraints();
-                });
-
-                document.getElementById('dose-units').addEventListener('change', () => {
-                    this.drawDVH();
-                });
-
                 window.addEventListener('resize', () => {
                     this.setupCanvas();
                     this.drawDVH();
@@ -459,71 +431,61 @@
             }
 
             getStructures() {
-                const plans = {
-                    prostate: [
-                        { name: 'PTV', color: '#ff5722', type: 'target', volume: 125.3 },
-                        { name: 'Rectum', color: '#2196f3', type: 'oar', volume: 85.2 },
-                        { name: 'Bladder', color: '#4caf50', type: 'oar', volume: 250.5 },
-                        { name: 'Femoral Heads', color: '#ff9800', type: 'oar', volume: 120.8 }
-                    ],
-                    lung: [
-                        { name: 'GTV', color: '#ff5722', type: 'target', volume: 28.5 },
-                        { name: 'PTV', color: '#f44336', type: 'target', volume: 45.2 },
-                        { name: 'Lung-GTV', color: '#2196f3', type: 'oar', volume: 2850.0 },
-                        { name: 'Heart', color: '#4caf50', type: 'oar', volume: 580.3 },
-                        { name: 'Chest Wall', color: '#ff9800', type: 'oar', volume: 320.5 }
-                    ],
-                    breast: [
-                        { name: 'PTV Breast', color: '#ff5722', type: 'target', volume: 680.5 },
-                        { name: 'Lung', color: '#2196f3', type: 'oar', volume: 1850.2 },
-                        { name: 'Heart', color: '#4caf50', type: 'oar', volume: 520.8 },
-                        { name: 'Contralateral Breast', color: '#9c27b0', type: 'oar', volume: 720.3 }
-                    ],
-                    hn: [
-                        { name: 'PTV70', color: '#ff5722', type: 'target', volume: 120.5 },
-                        { name: 'PTV63', color: '#f44336', type: 'target', volume: 285.3 },
-                        { name: 'PTV56', color: '#ff9800', type: 'target', volume: 450.2 },
-                        { name: 'Parotid L', color: '#2196f3', type: 'oar', volume: 28.5 },
-                        { name: 'Parotid R', color: '#03a9f4', type: 'oar', volume: 32.1 },
-                        { name: 'Spinal Cord', color: '#4caf50', type: 'oar', volume: 25.3 }
-                    ]
-                };
-                
-                return plans[this.currentPlan] || plans.prostate;
+                return [
+                    { name: 'PTV', color: '#ff5722', type: 'target', volume: 125.3 },
+                    { name: 'Rectum', color: '#2196f3', type: 'oar', volume: 85.2 },
+                    { name: 'Bladder', color: '#4caf50', type: 'oar', volume: 250.5 },
+                    { name: 'Femoral Heads', color: '#ff9800', type: 'oar', volume: 120.8 }
+                ];
             }
 
             generateDVHData(structure) {
                 const points = [];
                 const maxDose = structure.type === 'target' ? 85 : 70;
-                
+
                 if (this.dvhType === 'cumulative') {
-                    // Generate cumulative DVH
+                    // Generate CUMULATIVE DVH: % of volume receiving AT LEAST this dose
+                    // For cumulative DVH, curve should start at 100% at dose=0 and decrease
                     for (let dose = 0; dose <= maxDose; dose += 0.5) {
                         let volume;
                         if (structure.type === 'target') {
-                            // Target: sigmoid curve
-                            const D50 = 75;
-                            const gamma = 2;
-                            volume = 100 / (1 + Math.exp(-gamma * (dose - D50) / 10));
+                            // Target: steep falloff near prescription dose
+                            // Represents good target coverage with dose concentrated around Rx
+                            const prescriptionDose = 78; // Gy
+                            const d50 = prescriptionDose - 3; // 50% volume point
+                            const gamma = 3; // Steepness (higher = steeper)
+
+                            // Inverted sigmoid: starts at 100%, falls steeply near prescription
+                            volume = 100 - (100 / (1 + Math.exp(-gamma * (dose - d50) / 5)));
                         } else {
-                            // OAR: exponential falloff
-                            const lambda = 0.08 + Math.random() * 0.04;
+                            // OAR: exponential falloff from 100%
+                            // Most OAR volume receives low dose, small volume receives high dose
+                            const lambda = structure.name.includes('Rectum') ? 0.06 :
+                                          structure.name.includes('Bladder') ? 0.05 :
+                                          structure.name.includes('Lung') ? 0.08 :
+                                          structure.name.includes('Heart') ? 0.10 :
+                                          structure.name.includes('Parotid') ? 0.12 :
+                                          structure.name.includes('Cord') ? 0.15 : 0.08;
                             volume = 100 * Math.exp(-lambda * dose);
                         }
-                        
+
+                        // Ensure volume never goes below 0 or above 100%
+                        volume = Math.max(0, Math.min(100, volume));
+
                         if (this.volumeType === 'absolute') {
                             volume = (volume / 100) * structure.volume;
                         }
-                        
+
                         points.push({ dose, volume });
                     }
                 } else {
-                    // Generate differential DVH
+                    // Generate differential DVH (rarely used clinically)
+                    // This is the derivative of the cumulative DVH
                     for (let dose = 0; dose <= maxDose; dose += 0.5) {
                         let volume;
                         if (structure.type === 'target') {
-                            // Target: gaussian-like peak
-                            const mean = 75;
+                            // Target: gaussian-like peak around prescription
+                            const mean = 78;
                             const sigma = 3;
                             volume = 100 * Math.exp(-Math.pow(dose - mean, 2) / (2 * sigma * sigma));
                         } else {
@@ -531,15 +493,15 @@
                             const peak = 5;
                             volume = 100 * Math.exp(-Math.pow(dose - peak, 2) / 200);
                         }
-                        
+
                         if (this.volumeType === 'absolute') {
                             volume = (volume / 100) * structure.volume * 0.05; // Scale for differential
                         }
-                        
+
                         points.push({ dose, volume });
                     }
                 }
-                
+
                 return points;
             }
 
@@ -578,25 +540,33 @@
                     ctx.stroke();
                 }
                 
+                // Calculate max volume for y-axis scaling
+                let maxVolume = 100; // Default for relative (%)
+                if (this.volumeType === 'absolute') {
+                    maxVolume = Math.max(...this.structures.map(s => s.volume));
+                    // Round up to nearest 50 for cleaner axis
+                    maxVolume = Math.ceil(maxVolume / 50) * 50;
+                }
+
                 // Draw DVH curves
                 this.structures.forEach(structure => {
                     const data = this.generateDVHData(structure);
-                    
+
                     ctx.strokeStyle = structure.color;
                     ctx.lineWidth = 2;
                     ctx.beginPath();
-                    
+
                     data.forEach((point, index) => {
                         const x = padding + (width - 2 * padding) * (point.dose / 85);
-                        const y = height - padding - (height - 2 * padding) * (point.volume / 100);
-                        
+                        const y = height - padding - (height - 2 * padding) * (point.volume / maxVolume);
+
                         if (index === 0) {
                             ctx.moveTo(x, y);
                         } else {
                             ctx.lineTo(x, y);
                         }
                     });
-                    
+
                     ctx.stroke();
                 });
                 
@@ -616,7 +586,7 @@
                 // Y-axis labels
                 ctx.textAlign = 'right';
                 for (let i = 0; i <= 10; i++) {
-                    const volume = (100 - i * 10).toFixed(0);
+                    const volume = (maxVolume - (maxVolume * i / 10)).toFixed(0);
                     const y = padding + (height - 2 * padding) * i / 10;
                     ctx.fillText(volume, padding - 10, y + 5);
                 }
@@ -670,12 +640,20 @@
                             <span class="stat-value">${stats.meanDose.toFixed(1)} Gy</span>
                         </div>
                         <div class="stat-row">
-                            <span>Max Dose:</span>
+                            <span>Max Dose (D0.03cc):</span>
                             <span class="stat-value">${stats.maxDose.toFixed(1)} Gy</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>D2:</span>
+                            <span class="stat-value">${stats.d2.toFixed(1)} Gy</span>
                         </div>
                         <div class="stat-row">
                             <span>D95:</span>
                             <span class="stat-value">${stats.d95.toFixed(1)} Gy</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>D98:</span>
+                            <span class="stat-value">${stats.d98.toFixed(1)} Gy</span>
                         </div>
                         <div class="stat-row">
                             <span>V20:</span>
@@ -687,22 +665,80 @@
             }
 
             calculateStructureStats(structure) {
-                // Simulated statistics
-                if (structure.type === 'target') {
-                    return {
-                        meanDose: 75.5 + Math.random() * 2,
-                        maxDose: 82.0 + Math.random() * 3,
-                        d95: 73.0 + Math.random() * 2,
-                        v20: 100.0
-                    };
-                } else {
-                    return {
-                        meanDose: 15.0 + Math.random() * 10,
-                        maxDose: 45.0 + Math.random() * 20,
-                        d95: 5.0 + Math.random() * 5,
-                        v20: 30.0 + Math.random() * 30
-                    };
+                const dvhData = this.generateDVHData(structure);
+
+                // Calculate mean dose from cumulative DVH
+                // Mean dose = integral of DVH curve / 100
+                let meanDose = 0;
+                for (let i = 1; i < dvhData.length; i++) {
+                    const dDose = dvhData[i].dose - dvhData[i - 1].dose;
+                    const avgVolume = (dvhData[i].volume + dvhData[i - 1].volume) / 2;
+                    meanDose += dDose * avgVolume;
                 }
+                meanDose /= 100; // Normalize by 100%
+
+                // Max dose: highest dose where volume > 0
+                let maxDose = 0;
+                for (let i = dvhData.length - 1; i >= 0; i--) {
+                    if (dvhData[i].volume > 0.1) { // Allow for small numerical errors
+                        maxDose = dvhData[i].dose;
+                        break;
+                    }
+                }
+
+                // D95: dose covering 95% of volume
+                const d95 = this.getDoseAtVolume(dvhData, 95);
+
+                // D98: dose covering 98% of volume
+                const d98 = this.getDoseAtVolume(dvhData, 98);
+
+                // D2: dose covering 2% of volume (near-max)
+                const d2 = this.getDoseAtVolume(dvhData, 2);
+
+                // V20: % volume receiving at least 20 Gy
+                const v20 = this.getVolumeAtDose(dvhData, 20);
+
+                return {
+                    meanDose,
+                    maxDose,
+                    d95,
+                    d98,
+                    d2,
+                    v20
+                };
+            }
+
+            // Get dose at a specific volume percentage (for Dx queries)
+            getDoseAtVolume(dvhData, volumePercent) {
+                // Find the dose where exactly volumePercent of volume receives at least that dose
+                for (let i = 0; i < dvhData.length - 1; i++) {
+                    if (dvhData[i].volume >= volumePercent && dvhData[i + 1].volume < volumePercent) {
+                        // Linear interpolation
+                        const t = (volumePercent - dvhData[i + 1].volume) / (dvhData[i].volume - dvhData[i + 1].volume);
+                        return dvhData[i + 1].dose + t * (dvhData[i].dose - dvhData[i + 1].dose);
+                    }
+                }
+                // If volume percent is 100%, return minimum dose
+                if (volumePercent >= dvhData[0].volume) return dvhData[0].dose;
+                // If not found, return 0
+                return 0;
+            }
+
+            // Get volume percentage at a specific dose (for Vx queries)
+            getVolumeAtDose(dvhData, dose) {
+                // Find the % volume receiving at least this dose
+                for (let i = 0; i < dvhData.length - 1; i++) {
+                    if (dvhData[i].dose <= dose && dvhData[i + 1].dose > dose) {
+                        // Linear interpolation
+                        const t = (dose - dvhData[i].dose) / (dvhData[i + 1].dose - dvhData[i].dose);
+                        return dvhData[i].volume + t * (dvhData[i + 1].volume - dvhData[i].volume);
+                    }
+                }
+                // If dose is beyond max, return 0
+                if (dose > dvhData[dvhData.length - 1].dose) return 0;
+                // If dose is below min, return 100
+                if (dose < dvhData[0].dose) return dvhData[0].volume;
+                return 0;
             }
 
             updateConstraints() {
@@ -726,74 +762,160 @@
             }
 
             getConstraints() {
-                const constraintSets = {
-                    prostate: [
-                        { structure: 'PTV', metric: 'D95', goal: '≥ 76 Gy', actual: '76.5 Gy' },
-                        { structure: 'PTV', metric: 'D2', goal: '≤ 83 Gy', actual: '81.2 Gy' },
-                        { structure: 'Rectum', metric: 'V70', goal: '< 20%', actual: '18.5%' },
-                        { structure: 'Rectum', metric: 'V50', goal: '< 50%', actual: '42.3%' },
-                        { structure: 'Bladder', metric: 'V70', goal: '< 35%', actual: '28.2%' },
-                        { structure: 'Femoral Heads', metric: 'D5', goal: '< 50 Gy', actual: '42.5 Gy' }
-                    ],
-                    lung: [
-                        { structure: 'PTV', metric: 'D95', goal: '≥ 48 Gy', actual: '48.2 Gy' },
-                        { structure: 'Lung-GTV', metric: 'V20', goal: '< 30%', actual: '22.5%' },
-                        { structure: 'Lung-GTV', metric: 'V5', goal: '< 60%', actual: '48.3%' },
-                        { structure: 'Heart', metric: 'Mean', goal: '< 10 Gy', actual: '7.8 Gy' },
-                        { structure: 'Chest Wall', metric: 'D30cc', goal: '< 30 Gy', actual: '28.5 Gy' }
-                    ]
-                };
-                
-                return constraintSets[this.currentPlan] || constraintSets.prostate;
+                const constraints = [];
+
+                // Generate constraints based on current plan with actual calculated values
+                this.structures.forEach(structure => {
+                    const dvhData = this.generateDVHData(structure);
+                    const stats = this.calculateStructureStats(structure);
+
+                    if (structure.type === 'target') {
+                        // Target constraints
+                        constraints.push({
+                            structure: structure.name,
+                            metric: 'D95',
+                            goal: '≥ 76 Gy',
+                            actual: `${stats.d95.toFixed(1)} Gy`,
+                            goalValue: 76,
+                            operator: '≥'
+                        });
+                        constraints.push({
+                            structure: structure.name,
+                            metric: 'D2',
+                            goal: '≤ 83 Gy',
+                            actual: `${stats.d2.toFixed(1)} Gy`,
+                            goalValue: 83,
+                            operator: '≤'
+                        });
+                    } else {
+                        // OAR constraints
+                        if (structure.name.includes('Rectum')) {
+                            const v70 = this.getVolumeAtDose(dvhData, 70);
+                            const v50 = this.getVolumeAtDose(dvhData, 50);
+                            constraints.push({
+                                structure: structure.name,
+                                metric: 'V70',
+                                goal: '< 20%',
+                                actual: `${v70.toFixed(1)}%`,
+                                goalValue: 20,
+                                operator: '<'
+                            });
+                            constraints.push({
+                                structure: structure.name,
+                                metric: 'V50',
+                                goal: '< 50%',
+                                actual: `${v50.toFixed(1)}%`,
+                                goalValue: 50,
+                                operator: '<'
+                            });
+                        } else if (structure.name.includes('Bladder')) {
+                            const v70 = this.getVolumeAtDose(dvhData, 70);
+                            constraints.push({
+                                structure: structure.name,
+                                metric: 'V70',
+                                goal: '< 35%',
+                                actual: `${v70.toFixed(1)}%`,
+                                goalValue: 35,
+                                operator: '<'
+                            });
+                        } else if (structure.name.includes('Femoral')) {
+                            const d5 = this.getDoseAtVolume(dvhData, 5);
+                            constraints.push({
+                                structure: structure.name,
+                                metric: 'D5',
+                                goal: '< 50 Gy',
+                                actual: `${d5.toFixed(1)} Gy`,
+                                goalValue: 50,
+                                operator: '<'
+                            });
+                        } else if (structure.name.includes('Lung')) {
+                            const v20 = this.getVolumeAtDose(dvhData, 20);
+                            const v5 = this.getVolumeAtDose(dvhData, 5);
+                            constraints.push({
+                                structure: structure.name,
+                                metric: 'V20',
+                                goal: '< 30%',
+                                actual: `${v20.toFixed(1)}%`,
+                                goalValue: 30,
+                                operator: '<'
+                            });
+                            constraints.push({
+                                structure: structure.name,
+                                metric: 'V5',
+                                goal: '< 60%',
+                                actual: `${v5.toFixed(1)}%`,
+                                goalValue: 60,
+                                operator: '<'
+                            });
+                        } else if (structure.name.includes('Heart')) {
+                            constraints.push({
+                                structure: structure.name,
+                                metric: 'Mean',
+                                goal: '< 10 Gy',
+                                actual: `${stats.meanDose.toFixed(1)} Gy`,
+                                goalValue: 10,
+                                operator: '<'
+                            });
+                        } else if (structure.name.includes('Parotid')) {
+                            constraints.push({
+                                structure: structure.name,
+                                metric: 'Mean',
+                                goal: '< 26 Gy',
+                                actual: `${stats.meanDose.toFixed(1)} Gy`,
+                                goalValue: 26,
+                                operator: '<'
+                            });
+                        } else if (structure.name.includes('Cord')) {
+                            constraints.push({
+                                structure: structure.name,
+                                metric: 'Max',
+                                goal: '< 45 Gy',
+                                actual: `${stats.maxDose.toFixed(1)} Gy`,
+                                goalValue: 45,
+                                operator: '<'
+                            });
+                        }
+                    }
+                });
+
+                return constraints;
             }
 
             evaluateConstraint(constraint) {
                 const actual = parseFloat(constraint.actual);
-                const goalMatch = constraint.goal.match(/([<>≤≥]+)\s*([\d.]+)/);
-                
-                if (!goalMatch) return 'constraint-warning';
-                
-                const operator = goalMatch[1];
-                const goalValue = parseFloat(goalMatch[2]);
-                
+                const goalValue = constraint.goalValue;
+                const operator = constraint.operator;
+
                 let passed = false;
+                let marginPercent = 0;
+
                 switch (operator) {
                     case '<':
                         passed = actual < goalValue;
+                        marginPercent = ((goalValue - actual) / goalValue) * 100;
                         break;
                     case '≤':
                         passed = actual <= goalValue;
+                        marginPercent = ((goalValue - actual) / goalValue) * 100;
                         break;
                     case '>':
                         passed = actual > goalValue;
+                        marginPercent = ((actual - goalValue) / goalValue) * 100;
                         break;
                     case '≥':
                         passed = actual >= goalValue;
+                        marginPercent = ((actual - goalValue) / goalValue) * 100;
                         break;
                 }
-                
+
                 if (passed) return 'constraint-pass';
-                if (Math.abs(actual - goalValue) / goalValue < 0.05) return 'constraint-warning';
+                // Warning if within 5% of goal
+                if (Math.abs(marginPercent) < 5) return 'constraint-warning';
                 return 'constraint-fail';
             }
         }
 
         // Global functions for button controls
-        function setDVHType(type) {
-            document.querySelectorAll('.toggle-button').forEach(btn => {
-                if (btn.textContent.toLowerCase().includes(type)) {
-                    btn.classList.add('active');
-                } else if (btn.textContent.includes('Cumulative') || btn.textContent.includes('Differential')) {
-                    btn.classList.remove('active');
-                }
-            });
-            
-            if (window.dvhAnalyzer) {
-                window.dvhAnalyzer.dvhType = type;
-                window.dvhAnalyzer.drawDVH();
-            }
-        }
-
         function setVolumeType(type) {
             document.querySelectorAll('.toggle-button').forEach(btn => {
                 if (btn.textContent.toLowerCase().includes(type)) {
@@ -810,32 +932,62 @@
         }
 
         function queryDVH() {
-            const structure = document.getElementById('structure-select').value;
+            const structureName = document.getElementById('structure-select').value;
             const queryType = document.getElementById('query-type').value;
             const value = parseFloat(document.getElementById('query-value').value);
-            
-            let result;
-            if (queryType === 'd-at-v') {
-                // Simulate D at V calculation
-                result = `D${value} = ${(75 - (100 - value) * 0.5).toFixed(1)} Gy`;
-            } else {
-                // Simulate V at D calculation
-                result = `V${value} = ${Math.max(0, 100 - value * 1.5).toFixed(1)}%`;
+
+            if (!window.dvhAnalyzer) return;
+
+            // Find the structure
+            const structure = window.dvhAnalyzer.structures.find(s =>
+                s.name.toLowerCase().includes(structureName.toLowerCase())
+            );
+
+            if (!structure) {
+                document.getElementById('query-result').textContent = 'Structure not found';
+                return;
             }
-            
+
+            const dvhData = window.dvhAnalyzer.generateDVHData(structure);
+            let result;
+
+            if (queryType === 'd-at-v') {
+                // Dx: dose at volume percentage
+                const dose = window.dvhAnalyzer.getDoseAtVolume(dvhData, value);
+                result = `D${value} = ${dose.toFixed(1)} Gy`;
+            } else {
+                // Vx: volume at dose
+                const volume = window.dvhAnalyzer.getVolumeAtDose(dvhData, value);
+                result = `V${value} = ${volume.toFixed(1)}%`;
+            }
+
             document.getElementById('query-result').textContent = result;
         }
 
-        function addComparison() {
-            alert('Comparison plan feature would load additional DVH data for plan comparison');
-        }
-
         function exportDVH() {
-            alert('Export would generate CSV file with DVH data points');
-        }
+            // Generate CSV export
+            if (!window.dvhAnalyzer) return;
 
-        function calculateMetrics() {
-            alert('Calculate HI, CI, and other plan quality metrics');
+            let csv = 'Structure,Dose (Gy),Volume (%)\n';
+            window.dvhAnalyzer.structures.forEach(structure => {
+                const dvhData = window.dvhAnalyzer.generateDVHData(structure);
+                dvhData.forEach(point => {
+                    // Convert to percentage if in absolute mode
+                    const volumePercent = window.dvhAnalyzer.volumeType === 'absolute'
+                        ? (point.volume / structure.volume) * 100
+                        : point.volume;
+                    csv += `${structure.name},${point.dose.toFixed(1)},${volumePercent.toFixed(2)}\n`;
+                });
+            });
+
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dvh_data.csv';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         // Initialize

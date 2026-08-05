@@ -1,288 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Accelerator — Cross-Sectional Beam Path | Medical Physics Study Guide</title>
+    <meta name="description" content="Interactive cross-sectional schematic of a medical linear accelerator following the electron and photon beam path, with hover information on each component.">
     <style>
         :root {
-            --primary-blue: #2563eb;
-            --light-gray: #f8fafc;
-            --border-color: #e2e8f0;
+            --bg-primary: #07111f;
+            --bg-secondary: #0d1d31;
+            --bg-card: #112a44;
+            --text-primary: #edf8ff;
+            --text-secondary: #9bb8cd;
+            --accent-primary: #5dd6ff;
+            --border-color: rgba(142, 213, 255, 0.2);
+            --electron-beam: #22d3ee;
+            --photon-beam: #fbbf24;
+            --metal: #5b6470;
+            --metal-light: #828c99;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: #fff;
-            color: #1a365d;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
         }
 
         h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: #1a365d;
+            color: var(--accent-primary);
+            text-align: center;
+            margin-bottom: 6px;
         }
 
-        .controls {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: var(--light-gray);
-            border-radius: 0.5rem;
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        .diagram-wrap {
+            position: relative;
+            background: var(--bg-secondary);
             border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
         }
 
-        .chart-container {
-            background: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1.5rem;
-        }
+        svg { display: block; width: 100%; height: auto; }
 
-        .diagram-container {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
-            margin: 2rem 0;
+        /* Interactive parts */
+        .part { cursor: pointer; }
+        .part .hit { fill: transparent; }
+        .part .body { transition: opacity 0.15s ease; }
+        .diagram-wrap.dim .part:not(.active) .body { opacity: 0.45; }
+        .part.active .outline {
+            stroke: var(--accent-primary);
+            stroke-width: 2.5;
+            opacity: 1;
         }
+        .outline { opacity: 0; transition: opacity 0.15s ease; }
 
-        .info-panel {
-            background: var(--light-gray);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .info-panel h2 {
-            font-size: 1.5rem;
-            margin-top: 0;
-            margin-bottom: 1rem;
-            color: #1a365d;
-        }
-
-        .component-info {
-            display: none;
-            margin-top: 1rem;
-        }
-
-        .component-info.active {
-            display: block;
-        }
-
-        .component-title {
-            color: var(--primary-blue);
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .hover-area {
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .hover-area:hover {
-            opacity: 0.7;
-        }
-
-        .component-label {
+        .lbl {
             font-size: 12px;
-            font-family: system-ui, -apple-system, sans-serif;
+            fill: var(--text-primary);
+            font-family: 'Montserrat', system-ui, sans-serif;
             pointer-events: none;
         }
+        .lbl-sub { font-size: 10px; fill: var(--text-secondary); }
+        .leader { stroke: rgba(255,255,255,0.25); stroke-width: 1; }
 
-        .disclaimer-content {
-            margin-top: 2rem;
-            padding: 1rem;
-            background: #fff7ed;
-            border: 1px solid #fdba74;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            color: #9a3412;
+        /* Hover tooltip bubble */
+        .tooltip {
+            position: absolute;
+            max-width: 280px;
+            background: var(--bg-card);
+            border: 1px solid var(--accent-primary);
+            border-radius: 8px;
+            padding: 12px 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 0.12s ease, transform 0.12s ease;
+            z-index: 20;
         }
-
-        .disclaimer-icon {
-            margin-right: 0.5rem;
+        .tooltip.show { opacity: 1; transform: translateY(0); }
+        .tooltip h3 {
+            margin: 0 0 6px 0;
+            color: var(--accent-primary);
+            font-size: 0.95rem;
         }
-
-        /* Key Features section styling */
-        .key-features {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: var(--light-gray);
-            border-radius: 0.5rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .key-features h2 {
-            font-size: 1.25rem;
-            margin-top: 0;
-            color: #1a365d;
-        }
-
-        .key-features ul {
+        .tooltip p {
             margin: 0;
-            padding-left: 1.5rem;
+            font-size: 0.83rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
         }
 
-        .key-features li {
-            margin-bottom: 0.5rem;
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            justify-content: center;
+            margin-top: 16px;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary); }
+        .swatch { width: 22px; height: 6px; border-radius: 3px; }
+
+        .hint {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 14px;
+        }
+
+        .disclaimer {
+            margin-top: 22px;
+            padding: 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-primary);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Medical Linear Accelerator Components</h1>
-        
-        <div class="controls">
-            <strong>Interactive Guide:</strong> Hover over any component to see detailed information
-        </div>
+        <h1>Medical Linear Accelerator — Cross-Sectional View</h1>
+        <p class="subtitle">Follow the beam: electrons are accelerated, bent toward the patient, and converted to a therapeutic photon beam. Hover any component for details.</p>
 
-        <div class="diagram-container">
-            <div class="chart-container">
-                <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Floor line -->
-                    <line x1="50" y1="500" x2="750" y2="500" stroke="#1a365d" stroke-width="2"/>
-                    
-                    <!-- Stand/Support structure -->
-                    <g class="hover-area" id="stand">
-                        <rect x="150" y="200" width="100" height="300" fill="#e2e8f0" stroke="#1a365d"/>
-                        <text x="200" y="520" text-anchor="middle" class="component-label">Stand</text>
-                    </g>
+        <div class="diagram-wrap" id="diagram">
+            <svg viewBox="0 0 920 640" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Linear accelerator cross-section">
+                <defs>
+                    <linearGradient id="photonGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.55"/>
+                        <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.10"/>
+                    </linearGradient>
+                    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#22d3ee"/>
+                    </marker>
+                </defs>
 
-                    <!-- RF Generator -->
-                    <g class="hover-area" id="rf-generator">
-                        <rect x="100" y="400" width="80" height="80" fill="#f8fafc" stroke="#1a365d"/>
-                        <text x="140" y="440" text-anchor="middle" class="component-label">RF Power</text>
-                        <text x="140" y="460" text-anchor="middle" class="component-label">Generator</text>
-                    </g>
+                <!-- ================= BEAMS (drawn first, behind components) ================= -->
+                <!-- Electron beam: gun -> waveguide -> into bending magnet -->
+                <line x1="114" y1="130" x2="376" y2="130" stroke="#22d3ee" stroke-width="3"/>
+                <!-- Electron beam through 270° bend, exiting downward to the target -->
+                <path d="M376,130 C 440,124 452,138 440,158 C 432,172 414,170 410,188"
+                      fill="none" stroke="#22d3ee" stroke-width="3" marker-end="url(#arrow)"/>
 
-                    <!-- Electron Gun -->
-                    <g class="hover-area" id="electron-gun">
-                        <rect x="170" y="200" width="60" height="40" fill="#f8fafc" stroke="#1a365d"/>
-                        <text x="200" y="190" text-anchor="middle" class="component-label">Electron</text>
-                        <text x="200" y="205" text-anchor="middle" class="component-label">Gun</text>
-                    </g>
+                <!-- Photon beam: divergent cone from target to patient -->
+                <polygon points="410,204 332,520 488,520" fill="url(#photonGrad)"/>
+                <line x1="410" y1="204" x2="410" y2="512" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,4" opacity="0.7"/>
 
-                    <!-- Accelerator -->
-                    <g class="hover-area" id="waveguide">
-                        <rect x="230" y="210" width="200" height="20" fill="#f8fafc" stroke="#1a365d"/>
-                        <text x="330" y="200" text-anchor="middle" class="component-label">Accelerator</text>
-                    </g>
+                <!-- Source-to-axis distance dimension -->
+                <line x1="250" y1="204" x2="250" y2="500" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+                <line x1="246" y1="204" x2="254" y2="204" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+                <line x1="246" y1="500" x2="254" y2="500" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+                <text x="240" y="356" text-anchor="middle" class="lbl-sub" transform="rotate(-90 240 356)">SAD = 100 cm</text>
 
-                    <!-- Electron Beam Transport -->
-                    <g class="hover-area" id="bending-magnet">
-                        <path d="M430 220 Q480 220 480 270" fill="none" stroke="#1a365d" stroke-width="2"/>
-                        <text x="500" y="230" text-anchor="middle" class="component-label">Electron Beam</text>
-                        <text x="500" y="245" text-anchor="middle" class="component-label">Transport</text>
-                    </g>
+                <!-- ================= ACCELERATOR (horizontal) ================= -->
 
-                    <!-- Gantry -->
-                    <g class="hover-area" id="gantry">
-                        <rect x="400" y="250" width="160" height="160" fill="#f8fafc" stroke="#1a365d"/>
-                        <text x="480" y="330" text-anchor="middle" class="component-label">Gantry</text>
-                    </g>
+                <!-- Electron gun -->
+                <g class="part" data-title="Electron Gun"
+                   data-info="Produces electrons by thermionic emission from a heated cathode and injects them in tightly timed pulses into the accelerating waveguide.">
+                    <rect class="body" x="66" y="112" width="48" height="36" rx="3" fill="#5b6470" stroke="#828c99"/>
+                    <rect class="outline" x="66" y="112" width="48" height="36" rx="3" fill="none"/>
+                    <circle class="body" cx="80" cy="130" r="6" fill="#22d3ee"/>
+                    <text x="90" y="104" text-anchor="middle" class="lbl">Electron Gun</text>
+                    <rect class="hit" x="60" y="92" width="60" height="62"/>
+                </g>
 
-                    <!-- Target and Beam Shaping -->
-                    <g class="hover-area" id="target">
-                        <circle cx="480" cy="270" r="10" fill="#f8fafc" stroke="#1a365d"/>
-                        <text x="520" y="270" text-anchor="middle" class="component-label">X-ray Target</text>
+                <!-- Accelerating waveguide -->
+                <g class="part" data-title="Accelerating Waveguide"
+                   data-info="A series of resonant copper cavities where microwave RF fields accelerate the electrons to 4–25 MeV (standing-wave or travelling-wave designs).">
+                    <rect class="body" x="118" y="118" width="254" height="24" rx="4" fill="#5b6470" stroke="#828c99"/>
+                    <g class="body" stroke="#828c99" stroke-width="1">
+                        <line x1="140" y1="118" x2="140" y2="142"/><line x1="162" y1="118" x2="162" y2="142"/>
+                        <line x1="184" y1="118" x2="184" y2="142"/><line x1="206" y1="118" x2="206" y2="142"/>
+                        <line x1="228" y1="118" x2="228" y2="142"/><line x1="250" y1="118" x2="250" y2="142"/>
+                        <line x1="272" y1="118" x2="272" y2="142"/><line x1="294" y1="118" x2="294" y2="142"/>
+                        <line x1="316" y1="118" x2="316" y2="142"/><line x1="338" y1="118" x2="338" y2="142"/>
+                        <line x1="360" y1="118" x2="360" y2="142"/>
                     </g>
+                    <rect class="outline" x="118" y="118" width="254" height="24" rx="4" fill="none"/>
+                    <text x="245" y="110" text-anchor="middle" class="lbl">Accelerating Waveguide</text>
+                    <rect class="hit" x="118" y="116" width="254" height="28"/>
+                </g>
 
-                    <!-- Isocenter indicator -->
-                    <g class="hover-area" id="isocenter">
-                        <circle cx="480" cy="350" r="5" fill="#1a365d"/>
-                        <text x="530" y="350" text-anchor="middle" class="component-label">Isocenter</text>
-                    </g>
+                <!-- RF power source (klystron) -->
+                <g class="part" data-title="RF Power Source (Klystron / Magnetron)"
+                   data-info="A klystron (amplifier) or magnetron (oscillator) generates the high-power ~3 GHz microwaves that create the accelerating electric fields inside the waveguide.">
+                    <rect class="body" x="150" y="250" width="80" height="66" rx="4" fill="#5b6470" stroke="#828c99"/>
+                    <!-- RF waveguide feed up to the accelerator -->
+                    <path class="body" d="M172,250 L172,196 L250,196 L250,142" fill="none" stroke="#828c99" stroke-width="6"/>
+                    <rect class="outline" x="150" y="250" width="80" height="66" rx="4" fill="none"/>
+                    <text x="190" y="334" text-anchor="middle" class="lbl">RF Power Source</text>
+                    <text x="190" y="348" text-anchor="middle" class="lbl-sub">(Klystron / Magnetron)</text>
+                    <rect class="hit" x="150" y="250" width="80" height="66"/>
+                </g>
 
-                    <!-- Treatment Couch -->
-                    <g class="hover-area" id="couch">
-                        <rect x="400" y="380" width="200" height="20" fill="#f8fafc" stroke="#1a365d"/>
-                        <text x="500" y="420" text-anchor="middle" class="component-label">Treatment Couch</text>
-                    </g>
+                <!-- 270 degree bending magnet -->
+                <g class="part" data-title="270° Bending Magnet"
+                   data-info="An achromatic three-sector magnet bends the horizontal electron beam back toward the patient and selects/focuses the beam energy before it strikes the target.">
+                    <rect class="body" x="376" y="100" width="78" height="92" rx="6" fill="#3a4250" stroke="#828c99"/>
+                    <path class="body" d="M392,128 C 444,120 452,150 424,162 C 412,167 410,176 410,186"
+                          fill="none" stroke="rgba(34,211,238,0.35)" stroke-width="6"/>
+                    <rect class="outline" x="376" y="100" width="78" height="92" rx="6" fill="none"/>
+                    <text x="415" y="92" text-anchor="middle" class="lbl">270° Bending Magnet</text>
+                    <rect class="hit" x="376" y="100" width="78" height="92"/>
+                </g>
 
-                    <!-- Beam path indicator -->
-                    <path d="M480 280 L480 420" stroke="#1a365d" stroke-width="1" stroke-dasharray="5,5"/>
-                    
-                    <!-- Gantry axis -->
-                    <g>
-                        <text x="420" y="350" text-anchor="end" class="component-label">Gantry Axis</text>
-                        <line x1="430" y1="350" x2="470" y2="350" stroke="#1a365d" stroke-width="1"/>
+                <!-- ================= TREATMENT HEAD (vertical stack, centerline x=410) ================= -->
+                <!-- Head housing outline -->
+                <polygon points="372,196 448,196 472,432 348,432" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.12)"/>
+                <text x="488" y="208" class="lbl-sub">Treatment Head</text>
+
+                <!-- X-ray target -->
+                <g class="part" data-title="X-ray Target"
+                   data-info="A high-Z (tungsten) target. Accelerated electrons strike it and emit bremsstrahlung X-rays for photon therapy. The target is retracted in electron mode.">
+                    <rect class="body" x="396" y="197" width="28" height="11" rx="2" fill="#cbd5e1" stroke="#94a3b8"/>
+                    <rect class="outline" x="396" y="197" width="28" height="11" rx="2" fill="none"/>
+                    <line class="leader" x1="424" y1="202" x2="506" y2="225"/>
+                    <text x="510" y="229" class="lbl">X-ray Target</text>
+                    <rect class="hit" x="392" y="194" width="36" height="18"/>
+                </g>
+
+                <!-- Primary collimator -->
+                <g class="part" data-title="Primary Collimator"
+                   data-info="A fixed tungsten block with a conical opening that defines the maximum circular field and absorbs photons travelling outside the useful beam.">
+                    <polygon class="body" points="372,214 404,214 410,240 372,240" fill="#5b6470" stroke="#828c99"/>
+                    <polygon class="body" points="448,214 416,214 410,240 448,240" fill="#5b6470" stroke="#828c99"/>
+                    <line class="leader" x1="448" y1="227" x2="506" y2="252"/>
+                    <text x="510" y="256" class="lbl">Primary Collimator</text>
+                    <rect class="hit" x="372" y="214" width="76" height="28"/>
+                </g>
+
+                <!-- Carousel / flattening filter -->
+                <g class="part" data-title="Carousel — Flattening Filter / Scattering Foil"
+                   data-info="Holds the flattening filter that flattens the photon fluence, or in electron mode a scattering foil that spreads the pencil beam. Removed for flattening-filter-free (FFF) beams.">
+                    <polygon class="body" points="410,250 392,270 428,270" fill="#b45309" stroke="#d97706"/>
+                    <line class="leader" x1="428" y1="262" x2="506" y2="282"/>
+                    <text x="510" y="278" class="lbl">Carousel</text>
+                    <text x="510" y="292" class="lbl-sub">Flattening Filter / Foil</text>
+                    <rect class="hit" x="388" y="250" width="44" height="22"/>
+                </g>
+
+                <!-- Monitor ion chambers -->
+                <g class="part" data-title="Monitor Ion Chambers"
+                   data-info="Sealed, redundant transmission ionization chambers that measure delivered dose (MU) and monitor beam flatness and symmetry. They terminate the beam once the set MU is reached.">
+                    <rect class="body" x="378" y="284" width="64" height="5" rx="1" fill="#64748b" stroke="#94a3b8"/>
+                    <rect class="body" x="378" y="292" width="64" height="5" rx="1" fill="#64748b" stroke="#94a3b8"/>
+                    <line class="leader" x1="442" y1="290" x2="506" y2="306"/>
+                    <text x="510" y="310" class="lbl">Monitor Ion Chambers</text>
+                    <rect class="hit" x="378" y="282" width="64" height="18"/>
+                </g>
+
+                <!-- Field light mirror -->
+                <g class="part" data-title="Field Light Mirror"
+                   data-info="A thin mirror placed in the beam at 45°. It projects a light field that coincides with the radiation field, used to position the patient and visualize the field on the skin.">
+                    <line class="body" x1="390" y1="322" x2="430" y2="304" stroke="#a5f3fc" stroke-width="3"/>
+                    <line class="leader" x1="430" y1="304" x2="506" y2="334"/>
+                    <text x="510" y="338" class="lbl">Field Light Mirror</text>
+                    <rect class="hit" x="384" y="300" width="52" height="28"/>
+                </g>
+
+                <!-- Secondary collimator (jaws) -->
+                <g class="part" data-title="Secondary Collimator (Jaws)"
+                   data-info="Movable paired tungsten jaws (independent X and Y) that define the rectangular field size projected at isocenter.">
+                    <rect class="body" x="372" y="338" width="32" height="20" rx="2" fill="#5b6470" stroke="#828c99"/>
+                    <rect class="body" x="416" y="338" width="32" height="20" rx="2" fill="#5b6470" stroke="#828c99"/>
+                    <line class="leader" x1="448" y1="348" x2="506" y2="362"/>
+                    <text x="510" y="366" class="lbl">Secondary Collimator</text>
+                    <text x="510" y="380" class="lbl-sub">(X / Y Jaws)</text>
+                    <rect class="hit" x="372" y="338" width="76" height="20"/>
+                </g>
+
+                <!-- MLC -->
+                <g class="part" data-title="Multi-Leaf Collimator (MLC)"
+                   data-info="Dozens of independently motorized tungsten leaves that conform the field to the target shape and modulate intensity for IMRT and VMAT delivery.">
+                    <g class="body" fill="#828c99" stroke="#5b6470">
+                        <rect x="368" y="366" width="6" height="22"/><rect x="376" y="366" width="6" height="22"/>
+                        <rect x="384" y="366" width="6" height="20"/><rect x="392" y="366" width="6" height="17"/>
+                        <rect x="400" y="366" width="6" height="15"/><rect x="408" y="366" width="6" height="15"/>
+                        <rect x="416" y="366" width="6" height="17"/><rect x="424" y="366" width="6" height="20"/>
+                        <rect x="432" y="366" width="6" height="22"/><rect x="440" y="366" width="6" height="22"/>
                     </g>
-                </svg>
+                    <line class="leader" x1="446" y1="388" x2="506" y2="404"/>
+                    <text x="510" y="408" class="lbl">Multi-Leaf Collimator</text>
+                    <rect class="hit" x="366" y="366" width="82" height="24"/>
+                </g>
+
+                <!-- Isocenter -->
+                <g class="part" data-title="Isocenter (100 cm SAD)"
+                   data-info="The fixed point in space, 100 cm from the source, about which the gantry, collimator, and couch all rotate. The target volume is positioned here for treatment.">
+                    <circle class="body" cx="410" cy="500" r="7" fill="none" stroke="#ff5722" stroke-width="2"/>
+                    <line class="body" x1="400" y1="500" x2="420" y2="500" stroke="#ff5722" stroke-width="1"/>
+                    <line class="body" x1="410" y1="490" x2="410" y2="510" stroke="#ff5722" stroke-width="1"/>
+                    <line class="leader" x1="418" y1="494" x2="506" y2="476"/>
+                    <text x="510" y="480" class="lbl">Isocenter</text>
+                    <rect class="hit" x="398" y="488" width="24" height="24"/>
+                </g>
+
+                <!-- Treatment couch + patient -->
+                <g class="part" data-title="Treatment Couch"
+                   data-info="A robotic patient support with up to six degrees of freedom (translations and rotations) for sub-millimeter positioning of the target at isocenter.">
+                    <ellipse class="body" cx="410" cy="514" rx="72" ry="12" fill="#475569" stroke="#64748b"/>
+                    <rect class="body" x="300" y="520" width="220" height="14" rx="3" fill="#5b6470" stroke="#828c99"/>
+                    <rect class="body" x="300" y="534" width="20" height="58" fill="#5b6470" stroke="#828c99"/>
+                    <rect class="outline" x="300" y="520" width="220" height="14" rx="3" fill="none"/>
+                    <text x="410" y="612" text-anchor="middle" class="lbl">Treatment Couch &amp; Patient</text>
+                    <rect class="hit" x="300" y="502" width="220" height="40"/>
+                </g>
+            </svg>
+
+            <div class="tooltip" id="tooltip" aria-hidden="true">
+                <h3 id="tt-title"></h3>
+                <p id="tt-info"></p>
             </div>
-
-            <div class="info-panel">
-                <h2>Component Information</h2>
-                <div id="electron-gun-info" class="component-info">
-                    <h3 class="component-title">Electron Gun</h3>
-                    <p>Generates the initial electron beam through thermionic emission. Electrons are accelerated by an electric field to form the initial beam.</p>
-                </div>
-                <div id="rf-generator-info" class="component-info">
-                    <h3 class="component-title">RF Power Generator</h3>
-                    <p>Produces high-power microwave radiation (typically using a magnetron or klystron) that accelerates the electrons through the waveguide.</p>
-                </div>
-                <div id="waveguide-info" class="component-info">
-                    <h3 class="component-title">Accelerator</h3>
-                    <p>Accelerating waveguide structure where electrons gain energy from the RF waves through a series of carefully designed cavities.</p>
-                </div>
-                <div id="bending-magnet-info" class="component-info">
-                    <h3 class="component-title">Electron Beam Transport</h3>
-                    <p>System of bending magnets that steer the electron beam through approximately 270° to direct it toward the target. Also helps with energy selection.</p>
-                </div>
-                <div id="target-info" class="component-info">
-                    <h3 class="component-title">X-ray Target</h3>
-                    <p>High-Z material (typically tungsten) where electrons strike to produce bremsstrahlung X-rays for photon therapy. Includes beam shaping components like flattening filters.</p>
-                </div>
-                <div id="gantry-info" class="component-info">
-                    <h3 class="component-title">Gantry</h3>
-                    <p>Rotatable housing containing the beam transport system and treatment head. Allows beam delivery from any angle around the patient.</p>
-                </div>
-                <div id="isocenter-info" class="component-info">
-                    <h3 class="component-title">Isocenter</h3>
-                    <p>The point in space around which the gantry rotates. Treatment is typically planned with the target at isocenter.</p>
-                </div>
-                <div id="couch-info" class="component-info">
-                    <h3 class="component-title">Treatment Couch</h3>
-                    <p>Precision-engineered patient support system with multiple degrees of freedom for accurate patient positioning.</p>
-                </div>
-                <div id="stand-info" class="component-info">
-                    <h3 class="component-title">Stand</h3>
-                    <p>Main support structure that houses the RF generator and provides stability for the gantry system.</p>
-                </div>
-            </div>
         </div>
 
-        <div class="key-features">
-            <h2>Key Features</h2>
-            <ul>
-                <li>Electron acceleration occurs in waveguide structure</li>
-                <li>270° bending system transports beam to target</li>
-                <li>Isocentric rotation allows treatment from any angle</li>
-                <li>Precision beam shaping systems for accurate delivery</li>
-            </ul>
+        <div class="legend">
+            <div class="legend-item"><span class="swatch" style="background: var(--electron-beam)"></span> Electron beam (accelerated, bent)</div>
+            <div class="legend-item"><span class="swatch" style="background: var(--photon-beam)"></span> Photon beam (after target, divergent)</div>
+            <div class="legend-item"><span class="swatch" style="background: var(--metal)"></span> Beam-line components</div>
         </div>
 
-        <div class="disclaimer-content">
-            <span class="disclaimer-icon">⚠️</span><strong>Educational Purpose Only:</strong> This diagram is designed for educational and training purposes only. It is a simplified representation and should not be used for clinical decision-making or maintenance procedures.
-            <br><br>
-            Last Updated: November 2024 | Version 1.0
+        <p class="hint">Hover (or tap) any labeled component to see what it does.</p>
+
+        <div class="disclaimer">
+            <strong>⚠️ Educational purpose only.</strong> This is a simplified, schematic cross-section of a
+            C-arm photon/electron linac (Varian-style 270° bend). Real machines vary in geometry — some use
+            in-line waveguides with no bend, and component order/shape differs by vendor. Not for clinical or
+            service use. &nbsp;|&nbsp; Updated June 2026 | Version 2.0
         </div>
     </div>
 
     <script>
-        document.querySelectorAll('.hover-area').forEach(area => {
-            area.addEventListener('mouseenter', () => {
-                document.querySelectorAll('.component-info').forEach(panel => {
-                    panel.classList.remove('active');
+        (function () {
+            const wrap = document.getElementById('diagram');
+            const tooltip = document.getElementById('tooltip');
+            const ttTitle = document.getElementById('tt-title');
+            const ttInfo = document.getElementById('tt-info');
+            const parts = wrap.querySelectorAll('.part');
+
+            function showTooltip(part) {
+                ttTitle.textContent = part.dataset.title || '';
+                ttInfo.textContent = part.dataset.info || '';
+                tooltip.classList.add('show');
+                tooltip.setAttribute('aria-hidden', 'false');
+                wrap.classList.add('dim');
+                part.classList.add('active');
+            }
+
+            function hideTooltip(part) {
+                tooltip.classList.remove('show');
+                tooltip.setAttribute('aria-hidden', 'true');
+                wrap.classList.remove('dim');
+                if (part) part.classList.remove('active');
+            }
+
+            function positionTooltip(clientX, clientY) {
+                const wrapRect = wrap.getBoundingClientRect();
+                let x = clientX - wrapRect.left + 16;
+                let y = clientY - wrapRect.top + 16;
+
+                // Keep the bubble inside the diagram
+                const ttRect = tooltip.getBoundingClientRect();
+                const maxX = wrapRect.width - ttRect.width - 8;
+                const maxY = wrapRect.height - ttRect.height - 8;
+                if (x > maxX) x = clientX - wrapRect.left - ttRect.width - 16;
+                if (y > maxY) y = maxY;
+                if (x < 8) x = 8;
+                if (y < 8) y = 8;
+
+                tooltip.style.left = x + 'px';
+                tooltip.style.top = y + 'px';
+            }
+
+            parts.forEach(part => {
+                part.addEventListener('mouseenter', (e) => {
+                    showTooltip(part);
+                    positionTooltip(e.clientX, e.clientY);
                 });
-                document.getElementById(area.id + '-info').classList.add('active');
+                part.addEventListener('mousemove', (e) => positionTooltip(e.clientX, e.clientY));
+                part.addEventListener('mouseleave', () => hideTooltip(part));
+
+                // Touch / click support
+                part.addEventListener('click', (e) => {
+                    const isActive = part.classList.contains('active');
+                    parts.forEach(p => p.classList.remove('active'));
+                    if (isActive) {
+                        hideTooltip();
+                    } else {
+                        showTooltip(part);
+                        const r = part.getBoundingClientRect();
+                        positionTooltip(r.left + r.width / 2, r.top + r.height / 2);
+                    }
+                    e.stopPropagation();
+                });
             });
-        });
+
+            document.addEventListener('click', () => {
+                parts.forEach(p => p.classList.remove('active'));
+                hideTooltip();
+            });
+        })();
     </script>
 </body>
 </html>

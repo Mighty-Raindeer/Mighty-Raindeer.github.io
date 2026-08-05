@@ -341,8 +341,8 @@
                     <div class="input-row">
                         <div class="input-group">
                             <label for="ndw">N_D,w (Gy/nC):</label>
-                            <input type="number" id="ndw" step="0.001" value="5.394">
-                            <small>At reference conditions</small>
+                            <input type="number" id="ndw" step="0.0001" value="0.0539">
+                            <small>Typical Farmer chamber ≈ 0.054 Gy/nC (5.4×10⁷ Gy/C)</small>
                         </div>
                         <div class="input-group">
                             <label for="calibration-date">Calibration Date:</label>
@@ -492,6 +492,21 @@
                             <strong>k'_R50 = <span id="kr50-value">1.010</span></strong>
                         </div>
                     </div>
+
+                    <div class="info-box">
+                        <h4>Note on k<sub>Q</sub> for electrons (simplification)</h4>
+                        <ul>
+                            <li>In TG-51, the full electron beam-quality factor is
+                                <strong>k<sub>Q</sub> = P<sub>gr</sub><sup>Q</sup> · k'<sub>R50</sub> · k<sub>ecal</sub></strong>.</li>
+                            <li>This tool applies <strong>k'<sub>R50</sub></strong> (the beam-quality dependence)
+                                and the gradient correction P<sub>gr</sub>, but <strong>omits k<sub>ecal</sub></strong>,
+                                the chamber-specific photon-to-electron conversion factor
+                                (e.g. ≈ 0.897 for an NE2571, ≈ 0.906 for an Exradin A12 — see TG-51 Table III).</li>
+                            <li>As a result the electron output here is for <strong>teaching the R₅₀ → k'<sub>R50</sub>
+                                workflow</strong>; the absolute dose is approximate. Multiply by the
+                                chamber's k<sub>ecal</sub> for a complete TG-51 electron calculation.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
@@ -638,27 +653,25 @@
             document.getElementById('mh-avg').textContent = mhAvg.toFixed(3);
             document.getElementById('ml-avg').textContent = mlAvg.toFixed(3);
             
-            // Calculate P_ion (two-voltage method)
+            // Calculate P_ion (two-voltage method) per AAPM TG-51 Eq. (17)
+            // P_ion(V_H) = [1 - (V_H/V_L)] / [(M_H/M_L) - (V_H/V_L)]
+            // Reference voltages here: V_H = 300 V, V_L = 150 V  ->  V_H/V_L = 2
             if (mlAvg > 0) {
-                const ratio = mhAvg / mlAvg;
-                let pion;
-                
-                if (ratio >= 1.05) {
-                    // Use Equation 9 from TG-51
-                    pion = 1.0 + 0.0017 * (300/150 - 1) / (ratio - 1);
-                } else {
-                    // Use standard two-voltage formula
-                    const a0 = 2.337;
-                    const a1 = -3.636;
-                    const a2 = 2.299;
-                    pion = a0 - a1 * ratio + a2 * ratio * ratio;
-                }
-                
+                const voltageRatio = 300 / 150;          // V_H / V_L
+                const chargeRatio = mhAvg / mlAvg;        // M_raw(V_H) / M_raw(V_L)
+                let pion = (1 - voltageRatio) / (chargeRatio - voltageRatio);
+
+                // Physical recombination correction is >= 1; guard against measurement noise
+                if (!isFinite(pion) || pion < 1) pion = 1.0;
+
                 document.getElementById('pion-result').textContent = pion.toFixed(4);
-                
-                // Calculate P_pol
-                const ppol = Math.abs((mhPlus - Math.abs(mhMinus)) / (2 * mhAvg));
-                document.getElementById('ppol-result').textContent = (1 + ppol).toFixed(4);
+
+                // Calculate P_pol per AAPM TG-51 Eq. (16)
+                // P_pol = |M_raw(+) - M_raw(-)| / (2 * M_raw)
+                // M_raw(+) and M_raw(-) are opposite-polarity readings (entered as magnitudes here),
+                // so |M(+) - M(-)| = |M(+)| + |M(-)|. M_raw is the reference-polarity reading (V_H, +).
+                const ppol = (Math.abs(mhPlus) + Math.abs(mhMinus)) / (2 * Math.abs(mhPlus));
+                document.getElementById('ppol-result').textContent = ppol.toFixed(4);
             }
         }
 
@@ -714,11 +727,12 @@
             const pelec = parseFloat(document.getElementById('pelec').value) || 1.000;
             const pgrad = parseFloat(document.getElementById('pgrad').value) || 1.000;
             
-            // Get charge reading (using high voltage average)
-            const mRaw = parseFloat(document.getElementById('mh-avg').textContent) || 10.0;
-            
+            // Get raw charge reading: reference polarity (+) at the normal operating voltage V_H.
+            // P_pol then corrects this single-polarity reading to the polarity-averaged value.
+            const mRaw = parseFloat(document.getElementById('mh-plus').value) || 10.0;
+
             // Get calibration factors
-            const ndw = parseFloat(document.getElementById('ndw').value) || 5.394;
+            const ndw = parseFloat(document.getElementById('ndw').value) || 0.0539;
             const kq = calculateKQ();
             
             // Calculate corrected charge
@@ -758,9 +772,9 @@
             const ppol = parseFloat(document.getElementById('ppol-result').textContent) || 1.0003;
             const pelec = parseFloat(document.getElementById('pelec').value) || 1.000;
             
-            // Get charge and N_D,w
-            const mRaw = parseFloat(document.getElementById('mh-avg').textContent) || 10.0;
-            const ndw = parseFloat(document.getElementById('ndw').value) || 5.394;
+            // Get charge and N_D,w (reference polarity (+) at V_H; P_pol corrects to polarity average)
+            const mRaw = parseFloat(document.getElementById('mh-plus').value) || 10.0;
+            const ndw = parseFloat(document.getElementById('ndw').value) || 0.0539;
             
             // Calculate corrected charge (including P_grad,E)
             const mCorrected = mRaw * pion * ppol * pelec * pgradE * ptp;
