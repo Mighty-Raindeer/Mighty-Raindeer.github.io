@@ -153,6 +153,20 @@
       box-shadow: inset 0 0 2.4rem rgba(93, 214, 255, 0.08), 0 0 3.5rem rgba(44, 126, 222, 0.13);
     }
 
+    .profile-photo {
+      position: absolute;
+      right: clamp(1.5rem, 5vw, 3.4rem);
+      bottom: clamp(1.5rem, 4vw, 2.9rem);
+      z-index: 2;
+      width: clamp(5.5rem, 14vw, 8.5rem);
+      aspect-ratio: 1;
+      border: 2px solid var(--accent-primary);
+      border-radius: 50%;
+      background: var(--bg-card);
+      box-shadow: 0 0 0 0.45rem rgba(93, 214, 255, 0.09), 0 1rem 2rem rgba(0, 0, 0, 0.25);
+      object-fit: cover;
+    }
+
     @keyframes cv-orbit { to { transform: rotate(1turn); } }
     @keyframes cv-card-glow { to { --card-orbit-angle: 372deg; } }
 
@@ -185,7 +199,7 @@
     }
 
     .role-line {
-      max-width: 38rem;
+      max-width: 31rem;
       margin: 1.35rem 0 0;
       color: var(--text-secondary);
       font-size: clamp(1rem, 2vw, 1.16rem);
@@ -212,6 +226,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.45rem;
+      max-width: calc(100% - clamp(7rem, 17vw, 11rem));
       margin: 1.2rem 0 0;
       padding: 0;
       list-style: none;
@@ -447,6 +462,12 @@
       .detail-card--wide { grid-column: auto; }
       .github-grid { grid-template-columns: 1fr; }
       .hero-orbit { top: -7rem; right: -8.5rem; }
+      .profile-photo { right: 1.5rem; bottom: 1.5rem; }
+    }
+
+    @media (max-width: 440px) {
+      .profile-photo { position: relative; right: auto; bottom: auto; display: block; margin: 0 0 1.5rem; }
+      .skills { max-width: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -486,6 +507,7 @@
 
     <header class="cv-hero">
       <div class="hero-orbit" aria-hidden="true"></div>
+      <img class="profile-photo" src="https://github.com/Mighty-Raindeer.png" alt="Rainor Connor" onerror="this.style.display='none'">
       <p class="eyebrow">Curriculum Vitae</p>
       <h1>Rainor Connor<span class="credential">MS, DABR</span></h1>
       <p class="role-line">Medical Physicist · Clinical operations, research, and radiation oncology</p>
@@ -668,7 +690,7 @@
         </article>
 
         <article class="detail-card detail-card--wide github-card">
-          <h3>Open-source work</h3>
+          <h3>GitHub activity</h3>
           <p>Projects include Radash, Plan Pilot, and the interactive medical physics tools on <a href="https://github.com/Mighty-Raindeer" target="_blank" rel="noopener">github.com/Mighty-Raindeer</a>.</p>
           <div class="github-grid">
             <img loading="lazy" alt="Top languages used by Mighty-Raindeer on GitHub" onerror="this.style.display='none'" src="https://github-readme-stats.vercel.app/api/top-langs/?username=Mighty-Raindeer&amp;layout=compact&amp;hide_border=true&amp;bg_color=0d1d31&amp;title_color=5dd6ff&amp;text_color=9bb8cd">
