@@ -93,7 +93,8 @@
     .cv-hero {
       position: relative;
       overflow: hidden;
-      padding: clamp(2rem, 5.5vw, 4.25rem);
+      min-height: clamp(15.5rem, 27vw, 19rem);
+      padding: clamp(1.65rem, 3vw, 2.75rem) clamp(12rem, 29vw, 20rem) clamp(1.65rem, 3vw, 2.75rem) clamp(1.65rem, 3vw, 2.75rem);
       border: 1px solid var(--border-color);
       border-radius: 1.25rem;
       background: linear-gradient(125deg, rgba(17, 42, 68, 0.98), rgba(9, 29, 51, 0.83));
@@ -116,18 +117,26 @@
       animation: cv-card-glow 14s linear infinite;
     }
 
-    .cv-hero > :not(.hero-orbit) {
+    .cv-hero > :not(.profile-orbit) {
       position: relative;
       z-index: 2;
     }
 
+    .profile-orbit {
+      position: absolute;
+      z-index: 2;
+      top: 50%;
+      right: clamp(1.5rem, 4vw, 3.5rem);
+      width: clamp(11.5rem, 23vw, 16.5rem);
+      aspect-ratio: 1;
+      pointer-events: none;
+      transform: translateY(-50%);
+    }
+
     .hero-orbit {
       position: absolute;
+      inset: 0;
       z-index: 0;
-      top: -8.5rem;
-      right: -6.5rem;
-      width: clamp(15rem, 33vw, 22rem);
-      aspect-ratio: 1;
       pointer-events: none;
       opacity: 0.8;
     }
@@ -155,10 +164,8 @@
 
     .profile-photo {
       position: absolute;
-      right: clamp(1.5rem, 5vw, 3.4rem);
-      bottom: clamp(1.5rem, 4vw, 2.9rem);
-      z-index: 2;
-      width: clamp(5.5rem, 14vw, 8.5rem);
+      inset: 28%;
+      z-index: 1;
       aspect-ratio: 1;
       border: 2px solid var(--accent-primary);
       border-radius: 50%;
@@ -226,7 +233,6 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.45rem;
-      max-width: calc(100% - clamp(7rem, 17vw, 11rem));
       margin: 1.2rem 0 0;
       padding: 0;
       list-style: none;
@@ -455,19 +461,22 @@
     @media (max-width: 640px) {
       .cv-shell { width: min(100% - 1.5rem, 71rem); }
       .cv-nav { margin-bottom: 1rem; }
-      .cv-hero { border-radius: 1rem; }
+      .cv-hero {
+        min-height: 15.5rem;
+        padding-right: 12.5rem;
+        border-radius: 1rem;
+      }
       .role-heading { grid-template-columns: 1fr; gap: 0.25rem; }
       .date { text-align: left; white-space: normal; }
       .details-grid { grid-template-columns: 1fr; }
       .detail-card--wide { grid-column: auto; }
       .github-grid { grid-template-columns: 1fr; }
-      .hero-orbit { top: -7rem; right: -8.5rem; }
-      .profile-photo { right: 1.5rem; bottom: 1.5rem; }
+      .profile-orbit { right: 1rem; width: 10rem; }
     }
 
     @media (max-width: 440px) {
-      .profile-photo { position: relative; right: auto; bottom: auto; display: block; margin: 0 0 1.5rem; }
-      .skills { max-width: none; }
+      .cv-hero { min-height: 0; padding-right: 1.5rem; }
+      .profile-orbit { position: relative; top: auto; right: auto; display: block; width: 9.5rem; margin: 0 0 1.5rem; transform: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -481,7 +490,7 @@
     @media print {
       @page { margin: 0.5in; }
       body { background: #fff; color: #111827; font-family: "Segoe UI", Arial, sans-serif; font-size: 10pt; }
-      .skip-link, .cv-nav, .cv-footer, .hero-orbit, .github-card { display: none; }
+      .skip-link, .cv-nav, .cv-footer, .profile-orbit, .github-card { display: none; }
       .cv-shell { width: 100%; padding: 0; }
       .cv-hero, .summary-card, .experience-group, .detail-card { box-shadow: none; break-inside: avoid; }
       .cv-hero { padding: 0 0 1.2rem; border: 0; border-bottom: 2px solid #0f4c81; border-radius: 0; background: none; }
@@ -506,8 +515,10 @@
     </nav>
 
     <header class="cv-hero">
-      <div class="hero-orbit" aria-hidden="true"></div>
-      <img class="profile-photo" src="https://github.com/Mighty-Raindeer.png" alt="Rainor Connor" onerror="this.style.display='none'">
+      <div class="profile-orbit">
+        <div class="hero-orbit" aria-hidden="true"></div>
+        <img class="profile-photo" src="https://github.com/Mighty-Raindeer.png" alt="Rainor Connor" onerror="this.style.display='none'">
+      </div>
       <p class="eyebrow">Curriculum Vitae</p>
       <h1>Rainor Connor<span class="credential">MS, DABR</span></h1>
       <p class="role-line">Medical Physicist · Clinical operations, research, and radiation oncology</p>
