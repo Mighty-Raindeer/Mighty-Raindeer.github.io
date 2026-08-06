@@ -55,21 +55,10 @@
     }
     </script>
 
-    <!-- Google Analytics 4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-XXXXXXXXXX');
-
-        function trackNavigation(destination) {
-            gtag('event', 'navigate_study', { 'destination': destination });
-        }
-
-        function trackExternalLink(url) {
-            gtag('event', 'external_link', { 'link_url': url });
-        }
+        // Navigation helpers retained for onclick handlers; analytics intentionally not configured.
+        function trackNavigation(_destination) {}
+        function trackExternalLink(_url) {}
     </script>
 
     <style>
@@ -280,7 +269,8 @@
         <header class="hero">
             <p class="eyebrow">Medical Physicist</p>
             <h1>Rainor Connor</h1>
-            <p>Medical Physics · Radiation Oncology · Research &amp; Education</p>
+            <p>Medical Physics · Clinical Software · Automation &amp; Education</p>
+            <p>I build clinical applications, educational tools, workflow simulations, and automation for radiation oncology and medical physics.</p>
         </header>
 
         <nav class="orbit-stage" aria-label="Primary navigation">
@@ -295,16 +285,11 @@
             </a>
         </nav>
 
-        <footer>© 2024 Rainor Connor. All rights reserved.</footer>
+        <footer>© <span id="copyright-year"></span> Rainor Connor. All rights reserved.</footer>
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            gtag('event', 'page_view', {
-                'page_title': 'Home',
-                'page_location': window.location.href
-            });
-        });
+        document.getElementById('copyright-year').textContent = String(new Date().getFullYear());
     </script>
 </body>
 </html>
