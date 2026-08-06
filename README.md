@@ -24,6 +24,8 @@ This software is provided for research, education, and development. It is not a 
 
 Users are responsible for independent code review, testing, commissioning, verification of calculations and outputs, and compliance with applicable institutional policies before using any portion of the software in a clinical environment.
 
+No patient information or protected health information is included in this repository. Example CT slices under `modules/tools/data/` are publicly available anonymized sample data.
+
 ## Repository notes
 
 This repository hosts the static site source for GitHub Pages. Do not alter calculator physics or module technical content in documentation-only refreshes without separate review.
