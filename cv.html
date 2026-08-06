@@ -714,7 +714,10 @@
       </div>
     </section>
 
-    <footer class="cv-footer">© 2024 Rainor Connor. All rights reserved.</footer>
+    <footer class="cv-footer">© <span id="copyright-year"></span> Rainor Connor. All rights reserved.</footer>
   </main>
+  <script>
+    document.getElementById('copyright-year').textContent = String(new Date().getFullYear());
+  </script>
 </body>
 </html>
