@@ -6,19 +6,20 @@
     <title>Treatment Technique Comparison | 3D-CRT vs IMRT vs VMAT</title>
     <style>
         :root {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #242424;
-            --bg-card: #2d2d2d;
-            --text-primary: #e0e0e0;
-            --text-secondary: #b0b0b0;
-            --accent: #ff5722;
-            --border: rgba(255,255,255,0.1);
+            --bg-primary: #07111f;
+            --bg-secondary: #0d1d31;
+            --bg-card: #112a44;
+            --text-primary: #edf8ff;
+            --text-secondary: #9bb8cd;
+            --accent: #5dd6ff;
+            --accent-hover: #9ae8ff;
+            --border: rgba(142, 213, 255, 0.2);
             --col-3d: #2196f3;
             --col-imrt: #ff9800;
             --col-vmat: #4caf50;
         }
         * { box-sizing: border-box; }
-        body { margin:0; padding:20px; background:var(--bg-primary); color:var(--text-primary); font-family:'Montserrat',sans-serif; }
+        body { margin:0; padding:2rem; background:var(--bg-primary); color:var(--text-primary); font-family:'Montserrat',sans-serif; }
         .container { max-width:1400px; margin:0 auto; }
         h1 { color:var(--accent); text-align:center; margin-bottom:8px; }
         .intro { text-align:center; color:var(--text-secondary); max-width:860px; margin:0 auto 24px; line-height:1.6; }
@@ -47,7 +48,7 @@
         .panel h2 { color:var(--accent); margin:0 0 12px; font-size:1.1rem; }
 
         /* Canvas */
-        .canvas-wrap { position:relative; width:100%; background:#080808; border-radius:4px; overflow:hidden; }
+        .canvas-wrap { position:relative; width:100%; background:var(--bg-primary); border-radius:4px; overflow:hidden; }
         .canvas-wrap canvas { display:block; width:100%; }
 
         /* Slider */
@@ -109,6 +110,10 @@
             .compare-grid { grid-template-columns:1fr; }
             .detail-grid { grid-template-columns:1fr; }
             .pros-cons { grid-template-columns:1fr; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
         }
     </style>
 </head>
@@ -599,7 +604,7 @@ function renderDose(canvas, tech, site) {
     const rx = W * 0.40, ry = H * 0.40 * GEO[site].bodyRatio * (W/H < 1.2 ? 1.1 : 1.0);
 
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#080808';
+    ctx.fillStyle = '#07111f';
     ctx.fillRect(0, 0, W, H);
 
     // Dose heatmap (skip pixels outside body)
@@ -690,7 +695,7 @@ function renderBeam(canvas, tech, arcAngle, site) {
     const cx = W/2, cy = H/2;
     const R = Math.min(W,H) * 0.36;
 
-    ctx.fillStyle = '#080808';
+    ctx.fillStyle = '#07111f';
     ctx.fillRect(0,0,W,H);
 
     // Body circle
@@ -878,7 +883,7 @@ function renderDVH(canvas, site) {
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
 
-    ctx.fillStyle = '#080808';
+    ctx.fillStyle = '#07111f';
     ctx.fillRect(0,0,W,H);
 
     const PAD_L=54, PAD_R=20, PAD_T=18, PAD_B=38;
